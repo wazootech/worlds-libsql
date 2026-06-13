@@ -2,10 +2,10 @@ import type { Client, InStatement } from "@libsql/client";
 import type {
   ChunkRowPayload,
   TextSplitterInterface,
-} from "@/client/search-index/quad-chunker/mod.ts";
-import { chunkQuads } from "@/client/search-index/quad-chunker/mod.ts";
+} from "@worlds/client/search-index/quad-chunker";
+import { chunkQuads } from "@worlds/client/search-index/quad-chunker";
 import type * as rdfjs from "@rdfjs/types";
-import { hashQuads } from "@/client/quad-store/mod.ts";
+import { hashQuads } from "@worlds/client/quad-store";
 import type { LibsqlClientBaseOptions } from "@/libsql/libsql-client-base-options.ts";
 import type { LibsqlSearchQueryBuilder } from "./libsql-search-query-builder.ts";
 import { buildSelectLabelLiteralsForSubjects } from "@/libsql/quad-store/libsql-quad-query-builder.ts";

@@ -3,7 +3,7 @@ import type { Client } from "@libsql/client";
 import { createClient } from "@libsql/client";
 import { DataFactory } from "n3";
 import type * as rdfjs from "@rdfjs/types";
-import { collectQuadsFromStream } from "@/client/quad-store/mod.ts";
+import { collectQuadsFromStream } from "@worlds/client/quad-store";
 import { LibsqlRdfjsStore } from "./mod.ts";
 import { testLibsqlSchemaBuilder } from "@/libsql/libsql-test-fixtures.ts";
 

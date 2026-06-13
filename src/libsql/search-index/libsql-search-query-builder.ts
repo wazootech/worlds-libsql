@@ -1,5 +1,5 @@
-import type { QuadFilter } from "@/client/quad-store/mod.ts";
-import type { SearchRequest } from "@/client/search-index/mod.ts";
+import type { QuadFilter } from "@worlds/client/quad-store";
+import type { SearchRequest } from "@worlds/client/search-index";
 
 const LIBSQL_FTS_STOPWORDS = new Set([
   "a",

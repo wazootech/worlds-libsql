@@ -1,4 +1,4 @@
-import type { ChunkRowPayload } from "@/client/search-index/quad-chunker/mod.ts";
+import type { ChunkRowPayload } from "@worlds/client/search-index/quad-chunker";
 
 /**
  * BuildChunkFtsValueOptions supplies subject label literals looked up from durable quads.

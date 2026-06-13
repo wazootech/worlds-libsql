@@ -4,12 +4,12 @@ import type {
   ExportResponse,
   ImportRequest,
   QuadStoreInterface,
-} from "@/client/quad-store/mod.ts";
+} from "@worlds/client/quad-store";
 import {
   exportFromRdfjsStore,
   importViaTransaction,
   Transaction,
-} from "@/client/quad-store/mod.ts";
+} from "@worlds/client/quad-store";
 import type { LibsqlClientBaseOptions } from "../libsql-client-base-options.ts";
 import type { LibsqlRdfjsStore } from "../rdfjs-store/mod.ts";
 import type { LibsqlSearchQueryBuilder } from "../search-index/libsql-search-query-builder.ts";

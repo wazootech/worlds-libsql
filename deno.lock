@@ -1,6 +1,15 @@
 {
   "version": "5",
   "specifiers": {
+    "jsr:@std/assert@^1.0.19": "1.0.19",
+    "jsr:@std/async@^1.4.0": "1.4.0",
+    "jsr:@std/data-structures@^1.1.0": "1.1.0",
+    "jsr:@std/encoding@^1.0.10": "1.0.10",
+    "jsr:@std/fs@^1.0.24": "1.0.24",
+    "jsr:@std/internal@^1.0.12": "1.0.14",
+    "jsr:@std/internal@^1.0.14": "1.0.14",
+    "jsr:@std/path@^1.1.5": "1.1.5",
+    "jsr:@worlds/client@0.0.17": "0.0.17",
     "npm:@ai-sdk/google@^3.0.80": "3.0.80_zod@4.4.3",
     "npm:@comunica/query-sparql-rdfjs-lite@^5.2.3": "5.2.3",
     "npm:@langchain/core@^1.1.48": "1.1.48",
@@ -14,6 +23,58 @@
     "npm:n3@^2.0.3": "2.0.3",
     "npm:rdf-canonize@5": "5.0.0",
     "npm:zod@^4.4.3": "4.4.3"
+  },
+  "jsr": {
+    "@std/assert@1.0.19": {
+      "integrity": "eaada96ee120cb980bc47e040f82814d786fe8162ecc53c91d8df60b8755991e",
+      "dependencies": [
+        "jsr:@std/internal@^1.0.12"
+      ]
+    },
+    "@std/async@1.4.0": {
+      "integrity": "4d70b008634f571cff9b554090d628c76141c32613aae0ff283fd5fa23d0c379",
+      "dependencies": [
+        "jsr:@std/data-structures"
+      ]
+    },
+    "@std/data-structures@1.1.0": {
+      "integrity": "c35ae4ad5d8e41a38573c2fe3e19b18ea2505f63cfea201edcb8720aca1f7f58"
+    },
+    "@std/encoding@1.0.10": {
+      "integrity": "8783c6384a2d13abd5e9e87a7ae0520a30e9f56aeeaa3bdf910a3eaaf5c811a1"
+    },
+    "@std/fs@1.0.24": {
+      "integrity": "f3061b45b81673a2bece689da041df32d174be064c89eb6397fb5718d3fb7877",
+      "dependencies": [
+        "jsr:@std/internal@^1.0.14",
+        "jsr:@std/path"
+      ]
+    },
+    "@std/internal@1.0.14": {
+      "integrity": "291516b3d4c35024d6ffbc0a9df5bf4c64116e05b50012cf846710152d2ffdf7"
+    },
+    "@std/path@1.1.5": {
+      "integrity": "ccea00982ea28c36becaf6e62f855406c76a8c32d462f66f415bbb7d83a271bc",
+      "dependencies": [
+        "jsr:@std/internal@^1.0.14"
+      ]
+    },
+    "@worlds/client@0.0.17": {
+      "integrity": "bc79ea368739f320ad95fd0e4197aaab7f056f93a2c252a5a5459fc3735787c7",
+      "dependencies": [
+        "jsr:@std/async",
+        "jsr:@std/encoding",
+        "jsr:@std/path",
+        "npm:@langchain/textsplitters",
+        "npm:@libsql/client",
+        "npm:@rdfjs/types",
+        "npm:@tensorflow/tfjs",
+        "npm:@tensorflow/tfjs-backend-wasm",
+        "npm:@types/n3",
+        "npm:n3",
+        "npm:rdf-canonize"
+      ]
+    }
   },
   "npm": {
     "@ai-sdk/gateway@3.0.127_zod@4.4.3": {
@@ -3437,7 +3498,6 @@
       "integrity": "sha512-es94M3nTIfsEPisRafak+HDLfHXnKBhV3vU5eqPcS3flIWqcxJWgXHXiey3YrpaNsanY5ei1VoYEbOzijuq9BA=="
     },
     "jsonld-context-parser@2.4.0": {
-      "integrity": "sha512-ZYOfvh525SdPd9ReYY58dxB3E2RUEU4DJ6ZibO8AitcowPeBH4L5rCAitE2om5G1P+HMEgYEYEr4EZKbVN4tpA==",
       "dependencies": [
         "@types/http-link-header",
         "@types/node",
@@ -3981,6 +4041,7 @@
       "jsr:@std/encoding@^1.0.10",
       "jsr:@std/fs@^1.0.24",
       "jsr:@std/path@^1.1.5",
+      "jsr:@worlds/client@0.0.17",
       "npm:@ai-sdk/google@^3.0.80",
       "npm:@comunica/query-sparql-rdfjs-lite@^5.2.3",
       "npm:@langchain/core@^1.1.48",
@@ -3994,6 +4055,17 @@
       "npm:n3@^2.0.3",
       "npm:rdf-canonize@5",
       "npm:zod@^4.4.3"
-    ]
+    ],
+    "links": {
+      "npm:jsonld-context-parser@2.4.0": {
+        "dependencies": [
+          "npm:@types/http-link-header@^1.0.1",
+          "npm:@types/node@18",
+          "npm:cross-fetch@^3.0.6",
+          "npm:http-link-header@^1.0.2",
+          "npm:relative-to-absolute-iri@^1.0.5"
+        ]
+      }
+    }
   }
 }

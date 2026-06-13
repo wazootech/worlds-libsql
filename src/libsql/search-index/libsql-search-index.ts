@@ -5,8 +5,8 @@ import type {
   SearchRequest,
   SearchResponse,
   SearchResult,
-} from "@/client/search-index/mod.ts";
-import { buildSearchResultId } from "@/client/search-index/build-search-result-id.ts";
+} from "@worlds/client/search-index";
+import { buildSearchResultId } from "./build-search-result-id.ts";
 import type { LibsqlClientBaseOptions } from "@/libsql/libsql-client-base-options.ts";
 import type { LibsqlSearchQueryBuilder } from "./libsql-search-query-builder.ts";
 import { rebuildLibsqlSearchIndexFromQuads } from "./rebuild-libsql-search-index-from-quads.ts";

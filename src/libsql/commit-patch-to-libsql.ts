@@ -1,12 +1,12 @@
 import type { Client, InStatement } from "@libsql/client";
 import type * as rdfjs from "@rdfjs/types";
-import type { Patch, TransactionContext } from "@/client/quad-store/mod.ts";
-import { isReplaceImportCommit } from "@/client/quad-store/mod.ts";
+import type { Patch, TransactionContext } from "@worlds/client/quad-store";
+import { isReplaceImportCommit } from "@worlds/client/quad-store";
 import {
   filterQuads,
   fromRdfjsTerm,
   hashQuads,
-} from "@/client/quad-store/mod.ts";
+} from "@worlds/client/quad-store";
 import type { LibsqlClientBaseOptions } from "@/libsql/libsql-client-base-options.ts";
 import {
   buildBulkInsertQuads,
