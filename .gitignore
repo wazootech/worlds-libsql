@@ -1,0 +1,14 @@
+node_modules
+*.db
+.env
+*.log
+bench-output*.txt
+benchmarks/hexastore-perf-*-run.log
+benchmarks/crossover-*-run.log
+benchmarks/.cache/
+.bench-large.db
+gq-*.txt
+src/tfjs-universal-sentence-encoder/models/
+docs/api.json
+docs.json
+transcript.md
