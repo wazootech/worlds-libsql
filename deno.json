@@ -48,6 +48,7 @@
     "lint": "deno lint",
     "check": "deno check",
     "test": "deno test --allow-all",
+    "publish:dry": "deno publish --dry-run --allow-dirty",
     "ci": {
       "description": "Formats, lints, checks, and tests the code",
       "dependencies": [
