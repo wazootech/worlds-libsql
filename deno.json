@@ -57,6 +57,13 @@
         "check",
         "test"
       ]
-    }
+    },
+    "example:libsql-hello-world": "deno run -A examples/libsql-hello-world/main.ts",
+    "bench": "deno bench --allow-all benchmarks/",
+    "bench:sparql-perf-libsql": "deno bench --allow-all benchmarks/sparql-perf-libsql.bench.ts",
+    "bench:sparql-perf-libsql:full-scan": "deno bench --allow-all --env BENCH_HEXASTORE_PERF_FULL_SCAN=1 benchmarks/sparql-perf-libsql.bench.ts",
+    "bench:sparql-perf-large-libsql": "deno bench --allow-all --v8-flags=--max-old-space-size=8192 benchmarks/sparql-perf-large-libsql.bench.ts",
+    "bench:sparql-perf-large-libsql:full-scan": "deno bench --allow-all --env BENCH_HEXASTORE_PERF_FULL_SCAN=1 --v8-flags=--max-old-space-size=8192 benchmarks/sparql-perf-large-libsql.bench.ts",
+    "bench:sparql-perf-large-libsql:reuse": "deno bench --allow-all --env BENCH_REUSE_DB=1 --v8-flags=--max-old-space-size=8192 benchmarks/sparql-perf-large-libsql.bench.ts"
   }
 }

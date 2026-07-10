@@ -6,5 +6,3 @@
   barrel.
 - Follow the existing JSDoc and naming style in the source files.
 - Run `deno fmt` before committing, then `deno task ci` before merging.
-- For Deno KV work in `@worlds/libsql`, remember to use `--unstable-kv` in tests
-  and scripts.
