@@ -12,6 +12,15 @@ import type { LibsqlSearchQueryBuilder } from "./libsql-search-query-builder.ts"
 import { rebuildLibsqlSearchIndexFromQuads } from "./rebuild-libsql-search-index-from-quads.ts";
 
 /**
+ * SearchRequestWithProfile extends SearchRequest with memory profile overrides for topK and minScore.
+ * These fields will be added to the upstream SearchRequest interface in a future release.
+ */
+interface SearchRequestWithProfile extends SearchRequest {
+  topK?: number;
+  minScore?: number;
+}
+
+/**
  * LibsqlSearchIndexOptions defines the structured configuration and dependency parameters needed to construct the LibSQL search engine.
  */
 export interface LibsqlSearchIndexOptions extends LibsqlClientBaseOptions {
@@ -37,6 +46,7 @@ export class LibsqlSearchIndex implements SearchIndexInterface {
    * search executes a keyword and vector hybrid query against the current index.
    */
   public async search(request: SearchRequest): Promise<SearchResponse> {
+    const profileRequest = request as SearchRequestWithProfile;
     let vectorJson: string | undefined;
 
     if (this.options.embeddingService) {
@@ -63,19 +73,25 @@ export class LibsqlSearchIndex implements SearchIndexInterface {
       }
     }
 
+    const searchLimit = profileRequest.topK ?? this.options.limit ?? 100;
+
     const { sql, args } = this.options.searchQueryBuilder.buildSearchQuery(
       request,
       {
         vectorJson,
-        limit: this.options.limit ?? 100,
+        limit: searchLimit,
       },
     );
 
     const resultSet = await this.options.client.execute({ sql, args });
 
+    const minScore = profileRequest.minScore ?? 0;
     const results: SearchResult[] = [];
 
     for (const row of resultSet.rows) {
+      const score = Number(row["combined_rank"]);
+      if (score < minScore) continue;
+
       const searchResultBase = {
         subject: String(row["subject"]),
         predicate: String(row["predicate"]),
@@ -85,7 +101,7 @@ export class LibsqlSearchIndex implements SearchIndexInterface {
       results.push({
         id: await buildSearchResultId(searchResultBase),
         ...searchResultBase,
-        score: Number(row["combined_rank"]),
+        score,
       });
     }
 
