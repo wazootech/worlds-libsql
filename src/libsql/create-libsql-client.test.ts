@@ -39,3 +39,36 @@ Deno.test(
     databaseClient.close();
   },
 );
+
+Deno.test(
+  "createLibsqlClient - SPARQL INSERT DATA followed by SELECT round-trips through transaction commit",
+  async () => {
+    const databaseClient = createClient({ url: ":memory:" });
+    const client = await createLibsqlClient({
+      client: databaseClient,
+      queryEngine,
+    });
+
+    assertExists(client);
+
+    const insertResponse = await client.sparql({
+      query:
+        `INSERT DATA { <urn:e2e:subject> <urn:e2e:predicate> "roundtrip-value" }`,
+    });
+    assertEquals(insertResponse.kind, "void");
+
+    const selectResponse = await client.sparql({
+      query: "SELECT ?o WHERE { <urn:e2e:subject> <urn:e2e:predicate> ?o }",
+    });
+    assertEquals(selectResponse.kind, "select");
+    if (selectResponse.kind === "select") {
+      assertEquals(selectResponse.data.results.bindings.length, 1);
+      assertEquals(
+        selectResponse.data.results.bindings[0].o?.value,
+        "roundtrip-value",
+      );
+    }
+
+    databaseClient.close();
+  },
+);
