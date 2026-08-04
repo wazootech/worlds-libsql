@@ -139,7 +139,8 @@ export async function commitPatchToLibsql(
   try {
     await batchExecutor.flush();
   } catch (cause) {
-    throw new Error("failed to execute sync batch", { cause });
+    const detail = cause instanceof Error ? cause.message : String(cause);
+    throw new Error(`failed to execute sync batch: ${detail}`, { cause });
   }
 
   const resolvedLabelPredicates = resolveLabelPredicates(
@@ -176,7 +177,7 @@ function buildDeletionStatements(
 /**
  * stageDeletionStatementsChunked slices large quad id sets and eagerly streams them to the executor.
  */
-async function stageDeletionStatementsChunked(
+export async function stageDeletionStatementsChunked(
   executor: LibsqlBatchExecutor,
   quadIds: string[],
   queryBuilder: LibsqlSearchQueryBuilder,

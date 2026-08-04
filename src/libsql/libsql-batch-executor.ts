@@ -50,21 +50,12 @@ export class LibsqlBatchExecutor {
       return;
     }
 
-    const { client, writeBatchSize } = this.options;
+    const { client } = this.options;
 
-    // Execute write batches in fixed-size slices
-    for (
-      let index = 0;
-      index < this.statements.length;
-      index += writeBatchSize
-    ) {
-      const statementBatch = this.statements.slice(
-        index,
-        index + writeBatchSize,
-      );
-      await client.batch(statementBatch, "write");
+    try {
+      await client.batch(this.statements, "write");
+    } finally {
+      this.statements.length = 0;
     }
-
-    this.statements.length = 0;
   }
 }

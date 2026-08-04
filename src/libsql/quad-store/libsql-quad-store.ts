@@ -14,7 +14,11 @@ import type { LibsqlClientBaseOptions } from "../libsql-client-base-options.ts";
 import type { LibsqlRdfjsStore } from "../rdfjs-store/mod.ts";
 import type { LibsqlSearchQueryBuilder } from "../search-index/libsql-search-query-builder.ts";
 import type { LibsqlSearchIndexProjector } from "../search-index/mod.ts";
-import { commitPatchToLibsql } from "../commit-patch-to-libsql.ts";
+import { LibsqlBatchExecutor } from "../libsql-batch-executor.ts";
+import {
+  commitPatchToLibsql,
+  stageDeletionStatementsChunked,
+} from "../commit-patch-to-libsql.ts";
 
 /**
  * LibsqlQuadStoreOptions defines the configurations for the LibsqlQuadStore.
@@ -86,11 +90,28 @@ export class LibsqlQuadStore implements QuadStoreInterface {
           );
 
         if (!skipSearchIndexProjection && this.options.searchIndexProjector) {
-          await this.options.searchIndexProjector.projectNovelQuads(
-            novelInsertions,
-            novelQuadIds,
-            labelTouchedSubjects,
-          );
+          try {
+            await this.options.searchIndexProjector.projectNovelQuads(
+              novelInsertions,
+              novelQuadIds,
+              labelTouchedSubjects,
+            );
+          } catch (error) {
+            // Clean up persisted quads if search projection fails
+            const client = this.options.client;
+            const batchExecutor = new LibsqlBatchExecutor({
+              client,
+              writeBatchSize: this.options.maxWriteBatchSize ?? 500,
+            });
+            await stageDeletionStatementsChunked(
+              batchExecutor,
+              novelQuadIds,
+              this.options.searchQueryBuilder,
+              this.options.maxLookupChunkSize ?? 800,
+            );
+            await batchExecutor.flush();
+            throw error;
+          }
         }
 
         if (
