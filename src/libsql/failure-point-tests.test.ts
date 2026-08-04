@@ -1,11 +1,5 @@
 import { assertEquals, assertRejects } from "@std/assert";
 import { createClient } from "@libsql/client";
-import type {
-  Client,
-  InStatement,
-  ResultSet,
-  TransactionMode,
-} from "@libsql/client";
 import { DataFactory } from "n3";
 import { LibsqlBatchExecutor } from "@/libsql/libsql-batch-executor.ts";
 import { commitPatchToLibsql } from "@/libsql/commit-patch-to-libsql.ts";
@@ -24,91 +18,35 @@ import { hashQuads } from "@worlds/client/quad-store";
 const { quad, namedNode, literal } = DataFactory;
 
 Deno.test(
-  "LibsqlBatchExecutor - partial batch failure leaves earlier batches committed with no rollback",
+  "LibsqlBatchExecutor - batch failure rolls back all statements within transaction",
   async () => {
-    const batchCallLog: { batchIndex: number; stmtCount: number }[] = [];
-    let callCount = 0;
-    const failOnCall = 2;
-
-    const mockClient: Client = {
-      batch(
-        stmts: Array<InStatement>,
-        _mode?: TransactionMode,
-      ): Promise<ResultSet[]> {
-        callCount++;
-        batchCallLog.push({
-          batchIndex: callCount,
-          stmtCount: (stmts as InStatement[]).length,
-        });
-        if (callCount >= failOnCall) {
-          throw new Error(
-            `Simulated Turso failure on batch #${callCount}`,
-          );
-        }
-        return Promise.resolve([]);
-      },
-      execute(): Promise<ResultSet> {
-        return Promise.resolve({
-          columns: [],
-          columnTypes: [],
-          rows: [],
-          rowsAffected: 0,
-          lastInsertRowid: undefined,
-          toJSON: () => ({}),
-        });
-      },
-      migrate: () => Promise.resolve([]),
-      transaction: () => {
-        throw new Error("unused");
-      },
-      executeMultiple: () => Promise.resolve(),
-      sync: () => Promise.resolve(undefined),
-      close: () => {},
-      reconnect: () => {},
-      closed: false,
-      protocol: "http",
-    };
+    const client = createClient({ url: ":memory:" });
+    await setupLibsqlSchemaForTest(client);
 
     const executor = new LibsqlBatchExecutor({
-      client: mockClient,
+      client,
       writeBatchSize: 2,
     });
 
-    for (let i = 0; i < 5; i++) {
-      await executor.stage([
-        `INSERT INTO quads (quad_id, s) VALUES ('urn:id:${i * 2}', 'urn:s:${
-          i * 2
-        }')`,
-        `INSERT INTO quads (quad_id, s) VALUES ('urn:id:${i * 2 + 1}', 'urn:s:${
-          i * 2 + 1
-        }')`,
-      ]);
-    }
+    await executor.stage([
+      "INSERT INTO quads (id, s, s_type, p, o, o_type, o_datatype, o_lang, g, g_type) VALUES ('id1', 'urn:s1', 'NamedNode', 'urn:p', 'o1', 'Literal', '', '', '', 'DefaultGraph')",
+      "INSERT INTO quads (id, s, s_type, p, o, o_type, o_datatype, o_lang, g, g_type) VALUES ('id2', 'urn:s2', 'NamedNode', 'urn:p', 'o2', 'Literal', '', '', '', 'DefaultGraph')",
+      "INVALID SQL STATEMENT HERE TO FORCE FAILURE",
+    ]);
 
-    await assertRejects(
-      () => executor.flush(),
-    );
+    await assertRejects(() => executor.flush());
 
+    const result = await client.execute("SELECT COUNT(*) as total FROM quads");
     assertEquals(
-      batchCallLog.length,
-      2,
-      "Expected exactly 2 batch calls before failure: first succeeds, second fails",
-    );
-    assertEquals(
-      batchCallLog[0].batchIndex,
-      1,
-      "First batch call should succeed",
-    );
-    assertEquals(
-      batchCallLog[1].batchIndex,
-      2,
-      "Second batch call should fail mid-way",
+      Number(result.rows[0].total),
+      0,
+      "All inserted quads must be rolled back when any batch statement fails",
     );
   },
 );
 
 Deno.test(
-  "LibsqlQuadStore commit - quads persist even when searchProjector throws",
+  "LibsqlQuadStore commit - quads roll back when searchProjector throws",
   async () => {
     const client = createClient({ url: ":memory:" });
     await setupLibsqlSchemaForTest(client);
@@ -155,19 +93,18 @@ Deno.test(
     );
     assertEquals(
       Number(quadRows.rows[0].total),
-      1,
-      "Quad must persist in DB even though search projection threw — no rollback mechanism exists between commitPatchToLibsql and projectNovelQuads",
+      0,
+      "Quad must be rolled back from DB when search projection throws",
     );
   },
 );
 
 Deno.test(
-  "commitPatchToLibsql - flush failure with multi-batch write does not roll back earlier batches",
+  "commitPatchToLibsql - flush failure with multi-batch write rolls back earlier batches",
   async () => {
     const client = createClient({ url: ":memory:" });
     await setupLibsqlSchemaForTest(client);
 
-    // Insert a single known quad that we can verify gets deleted by the first batch
     const existingQuad = quad(
       namedNode("urn:will-delete"),
       namedNode("urn:pred"),
@@ -198,12 +135,6 @@ Deno.test(
       "Pre-existing quad should be present",
     );
 
-    // Build enough new quads to span multiple client.batch() calls:
-    // buildBulkInsertQuads packs 80 rows per INSERT stmt.
-    // With 80 new quads via deletions=[existingQuad], insertions=[80 quads]:
-    //   2 (delete for existing quad) + 1 (INSERT for 80 new quads) = 3 stmts
-    // With writeBatchSize=2, flush splits into 2 batches (2 + 1).
-    // Batch 1 succeeds (DELETE stmts), batch 2 fails (INSERT stmts).
     const newQuadCount = 80;
     const writeBatchSize = 2;
 
@@ -218,17 +149,8 @@ Deno.test(
       );
     }
 
-    let batchCallCount = 0;
-    const originalBatch = client.batch.bind(client);
-
-    client.batch = (stmts: InStatement[], mode?: TransactionMode) => {
-      batchCallCount++;
-      if (batchCallCount >= 2) {
-        throw new Error(
-          `Simulated Turso write failure on batch #${batchCallCount}`,
-        );
-      }
-      return originalBatch(stmts, mode);
+    client.batch = () => {
+      throw new Error("Simulated Turso write failure");
     };
 
     await assertRejects(() =>
@@ -242,22 +164,20 @@ Deno.test(
       )
     );
 
-    // The pre-existing quad should have been deleted (batch 1 committed),
-    // and the new quads should NOT be present (batch 2 failed).
     const finalCount = Number(
       (await client.execute("SELECT COUNT(*) as total FROM quads")).rows[0]
         .total,
     );
     assertEquals(
       finalCount,
-      0,
-      "Batch 1 (DELETE) committed (pre-existing quad removed), batch 2 (INSERT) did not — no SQL transaction wraps individual batch() calls",
+      1,
+      "Pre-existing quad must remain intact because transaction rolled back all batches",
     );
   },
 );
 
 Deno.test(
-  "commitPatchToLibsql - flush error wrapping preserves original cause",
+  "commitPatchToLibsql - flush error wrapping preserves original cause and includes message detail",
   async () => {
     const client = createClient({ url: ":memory:" });
     await setupLibsqlSchemaForTest(client);
@@ -284,7 +204,7 @@ Deno.test(
     assertEquals(caught instanceof Error, true);
     assertEquals(
       (caught as Error).message,
-      "failed to execute sync batch",
+      "failed to execute sync batch: TURSO_NETWORK_TIMEOUT",
     );
     assertEquals(
       (caught as Error).cause instanceof Error,
