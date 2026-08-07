@@ -4,23 +4,23 @@
     "jsr:@std/assert@^1.0.19": "1.0.19",
     "jsr:@std/async@^1.4.0": "1.4.0",
     "jsr:@std/data-structures@^1.1.0": "1.1.0",
-    "jsr:@std/encoding@^1.0.10": "1.0.10",
+    "jsr:@std/encoding@^1.0.10": "1.0.11",
     "jsr:@std/fs@^1.0.24": "1.0.24",
     "jsr:@std/internal@^1.0.12": "1.0.14",
     "jsr:@std/internal@^1.0.14": "1.0.14",
-    "jsr:@std/path@^1.1.5": "1.1.5",
-    "jsr:@worlds/client@0.0.17": "0.0.17",
+    "jsr:@std/path@^1.1.5": "1.1.6",
+    "jsr:@worlds/client@0.0.18": "0.0.18",
     "npm:@ai-sdk/google@^3.0.80": "3.0.80_zod@4.4.3",
     "npm:@comunica/query-sparql-rdfjs-lite@^5.2.3": "5.2.3",
     "npm:@langchain/core@^1.1.48": "1.1.48",
     "npm:@langchain/textsplitters@^1.0.1": "1.0.1_@langchain+core@1.1.48",
-    "npm:@libsql/client@~0.17.3": "0.17.3",
+    "npm:@libsql/client@~0.17.3": "0.17.4",
     "npm:@rdfjs/types@^2.0.1": "2.0.1",
     "npm:@tensorflow/tfjs-backend-wasm@^4.22.0": "4.22.0_@tensorflow+tfjs-core@4.22.0",
     "npm:@tensorflow/tfjs@^4.22.0": "4.22.0_seedrandom@3.0.5",
     "npm:@types/n3@1.26.1": "1.26.1",
     "npm:ai@^6.0.195": "6.0.201_zod@4.4.3",
-    "npm:n3@^2.0.3": "2.0.3",
+    "npm:n3@^2.0.3": "2.1.2",
     "npm:rdf-canonize@5": "5.0.0",
     "npm:zod@^4.4.3": "4.4.3"
   },
@@ -40,8 +40,8 @@
     "@std/data-structures@1.1.0": {
       "integrity": "c35ae4ad5d8e41a38573c2fe3e19b18ea2505f63cfea201edcb8720aca1f7f58"
     },
-    "@std/encoding@1.0.10": {
-      "integrity": "8783c6384a2d13abd5e9e87a7ae0520a30e9f56aeeaa3bdf910a3eaaf5c811a1"
+    "@std/encoding@1.0.11": {
+      "integrity": "e7cef2f0b3153bccc17431e7c864a1de03a4b6d9647389c43e08aaa775d37385"
     },
     "@std/fs@1.0.24": {
       "integrity": "f3061b45b81673a2bece689da041df32d174be064c89eb6397fb5718d3fb7877",
@@ -53,24 +53,22 @@
     "@std/internal@1.0.14": {
       "integrity": "291516b3d4c35024d6ffbc0a9df5bf4c64116e05b50012cf846710152d2ffdf7"
     },
-    "@std/path@1.1.5": {
-      "integrity": "ccea00982ea28c36becaf6e62f855406c76a8c32d462f66f415bbb7d83a271bc",
+    "@std/path@1.1.6": {
+      "integrity": "c68485c2a4dfbb5ae3cc74fae4e8c4e5d874cf8a8ed12927917235c758b46cbe",
       "dependencies": [
         "jsr:@std/internal@^1.0.14"
       ]
     },
-    "@worlds/client@0.0.17": {
-      "integrity": "bc79ea368739f320ad95fd0e4197aaab7f056f93a2c252a5a5459fc3735787c7",
+    "@worlds/client@0.0.18": {
+      "integrity": "032099c18aef2a7bc2f34e06845aa0fa71423b3441f9fa9f0749a448358ed3cd",
       "dependencies": [
-        "jsr:@std/async",
         "jsr:@std/encoding",
         "jsr:@std/path",
-        "npm:@langchain/textsplitters",
-        "npm:@libsql/client",
         "npm:@rdfjs/types",
         "npm:@tensorflow/tfjs",
         "npm:@tensorflow/tfjs-backend-wasm",
         "npm:@types/n3",
+        "npm:ai",
         "npm:n3",
         "npm:rdf-canonize"
       ]
@@ -2758,8 +2756,8 @@
         "js-tiktoken"
       ]
     },
-    "@libsql/client@0.17.3": {
-      "integrity": "sha512-HXk9wiAoJbKFbyBH4O+aEhN6ir5ERXuXvwE5OD2eR4/5RUa3Pw/8L9zrnVdU+iNJitRvisPWaIwmhkO3bH7giA==",
+    "@libsql/client@0.17.4": {
+      "integrity": "sha512-lYayFWasDV78A+TjlEhr6ubb3odBV6OHjb+wdp8VQcyWWAEIjuwbCHaraEUS4m4yWoo0BvZo96It4VdzZRmRWw==",
       "dependencies": [
         "@libsql/core",
         "@libsql/hrana-client",
@@ -2768,8 +2766,8 @@
         "promise-limit"
       ]
     },
-    "@libsql/core@0.17.3": {
-      "integrity": "sha512-2UjK1i7JBkMduJo4WdvvBxMMvVJ31pArBZNONyz/GCJJAH+1UHat2X6vn10S/WpY5fKzIT98WqYFl2vzWRLOfg==",
+    "@libsql/core@0.17.4": {
+      "integrity": "sha512-LqF9gIvnJ38nmAH1y/ChizHqDO/MO1wLgA96XrraulEEbqXxLjleSH92YWTolbuJKgPUmGu4aJk9W3UnAcxLOQ==",
       "dependencies": [
         "js-base64"
       ]
@@ -2940,7 +2938,7 @@
         "chalk",
         "core-js",
         "regenerator-runtime",
-        "yargs@16.2.0"
+        "yargs@16.2.2"
       ],
       "bin": true
     },
@@ -3380,8 +3378,8 @@
     "fn.name@1.1.0": {
       "integrity": "sha512-GRnmB5gPyJpAhTQdSZTSp9uaPSvl09KoYcMQtsB9rQoOmzs9dH6ffeccH+Z+cv6P68Hu5bC6JjRh4Ah/mHSNRw=="
     },
-    "form-data@4.0.5": {
-      "integrity": "sha512-8RipRLol37bNs2bhoV67fiTEvdTrbMUYcFTiy3+wuuOnUog2QBHCZWXDRijWQfAkhBj2Uf5UnVaiWwA5vdd82w==",
+    "form-data@4.0.6": {
+      "integrity": "sha512-vKatAh4SlVfgbv+YtmhiRjhEMJsYpsG1Y2rMQtR+SVSbytsSD1YGzDIcrAJmdFec88u/+VoGmxnl+80gL1tRCQ==",
       "dependencies": [
         "asynckit",
         "combined-stream",
@@ -3485,8 +3483,8 @@
     "is-stream@2.0.1": {
       "integrity": "sha512-hFoiJiTl63nn+kstHGBtewWSKnQLpyb155KHheA1l39uvtO9nWIop1p3udqPcUd/xbF1VLMO4n7OI6p7RbngDg=="
     },
-    "js-base64@3.7.8": {
-      "integrity": "sha512-hNngCeKxIUQiEUN3GPJOkz4wF/YvdUdbNL9hsBcMQTkKzboD7T/q3OYOuuPZLUE6dBxSGpwhk5mwuDud7JVAow=="
+    "js-base64@3.9.2": {
+      "integrity": "sha512-6zayE8QlUdiweYI6cETD/XBSqFcoCUlufn/29PJR99r82x1yDnIprRca0YvAYpAW+ez0GuQkVBC6xG5QkD7OjA=="
     },
     "js-tiktoken@1.0.21": {
       "integrity": "sha512-biOj/6M5qdgx5TKjDnFT1ymSpM5tbd3ylwDtrQvFQSu0Z7bBYko2dF+W/aUkXUPuk6IVpRxk/3Q2sHOzGlS36g==",
@@ -3623,8 +3621,8 @@
         "readable-stream@4.7.0"
       ]
     },
-    "n3@2.0.3": {
-      "integrity": "sha512-um/toGVENTarHBYIK2TdH6ByBhW75WpdKpv8iTYt9wF2QfBk8s8a16iaWZFUAAC1BKfGdb99kfgx6pltdDwfKA==",
+    "n3@2.1.2": {
+      "integrity": "sha512-8DD60rrjJDmeNgLV/zlTiWubxHXLj7te9+uh/IS611fUIgduz4SoeqkOwCQPPpHZ2E/Y26KE+9rm8q8A5mrWvQ==",
       "dependencies": [
         "buffer",
         "readable-stream@4.7.0"
@@ -3991,8 +3989,8 @@
         "strip-ansi"
       ]
     },
-    "ws@8.21.0": {
-      "integrity": "sha512-Vsp28b7DRcimFQvrqu2Wek3z1iYxDCWqHYB8Qsnk/S4RfaCQzPGPyBNuVjJV3cd6UiKtUtp6sNM77gWvzcCH+g=="
+    "ws@8.21.1": {
+      "integrity": "sha512-+0NTnW77fFN/DjQi6k/Sq/Yvk4Sgajw7urW8V+asjXnRgDs9gyGkdb7EzgfhA4goXsRIZKE28fzIXBHEzhuiWw=="
     },
     "xmlchars@2.2.0": {
       "integrity": "sha512-JZnDKK8B0RCDw84FNdDAIpZK+JuJw+s7Lz8nksI7SIuU3UXJJslUthsi+uWBUYOwPFwW7W7PRLRfUKpxjtjFCw=="
@@ -4006,8 +4004,8 @@
     "yargs-parser@21.1.1": {
       "integrity": "sha512-tVpsJW7DdjecAiFpbIB1e3qxIQsE6NoPc5/eTdrbbIC4h0LVsWhnoa3g+m2HclBIujHzsxZ4VJVA+GUuc2/LBw=="
     },
-    "yargs@16.2.0": {
-      "integrity": "sha512-D1mvvtDG0L5ft/jGWkLpG1+m0eQxOfaBvTNELraWj22wSVUMWxZUvYgJYcKh6jGGIkJFhH4IZPQhR4TKpc8mBw==",
+    "yargs@16.2.2": {
+      "integrity": "sha512-Nt9ZJjXTv5R8MHbqby/wXQ6Gi0Bb3TcYZkR1bzuL4yB2OxWPkXknz513gEF0GoA6tn00UpbPvERW8rzCuWCA6w==",
       "dependencies": [
         "cliui@7.0.4",
         "escalade",
@@ -4041,7 +4039,7 @@
       "jsr:@std/encoding@^1.0.10",
       "jsr:@std/fs@^1.0.24",
       "jsr:@std/path@^1.1.5",
-      "jsr:@worlds/client@0.0.17",
+      "jsr:@worlds/client@0.0.18",
       "npm:@ai-sdk/google@^3.0.80",
       "npm:@comunica/query-sparql-rdfjs-lite@^5.2.3",
       "npm:@langchain/core@^1.1.48",
