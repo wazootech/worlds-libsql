@@ -1,8 +1,8 @@
 import { assertEquals, assertExists } from "@std/assert";
 import { createClient } from "@libsql/client";
 import { LibsqlSearchIndex } from "./libsql-search-index.ts";
-import { FakeEmbeddingService } from "@worlds/client/search-index/embedding-service";
-import type { EmbeddingService } from "@worlds/client/search-index/embedding-service";
+import { FakeEmbeddingService } from "@worlds/sdk/search-index/embedding-service";
+import type { EmbeddingService } from "@worlds/sdk/search-index/embedding-service";
 import {
   setupLibsqlSchemaForTest,
   testLibsqlSearchQueryBuilder,

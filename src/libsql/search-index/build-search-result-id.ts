@@ -1,5 +1,5 @@
 import { DataFactory } from "n3";
-import { hashQuad } from "@worlds/client/quad-store";
+import { hashQuad } from "@worlds/sdk/quad-store";
 
 const { literal, namedNode, quad: createQuad, defaultGraph } = DataFactory;
 

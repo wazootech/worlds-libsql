@@ -1,6 +1,6 @@
 import type * as rdfjs from "@rdfjs/types";
 
-import { isTextualLiteral } from "@worlds/client/quad-store";
+import { isTextualLiteral } from "@worlds/sdk/quad-store";
 import { buildSelectTextualLiteralQuadsForSubjects } from "@/libsql/quad-store/libsql-quad-query-builder.ts";
 import type { ProjectSearchChunksOptions } from "@/libsql/search-index/project-search-chunks.ts";
 import { refreshSearchChunksForQuads } from "@/libsql/search-index/project-search-chunks.ts";

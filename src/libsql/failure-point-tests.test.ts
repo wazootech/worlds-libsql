@@ -6,14 +6,14 @@ import { commitPatchToLibsql } from "@/libsql/commit-patch-to-libsql.ts";
 import { LibsqlQuadStore } from "@/libsql/quad-store/mod.ts";
 import { LibsqlRdfjsStore } from "@/libsql/rdfjs-store/mod.ts";
 import { LibsqlSearchIndexProjector } from "@/libsql/search-index/libsql-search-index-projector.ts";
-import { FakeEmbeddingService } from "@worlds/client/search-index/embedding-service";
+import { FakeEmbeddingService } from "@worlds/sdk/search-index/embedding-service";
 import {
   setupLibsqlSchemaForTest,
   sharedTextSplitter,
   testLibsqlSearchQueryBuilder,
 } from "@/libsql/libsql-test-fixtures.ts";
 
-import { hashQuads } from "@worlds/client/quad-store";
+import { hashQuads } from "@worlds/sdk/quad-store";
 
 const { quad, namedNode, literal } = DataFactory;
 
