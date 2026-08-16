@@ -1,4 +1,15 @@
-# Worlds LibSQL
+<p align="center">
+  <a href="https://docs.wazoo.dev">
+    <img src="https://wazoo.dev/assets/wazoo.svg" alt="Wazoo Worlds" width="120" />
+  </a>
+  <br /><br />
+  <em>LibSQL/Turso storage and hybrid search backend for Worlds.</em>
+  <br /><br />
+  <a href="https://jsr.io/@worlds/libsql"><img src="https://jsr.io/badges/@worlds/libsql" alt="JSR" /></a>
+  <a href="https://jsr.io/@worlds/libsql/score"><img src="https://jsr.io/badges/@worlds/libsql/score" alt="JSR Score" /></a>
+  <a href="https://github.com/wazootech/worlds-libsql"><img src="https://img.shields.io/badge/GitHub-black?logo=github" alt="GitHub" /></a>
+  <a href="https://deepwiki.com/wazootech/worlds-libsql"><img src="https://deepwiki.com/badge.svg" alt="Ask DeepWiki" /></a>
+</p>
 
 Standalone LibSQL package extracted from
 [`@worlds/client`](https://jsr.io/@worlds/client).
