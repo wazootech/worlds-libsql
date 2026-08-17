@@ -1,7 +1,7 @@
 import type { Row } from "@libsql/client";
 import type * as rdfjs from "@rdfjs/types";
 import { DataFactory } from "n3";
-import { toRdfjsTerm } from "@worlds/client/quad-store";
+import { toRdfjsTerm } from "@worlds/sdk/quad-store";
 
 const { quad } = DataFactory;
 

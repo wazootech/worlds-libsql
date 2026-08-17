@@ -7,9 +7,9 @@ import {
   type LibsqlQuadStoreOptions,
 } from "./quad-store/mod.ts";
 import { LibsqlRdfjsStore } from "./rdfjs-store/mod.ts";
-import type { Patch, TransactionContext } from "@worlds/client/quad-store";
+import type { Patch, TransactionContext } from "@worlds/sdk/quad-store";
 
-import { FakeEmbeddingService } from "@worlds/client/search-index/embedding-service";
+import { FakeEmbeddingService } from "@worlds/sdk/search-index/embedding-service";
 import {
   setupLibsqlSchemaForTest,
   sharedTextSplitter,

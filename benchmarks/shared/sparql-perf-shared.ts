@@ -1,7 +1,7 @@
 import { createClient } from "@libsql/client";
 import type { Quad } from "@rdfjs/types";
 import { QueryEngine } from "@comunica/query-sparql-rdfjs-lite";
-import type { ClientInterface } from "@worlds/client";
+import type { ClientInterface } from "@worlds/sdk";
 import { createLibsqlClient } from "@worlds/libsql";
 import {
   buildHexastorePerfFixtureChecksumInputs,

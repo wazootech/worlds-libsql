@@ -1,9 +1,9 @@
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import type * as rdfjs from "@rdfjs/types";
-import { Client } from "@worlds/client";
-import type { ClientInterface } from "@worlds/client";
-import type { ComunicaQueryEngine } from "@worlds/client/comunica";
-import { ComunicaSparqlEngine } from "@worlds/client/comunica";
+import { Client } from "@worlds/sdk";
+import type { ClientInterface } from "@worlds/sdk";
+import type { ComunicaQueryEngine } from "@worlds/sdk/comunica";
+import { ComunicaSparqlEngine } from "@worlds/sdk/comunica";
 import {
   LibsqlSearchIndex,
   LibsqlSearchIndexProjector,

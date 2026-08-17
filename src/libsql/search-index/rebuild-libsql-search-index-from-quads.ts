@@ -1,5 +1,5 @@
 import type * as rdfjs from "@rdfjs/types";
-import { filterQuads } from "@worlds/client/quad-store";
+import { filterQuads } from "@worlds/sdk/quad-store";
 import {
   type ProjectSearchChunksOptions,
   refreshSearchChunksForQuads,

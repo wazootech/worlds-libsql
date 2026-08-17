@@ -3,7 +3,7 @@ import { createClient } from "@libsql/client";
 import { QueryEngine } from "@comunica/query-sparql-rdfjs-lite";
 import { DataFactory } from "n3";
 
-import type { ClientInterface } from "@worlds/client";
+import type { ClientInterface } from "@worlds/sdk";
 import type { LibsqlClientOptions } from "@/libsql/create-libsql-client.ts";
 import { createLibsqlClient } from "@/libsql/create-libsql-client.ts";
 

@@ -1,14 +1,14 @@
 import { assertEquals, assertExists } from "@std/assert";
 import { createClient } from "@libsql/client";
 import { DataFactory } from "n3";
-import { FakeEmbeddingService } from "@worlds/client/search-index/embedding-service";
+import { FakeEmbeddingService } from "@worlds/sdk/search-index/embedding-service";
 import { LibsqlSearchIndexProjector } from "@/libsql/search-index/libsql-search-index-projector.ts";
 import {
   LibsqlQuadStore,
   type LibsqlQuadStoreOptions,
 } from "@/libsql/quad-store/mod.ts";
 import { LibsqlRdfjsStore } from "@/libsql/rdfjs-store/mod.ts";
-import type { Patch, TransactionContext } from "@worlds/client/quad-store";
+import type { Patch, TransactionContext } from "@worlds/sdk/quad-store";
 import {
   setupLibsqlSchemaForTest,
   sharedTextSplitter,

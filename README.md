@@ -12,7 +12,7 @@
 </p>
 
 Standalone LibSQL package extracted from
-[`@worlds/client`](https://jsr.io/@worlds/client).
+[`@worlds/sdk`](https://jsr.io/@worlds/sdk).
 
 ## Install
 

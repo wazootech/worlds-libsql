@@ -5,7 +5,7 @@ import type {
   SearchRequest,
   SearchResponse,
   SearchResult,
-} from "@worlds/client/search-index";
+} from "@worlds/sdk/search-index";
 import { buildSearchResultId } from "./build-search-result-id.ts";
 import type { LibsqlClientBaseOptions } from "@/libsql/libsql-client-base-options.ts";
 import type { LibsqlSearchQueryBuilder } from "./libsql-search-query-builder.ts";

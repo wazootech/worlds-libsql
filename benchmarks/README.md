@@ -3,18 +3,18 @@
 Performance benchmarks for `@worlds/libsql`. **Local only** — there is no CI
 regression gate; compare results manually on the same OS and Deno version.
 
-| Resource                                                                       | Purpose                                                        |
-| :----------------------------------------------------------------------------- | :------------------------------------------------------------- |
-| [Discussion #69](https://github.com/wazootech/worlds-client-ts/discussions/69) | Canonical post-preload SPARQL quad index perf write-up         |
-| [Discussion #45](https://github.com/wazootech/worlds-client-ts/discussions/45) | Historical hydrate+N3 vs libsql crossover (pre-preload)        |
-| [#68](https://github.com/wazootech/worlds-client-ts/issues/68)                 | Millions-of-quads production guidance (README + query helpers) |
+| Resource                                                                    | Purpose                                                        |
+| :-------------------------------------------------------------------------- | :------------------------------------------------------------- |
+| [Discussion #69](https://github.com/wazootech/worlds-sdk-ts/discussions/69) | Canonical post-preload SPARQL quad index perf write-up         |
+| [Discussion #45](https://github.com/wazootech/worlds-sdk-ts/discussions/45) | Historical hydrate+N3 vs libsql crossover (pre-preload)        |
+| [#68](https://github.com/wazootech/worlds-sdk-ts/issues/68)                 | Millions-of-quads production guidance (README + query helpers) |
 
 Do not comment on closed perf threads
-([#2](https://github.com/wazootech/worlds-client-ts/issues/2),
-[#3](https://github.com/wazootech/worlds-client-ts/issues/3),
-[#8](https://github.com/wazootech/worlds-client-ts/issues/8),
-[#11](https://github.com/wazootech/worlds-client-ts/issues/11)). File a new
-issue with before/after `deno bench` output instead.
+([#2](https://github.com/wazootech/worlds-sdk-ts/issues/2),
+[#3](https://github.com/wazootech/worlds-sdk-ts/issues/3),
+[#8](https://github.com/wazootech/worlds-sdk-ts/issues/8),
+[#11](https://github.com/wazootech/worlds-sdk-ts/issues/11)). File a new issue
+with before/after `deno bench` output instead.
 
 **JSR:** [`@worlds/libsql`](https://jsr.io/@worlds/libsql) is published on JSR.
 Tables below reflect **main** branch methodology (module preload); they are not
@@ -66,8 +66,8 @@ deno task bench:sparql-perf-large-libsql:full-scan
 ```
 
 **Large (100k–1M):** separate libsql large bench
-([#68](https://github.com/wazootech/worlds-client-ts/issues/68)). Supports
-`:reuse` and `:full-scan` tasks.
+([#68](https://github.com/wazootech/worlds-sdk-ts/issues/68)). Supports `:reuse`
+and `:full-scan` tasks.
 
 Hexastore perf preload uses `searchIndexOnImport: "disabled"` (quads only; the
 timed slice is `execute()`). Do **not** call `Client.reindex()` in these
@@ -145,7 +145,7 @@ create a fresh database per iteration and use `warmup: 5`, `n: 50`.
 **Production (millions of quads):** default to
 [`createLibsqlClient`](../src/libsql/create-libsql-client.ts) for hybrid search
 and faster preload. Track guidance in
-[#68](https://github.com/wazootech/worlds-client-ts/issues/68).
+[#68](https://github.com/wazootech/worlds-sdk-ts/issues/68).
 
 ## Baseline table (2026-05-21, pre-preload)
 
@@ -174,7 +174,7 @@ Captured on **Deno 2.8.0 (Windows x86_64)** with module-level preload.
   the post-preload table on the same OS and Deno version.
 - Open a **new issue** with pasted before/after `deno bench` output.
 - Link
-  [discussion #69](https://github.com/wazootech/worlds-client-ts/discussions/69)
+  [discussion #69](https://github.com/wazootech/worlds-sdk-ts/discussions/69)
   when SPARQL quad index perf numbers change.
 
 ```bash
