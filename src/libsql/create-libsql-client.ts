@@ -2,6 +2,7 @@ import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import type * as rdfjs from "@rdfjs/types";
 import { Client } from "@worlds/sdk";
 import type { ClientInterface } from "@worlds/sdk";
+import { WazooSparqlEngine } from "@wazoo/sparql-engine";
 import type { ComunicaQueryEngine } from "@worlds/sdk/comunica";
 import { ComunicaSparqlEngine } from "@worlds/sdk/comunica";
 import {
@@ -20,7 +21,11 @@ import { LibsqlSearchQueryBuilder } from "./search-index/libsql-search-query-bui
  * LibsqlClientOptions configures LibSQL execution through LibsqlRdfjsStore and quad indexes.
  */
 export interface LibsqlClientOptions extends LibsqlClientBaseOptions {
-  /** queryEngine optionally enables built-in Comunica SPARQL over LibsqlRdfjsStore. */
+  /**
+   * queryEngine optionally swaps the default WazooSparqlEngine for a Comunica
+   * SPARQL engine over LibsqlRdfjsStore. Omit it to use the zero-dependency
+   * in-house engine (decision worlds-client-ts#152).
+   */
   queryEngine?: ComunicaQueryEngine;
 }
 
@@ -69,7 +74,10 @@ export async function createLibsqlClient(
       store: libsqlRdfjsStore as unknown as rdfjs.Store,
       createTransaction: () => quadStore.createTransaction(),
     })
-    : undefined;
+    : new WazooSparqlEngine({
+      store: libsqlRdfjsStore as unknown as rdfjs.Store,
+      createTransaction: () => quadStore.createTransaction(),
+    });
 
   return new Client({
     quadStore,

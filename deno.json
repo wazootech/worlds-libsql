@@ -15,6 +15,7 @@
     "@ai-sdk/google": "npm:@ai-sdk/google@^3.0.80",
     "@comunica/query-sparql-rdfjs-lite": "npm:@comunica/query-sparql-rdfjs-lite@^5.2.3",
     "@rdfjs/types": "npm:@rdfjs/types@^2.0.1",
+    "@wazoo/sparql-engine": "jsr:@wazoo/sparql-engine@^0.3.0",
     "@libsql/client": "npm:@libsql/client@^0.17.3",
     "@worlds/sdk": "jsr:@worlds/sdk@^0.1.1",
     "@worlds/sdk/quad-store": "jsr:@worlds/sdk@^0.1.1/quad-store",

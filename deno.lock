@@ -9,6 +9,7 @@
     "jsr:@std/internal@^1.0.12": "1.0.14",
     "jsr:@std/internal@^1.0.14": "1.0.14",
     "jsr:@std/path@^1.1.5": "1.1.6",
+    "jsr:@wazoo/sparql-engine@0.3": "0.3.0",
     "jsr:@worlds/sdk@~0.1.1": "0.1.1",
     "npm:@ai-sdk/google@^3.0.80": "3.0.80_zod@4.4.3",
     "npm:@comunica/query-sparql-rdfjs-lite@^5.2.3": "5.2.3",
@@ -57,6 +58,12 @@
       "integrity": "c68485c2a4dfbb5ae3cc74fae4e8c4e5d874cf8a8ed12927917235c758b46cbe",
       "dependencies": [
         "jsr:@std/internal@^1.0.14"
+      ]
+    },
+    "@wazoo/sparql-engine@0.3.0": {
+      "integrity": "fc0c11ea0569c318baf5ded1f43a7a02b27d2f43466d29feb67294877bb7430a",
+      "dependencies": [
+        "npm:@rdfjs/types"
       ]
     },
     "@worlds/sdk@0.1.1": {
@@ -4058,6 +4065,7 @@
       "jsr:@std/encoding@^1.0.10",
       "jsr:@std/fs@^1.0.24",
       "jsr:@std/path@^1.1.5",
+      "jsr:@wazoo/sparql-engine@0.3",
       "jsr:@worlds/sdk@~0.1.1",
       "npm:@ai-sdk/google@^3.0.80",
       "npm:@comunica/query-sparql-rdfjs-lite@^5.2.3",
