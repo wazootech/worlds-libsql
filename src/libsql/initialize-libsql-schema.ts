@@ -1,4 +1,4 @@
-import type { ConnectionDriver } from "@worlds/sdk/durable-backend";
+import type { LibsqlConnectionDriver } from "./libsql-connection-driver.ts";
 import type { LibsqlSchemaBuilder } from "./schema/libsql-schema-builder.ts";
 
 /**
@@ -7,7 +7,7 @@ import type { LibsqlSchemaBuilder } from "./schema/libsql-schema-builder.ts";
  * (see https://github.com/wazootech/worlds-sdk-ts/discussions/45).
  */
 export async function initializeLibsqlSchema(
-  connection: ConnectionDriver,
+  connection: LibsqlConnectionDriver,
   schemaBuilder: LibsqlSchemaBuilder,
 ): Promise<void> {
   for (const ddl of schemaBuilder.buildTables()) {
@@ -28,7 +28,7 @@ export async function initializeLibsqlSchema(
  * migrateLibsqlChunksFtsValue adds fts_value to legacy chunk tables and backfills from value when missing.
  */
 async function migrateLibsqlChunksFtsValue(
-  connection: ConnectionDriver,
+  connection: LibsqlConnectionDriver,
   schemaBuilder: LibsqlSchemaBuilder,
 ): Promise<void> {
   const tableInfo = await connection.execute(
@@ -59,7 +59,7 @@ async function migrateLibsqlChunksFtsValue(
  * recreateLibsqlChunksFts rebuilds FTS5 virtual tables and triggers so discovery indexes fts_value.
  */
 async function recreateLibsqlChunksFts(
-  connection: ConnectionDriver,
+  connection: LibsqlConnectionDriver,
   schemaBuilder: LibsqlSchemaBuilder,
 ): Promise<void> {
   for (const dropTriggerSql of schemaBuilder.buildDropChunksFtsTriggers()) {

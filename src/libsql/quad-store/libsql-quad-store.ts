@@ -1,5 +1,4 @@
 import type * as rdfjs from "@rdfjs/types";
-import type { ConnectionDriver } from "@worlds/sdk/durable-backend";
 import type {
   ExportRequest,
   ExportResponse,
@@ -12,6 +11,7 @@ import {
   Transaction,
 } from "@worlds/sdk/quad-store";
 import type { LibsqlClientBaseOptions } from "../libsql-client-base-options.ts";
+import type { LibsqlConnectionDriver } from "../libsql-connection-driver.ts";
 import type { LibsqlRdfjsStore } from "../rdfjs-store/mod.ts";
 import type { LibsqlSearchQueryBuilder } from "../search-index/libsql-search-query-builder.ts";
 import type { LibsqlSearchIndexProjector } from "../search-index/mod.ts";
@@ -25,8 +25,8 @@ import {
  * LibsqlQuadStoreOptions defines the configurations for the LibsqlQuadStore.
  */
 export interface LibsqlQuadStoreOptions extends LibsqlClientBaseOptions {
-  /** connection is the provider-seam ConnectionDriver wrapping the LibSQL transport. */
-  connection: ConnectionDriver;
+  /** connection is the LibsqlConnectionDriver wrapping the LibSQL transport. */
+  connection: LibsqlConnectionDriver;
 
   /** store is the underlying LibSQL RDF/JS ReadSource store. */
   store: LibsqlRdfjsStore;

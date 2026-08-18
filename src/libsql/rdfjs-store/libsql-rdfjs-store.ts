@@ -1,5 +1,4 @@
 import type * as rdfjs from "@rdfjs/types";
-import type { ConnectionDriver } from "@worlds/sdk/durable-backend";
 import { Readable } from "node:stream";
 import {
   buildCountQuadsQuery,
@@ -9,12 +8,14 @@ import { DEFAULT_LIBSQL_MATCH_PAGE_SIZE } from "@/libsql/quad-store/libsql-quad-
 
 import { quadFromLibsqlRow } from "@/libsql/libsql-quad-row.ts";
 
+import type { LibsqlConnectionDriver } from "@/libsql/libsql-connection-driver.ts";
+
 /**
  * LibsqlRdfjsStoreOptions configures LibsqlRdfjsStore dependencies and read behavior.
  */
 export interface LibsqlRdfjsStoreOptions {
-  /** connection is the provider-seam ConnectionDriver wrapping the LibSQL transport. */
-  connection: ConnectionDriver;
+  /** connection is the LibsqlConnectionDriver wrapping the LibSQL transport. */
+  connection: LibsqlConnectionDriver;
 
   /** matchPageSize limits rows per match SQL round-trip (default 1000). */
   matchPageSize?: number;

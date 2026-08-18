@@ -2,7 +2,6 @@ import { assertEquals, assertRejects } from "@std/assert";
 import { createClient } from "@libsql/client";
 import { DataFactory } from "n3";
 import type * as rdfjs from "@rdfjs/types";
-import type { ConnectionDriver } from "@worlds/sdk/durable-backend";
 import { collectQuadsFromStream } from "@worlds/sdk/quad-store";
 import { LibsqlConnectionDriver } from "@/libsql/libsql-connection-driver.ts";
 import { LibsqlRdfjsStore } from "./mod.ts";
@@ -426,7 +425,7 @@ Deno.test(
   async () => {
     const failingConnection = {
       execute: () => Promise.reject(new Error("database unavailable")),
-    } as unknown as ConnectionDriver;
+    } as unknown as LibsqlConnectionDriver;
     const store = new LibsqlRdfjsStore({ connection: failingConnection });
 
     await assertRejects(

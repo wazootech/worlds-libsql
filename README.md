@@ -29,9 +29,9 @@ import { createClient } from "@libsql/client";
 import { createLibsqlClient } from "@worlds/libsql";
 
 const databaseClient = createClient({ url: ":memory:" });
-// The factory assembles the three provider-seam strategy objects internally
-// (worlds-sdk-ts#170): a ConnectionDriver over the raw client, the schema
-// builder, and the search-query builder. Callers just pass the LibSQL client.
+// The factory assembles the three strategy objects internally: a
+// LibsqlConnectionDriver over the raw client, the schema builder, and the
+// search-query builder. Callers just pass the LibSQL client.
 const client = await createLibsqlClient({ client: databaseClient });
 
 await client.import({
