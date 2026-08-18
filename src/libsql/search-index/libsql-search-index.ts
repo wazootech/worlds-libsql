@@ -1,3 +1,4 @@
+import type { ConnectionDriver } from "@worlds/sdk/durable-backend";
 import type {
   ReindexRequest,
   ReindexResponse,
@@ -24,6 +25,9 @@ interface SearchRequestWithProfile extends SearchRequest {
  * LibsqlSearchIndexOptions defines the structured configuration and dependency parameters needed to construct the LibSQL search engine.
  */
 export interface LibsqlSearchIndexOptions extends LibsqlClientBaseOptions {
+  /** connection is the provider-seam ConnectionDriver wrapping the LibSQL transport. */
+  connection: ConnectionDriver;
+
   /** searchQueryBuilder must match the schema and commit path used when materializing chunk vectors. */
   searchQueryBuilder: LibsqlSearchQueryBuilder;
 

@@ -16,6 +16,9 @@ import { resolveLabelPredicates } from "./search-index/search-chunk-fts.ts";
 import type { LibsqlSearchQueryBuilder } from "./search-index/libsql-search-query-builder.ts";
 
 export interface CommitPatchToLibsqlOptions extends LibsqlClientBaseOptions {
+  /** connection is the provider-seam ConnectionDriver wrapping the LibSQL transport. */
+  connection: ConnectionDriver;
+
   /** maxWriteBatchSize caps how many statements are sent per LibSQL write batch. Defaults to 500. */
   maxWriteBatchSize?: number;
 

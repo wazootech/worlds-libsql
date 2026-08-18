@@ -1,13 +1,10 @@
 import { createClient } from "@libsql/client";
-import { createLibsqlClient, LibsqlConnectionDriver } from "@worlds/libsql";
-import { LibsqlSchemaBuilder, LibsqlSearchQueryBuilder } from "@worlds/libsql";
+import { createLibsqlClient } from "@worlds/libsql";
 
 if (import.meta.main) {
   const databaseClient = createClient({ url: ":memory:" });
   const client = await createLibsqlClient({
-    connection: new LibsqlConnectionDriver(databaseClient),
-    schema: new LibsqlSchemaBuilder(32),
-    searchQuery: new LibsqlSearchQueryBuilder(32),
+    client: databaseClient,
   });
 
   await client.import({

@@ -18,6 +18,9 @@ import {
 import { LibsqlBatchExecutor } from "@/libsql/libsql-batch-executor.ts";
 
 export interface ProjectSearchChunksOptions extends LibsqlClientBaseOptions {
+  /** connection is the provider-seam ConnectionDriver wrapping the LibSQL transport. */
+  connection: ConnectionDriver;
+
   textSplitter: TextSplitterInterface;
   maxWriteBatchSize?: number;
   searchQueryBuilder: LibsqlSearchQueryBuilder;

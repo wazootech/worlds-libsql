@@ -26,23 +26,13 @@ deno add jsr:@worlds/libsql
 
 ```typescript
 import { createClient } from "@libsql/client";
-import {
-  createLibsqlClient,
-  LibsqlConnectionDriver,
-  LibsqlSchemaBuilder,
-  LibsqlSearchQueryBuilder,
-} from "@worlds/libsql";
+import { createLibsqlClient } from "@worlds/libsql";
 
 const databaseClient = createClient({ url: ":memory:" });
-// The factory takes the three provider-seam strategy objects as parameters
-// (worlds-sdk-ts#170): connection (transport), schema (dialect DDL), and
-// searchQuery (chunk/search SQL); it assembles its own quad store and search
-// index internally.
-const client = await createLibsqlClient({
-  connection: new LibsqlConnectionDriver(databaseClient),
-  schema: new LibsqlSchemaBuilder(32),
-  searchQuery: new LibsqlSearchQueryBuilder(32),
-});
+// The factory assembles the three provider-seam strategy objects internally
+// (worlds-sdk-ts#170): a ConnectionDriver over the raw client, the schema
+// builder, and the search-query builder. Callers just pass the LibSQL client.
+const client = await createLibsqlClient({ client: databaseClient });
 
 await client.import({
   source: {

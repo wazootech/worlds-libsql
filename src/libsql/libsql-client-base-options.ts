@@ -1,4 +1,3 @@
-import type { ConnectionDriver } from "@worlds/sdk/durable-backend";
 import type { QuadFilter } from "@worlds/sdk/quad-store";
 import type { SearchIndexOnImport } from "@worlds/sdk/search-index";
 import type { EmbeddingService } from "@worlds/sdk/search-index/embedding-service";
@@ -8,13 +7,6 @@ import type { TextSplitterInterface } from "@worlds/sdk/search-index/quad-chunke
  * LibsqlClientBaseOptions lists configuration shared by quad index LibSQL client factories.
  */
 export interface LibsqlClientBaseOptions extends QuadFilter {
-  /**
-   * connection is the provider-seam ConnectionDriver wrapping the underlying
-   * LibSQL transport (worlds-sdk-ts#170). Stores and the factory execute
-   * through it instead of touching the raw @libsql/client.
-   */
-  connection: ConnectionDriver;
-
   /** embeddingService is an optional service projected for transforming text literals into comparison vectors. */
   embeddingService?: EmbeddingService;
 
@@ -23,6 +15,11 @@ export interface LibsqlClientBaseOptions extends QuadFilter {
 
   /** maxLookupChunkSize specifies the maximum number of host parameters allowed in cache query IN clauses before split-chunking. Defaults to a conservative 800 (safely below historical SQLite 999 SQLITE_MAX_VARIABLE_NUMBER variable caps with generous headroom). */
   maxLookupChunkSize?: number;
+
+  /**
+   * vectorDimensions pins F32_BLOB width for chunk vectors and must match every embedding produced when embeddingService is set (default 32).
+   */
+  vectorDimensions?: number;
 
   /**
    * matchPageSize limits rows per LibsqlRdfjsStore.match SQL round-trip on reads (default 1000).

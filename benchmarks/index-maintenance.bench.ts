@@ -7,7 +7,6 @@ import {
   createTestLibsqlConnectionDriver,
   setupLibsqlSchemaForTest,
   sharedTextSplitter,
-  testLibsqlSchemaBuilder,
   testLibsqlSearchQueryBuilder,
 } from "@/libsql/libsql-test-fixtures.ts";
 import { generateSyntheticQuads } from "./shared/synthetic-data.ts";
@@ -17,9 +16,7 @@ const connection = createTestLibsqlConnectionDriver(databaseClient);
 await setupLibsqlSchemaForTest(connection);
 
 const worldsClient = await createLibsqlClient({
-  connection,
-  schema: testLibsqlSchemaBuilder,
-  searchQuery: testLibsqlSearchQueryBuilder,
+  client: databaseClient,
   searchIndexOnImport: "disabled",
 });
 

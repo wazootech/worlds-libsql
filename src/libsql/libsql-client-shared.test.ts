@@ -5,11 +5,6 @@ import { DataFactory } from "n3";
 import type { SdkInterface } from "@worlds/sdk";
 import type { LibsqlClientOptions } from "@/libsql/create-libsql-client.ts";
 import { createLibsqlClient } from "@/libsql/create-libsql-client.ts";
-import { LibsqlConnectionDriver } from "@/libsql/libsql-connection-driver.ts";
-import {
-  testLibsqlSchemaBuilder,
-  testLibsqlSearchQueryBuilder,
-} from "@/libsql/libsql-test-fixtures.ts";
 
 const { quad, namedNode, literal } = DataFactory;
 
@@ -28,17 +23,6 @@ interface LibsqlClientFixture {
   createClient: (options: LibsqlClientOptions) => Promise<SdkInterface>;
 }
 
-/** buildTestLibsqlOptions wraps a raw client in the three seam strategy objects. */
-function buildTestLibsqlOptions(
-  databaseClient: ReturnType<typeof createClient>,
-) {
-  return {
-    connection: new LibsqlConnectionDriver(databaseClient),
-    schema: testLibsqlSchemaBuilder,
-    searchQuery: testLibsqlSearchQueryBuilder,
-  };
-}
-
 const libsqlClientFixtures: LibsqlClientFixture[] = [
   { label: "quad-index", createClient: createLibsqlClient },
 ];
@@ -49,7 +33,7 @@ for (const fixture of libsqlClientFixtures) {
     async () => {
       const databaseClient = createClient({ url: ":memory:" });
 
-      await fixture.createClient(buildTestLibsqlOptions(databaseClient));
+      await fixture.createClient({ client: databaseClient });
 
       const indexResultSet = await databaseClient.execute(
         "SELECT name FROM sqlite_master WHERE type = 'index' AND tbl_name = 'quads'",
@@ -63,7 +47,7 @@ for (const fixture of libsqlClientFixtures) {
         );
       }
 
-      await fixture.createClient(buildTestLibsqlOptions(databaseClient));
+      await fixture.createClient({ client: databaseClient });
 
       databaseClient.close();
     },
@@ -74,9 +58,9 @@ for (const fixture of libsqlClientFixtures) {
     async () => {
       const databaseClient = createClient({ url: ":memory:" });
 
-      const client = await fixture.createClient(
-        buildTestLibsqlOptions(databaseClient),
-      );
+      const client = await fixture.createClient({
+        client: databaseClient,
+      });
 
       await client.import({
         source: {
@@ -111,7 +95,7 @@ for (const fixture of libsqlClientFixtures) {
       const databaseClient = createClient({ url: ":memory:" });
 
       const client = await fixture.createClient({
-        ...buildTestLibsqlOptions(databaseClient),
+        client: databaseClient,
         searchIndexOnImport: "disabled",
       });
 
@@ -148,7 +132,7 @@ for (const fixture of libsqlClientFixtures) {
       const databaseClient = createClient({ url: ":memory:" });
 
       const client = await fixture.createClient({
-        ...buildTestLibsqlOptions(databaseClient),
+        client: databaseClient,
         searchIndexOnImport: "disabled",
       });
 
