@@ -1,5 +1,5 @@
-export type { LibsqlClientOptions } from "./create-libsql-client.ts";
-export { createLibsqlClient } from "./create-libsql-client.ts";
+export type { LibsqlSdkOptions } from "./create-libsql-sdk.ts";
+export { createLibsqlSdk } from "./create-libsql-sdk.ts";
 export { LibsqlConnectionDriver } from "./libsql-connection-driver.ts";
 export { LibsqlRdfjsStore } from "./rdfjs-store/mod.ts";
 export { initializeLibsqlSchema } from "./initialize-libsql-schema.ts";

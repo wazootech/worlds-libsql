@@ -1,9 +1,9 @@
 import { createClient } from "@libsql/client";
-import { createLibsqlClient } from "@worlds/libsql";
+import { createLibsqlSdk } from "@worlds/libsql";
 
 if (import.meta.main) {
   const databaseClient = createClient({ url: ":memory:" });
-  const client = await createLibsqlClient({
+  const client = await createLibsqlSdk({
     client: databaseClient,
   });
 
