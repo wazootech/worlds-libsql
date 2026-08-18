@@ -17,7 +17,6 @@
     "@wazoo/sparql-engine": "jsr:@wazoo/sparql-engine@^0.4.1",
     "@libsql/client": "npm:@libsql/client@^0.17.3",
     "@worlds/sdk": "jsr:@worlds/sdk@^0.2.1",
-    "@worlds/sdk/durable-backend": "jsr:@worlds/sdk@^0.2.1/durable-backend",
     "@worlds/sdk/quad-store": "jsr:@worlds/sdk@^0.2.1/quad-store",
     "@worlds/sdk/search-index": "jsr:@worlds/sdk@^0.2.1/search-index",
     "@worlds/sdk/search-index/embedding-service": "jsr:@worlds/sdk@^0.2.1/search-index/embedding-service",

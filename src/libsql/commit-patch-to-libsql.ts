@@ -1,6 +1,5 @@
 import type { InStatement } from "@libsql/client";
 import type * as rdfjs from "@rdfjs/types";
-import type { ConnectionDriver } from "@worlds/sdk/durable-backend";
 import type { Patch, TransactionContext } from "@worlds/sdk/quad-store";
 import { isReplaceImportCommit } from "@worlds/sdk/quad-store";
 import { filterQuads, fromRdfjsTerm, hashQuads } from "@worlds/sdk/quad-store";
@@ -12,12 +11,13 @@ import {
   buildWipeAllGraphDataStatements,
 } from "./quad-store/libsql-quad-query-builder.ts";
 import { LibsqlBatchExecutor } from "./libsql-batch-executor.ts";
+import type { LibsqlConnectionDriver } from "./libsql-connection-driver.ts";
 import { resolveLabelPredicates } from "./search-index/search-chunk-fts.ts";
 import type { LibsqlSearchQueryBuilder } from "./search-index/libsql-search-query-builder.ts";
 
 export interface CommitPatchToLibsqlOptions extends LibsqlClientBaseOptions {
-  /** connection is the provider-seam ConnectionDriver wrapping the LibSQL transport. */
-  connection: ConnectionDriver;
+  /** connection is the LibsqlConnectionDriver wrapping the LibSQL transport. */
+  connection: LibsqlConnectionDriver;
 
   /** maxWriteBatchSize caps how many statements are sent per LibSQL write batch. Defaults to 500. */
   maxWriteBatchSize?: number;
@@ -36,7 +36,7 @@ export interface CommitPatchToLibsqlResult {
  * executeReplaceImportWipe clears all quads and search chunks before a replace-mode import commit.
  */
 async function executeReplaceImportWipe(
-  connection: ConnectionDriver,
+  connection: LibsqlConnectionDriver,
   writeBatchSize: number,
 ): Promise<void> {
   const executor = new LibsqlBatchExecutor({ connection, writeBatchSize });
@@ -193,7 +193,7 @@ export async function stageDeletionStatementsChunked(
  * queryCachePresence polls SQLite to check which Quad IDs have already been fully vectorized and indexed.
  */
 async function queryCachePresence(
-  connection: ConnectionDriver,
+  connection: LibsqlConnectionDriver,
   quadIds: string[],
   lookupChunkSize: number,
 ): Promise<Set<string>> {

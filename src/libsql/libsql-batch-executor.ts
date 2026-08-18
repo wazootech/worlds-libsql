@@ -1,8 +1,6 @@
 import type { InStatement } from "@libsql/client";
-import type {
-  ConnectionDriver,
-  SqlStatement,
-} from "@worlds/sdk/durable-backend";
+import type { LibsqlConnectionDriver } from "./libsql-connection-driver.ts";
+import type { SqlStatement } from "./libsql-connection-driver.ts";
 
 /** DEFAULT_MAX_LOOKUP_CHUNK_SIZE is the default IN-clause and deletion chunk width. */
 export const DEFAULT_MAX_LOOKUP_CHUNK_SIZE = 800;
@@ -17,8 +15,8 @@ export const STAGING_FLUSH_THRESHOLD = 10_000;
  * LibsqlBatchExecutorOptions defines the configuration for the batch executor.
  */
 export interface LibsqlBatchExecutorOptions {
-  /** connection is the provider-seam ConnectionDriver used for executing writes. */
-  connection: ConnectionDriver;
+  /** connection is the LibsqlConnectionDriver used for executing writes. */
+  connection: LibsqlConnectionDriver;
 
   /** writeBatchSize limits statements per LibSQL write batch. */
   writeBatchSize: number;
@@ -26,9 +24,9 @@ export interface LibsqlBatchExecutorOptions {
 
 /**
  * normalizeToSqlStatement converts an @libsql/client InStatement to the
- * provider-seam SqlStatement shape ({ sql, args?: unknown[] }). The executor
- * stages only parameterized positional-args statements; bare SQL strings are
- * wrapped and named-args records are unwrapped to their positional values.
+ * SqlStatement shape ({ sql, args?: unknown[] }). The executor stages only
+ * parameterized positional-args statements; bare SQL strings are wrapped and
+ * named-args records are unwrapped to their positional values.
  */
 function normalizeToSqlStatement(statement: InStatement): SqlStatement {
   if (typeof statement === "string") {
@@ -76,11 +74,6 @@ export class LibsqlBatchExecutor {
     }
 
     const { connection } = this.options;
-    if (!connection.batch) {
-      throw new Error(
-        "LibsqlBatchExecutor requires a ConnectionDriver with batch support",
-      );
-    }
 
     try {
       await connection.batch(this.statements);

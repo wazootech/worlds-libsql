@@ -6,8 +6,8 @@ const { quad } = DataFactory;
 
 /**
  * quadFromLibsqlRow reconstructs an RDF/JS quad from a LibSQL `quads` table row.
- * Rows come from the provider-seam ConnectionDriver, which exposes plain
- * column records (not the @libsql/client array-like Row).
+ * Rows come from the LibsqlConnectionDriver, which exposes plain column records
+ * (not the @libsql/client array-like Row).
  */
 export function quadFromLibsqlRow(row: Record<string, unknown>): rdfjs.Quad {
   const subject = toRdfjsTerm({

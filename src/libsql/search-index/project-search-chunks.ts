@@ -1,5 +1,4 @@
 import type { InStatement } from "@libsql/client";
-import type { ConnectionDriver } from "@worlds/sdk/durable-backend";
 import type {
   ChunkRowPayload,
   TextSplitterInterface,
@@ -8,6 +7,7 @@ import { chunkQuads } from "@worlds/sdk/search-index/quad-chunker";
 import type * as rdfjs from "@rdfjs/types";
 import { hashQuads } from "@worlds/sdk/quad-store";
 import type { LibsqlClientBaseOptions } from "@/libsql/libsql-client-base-options.ts";
+import type { LibsqlConnectionDriver } from "@/libsql/libsql-connection-driver.ts";
 import type { LibsqlSearchQueryBuilder } from "./libsql-search-query-builder.ts";
 import { buildSelectLabelLiteralsForSubjects } from "@/libsql/quad-store/libsql-quad-query-builder.ts";
 
@@ -18,8 +18,8 @@ import {
 import { LibsqlBatchExecutor } from "@/libsql/libsql-batch-executor.ts";
 
 export interface ProjectSearchChunksOptions extends LibsqlClientBaseOptions {
-  /** connection is the provider-seam ConnectionDriver wrapping the LibSQL transport. */
-  connection: ConnectionDriver;
+  /** connection is the LibsqlConnectionDriver wrapping the LibSQL transport. */
+  connection: LibsqlConnectionDriver;
 
   textSplitter: TextSplitterInterface;
   maxWriteBatchSize?: number;
@@ -124,7 +124,7 @@ function buildChunkDeletionStatementsChunked(
 }
 
 async function loadLabelLiteralsBySubject(
-  connection: ConnectionDriver,
+  connection: LibsqlConnectionDriver,
   subjects: string[],
   labelPredicates: string[],
   lookupChunkSize: number,

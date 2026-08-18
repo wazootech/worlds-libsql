@@ -28,10 +28,9 @@ export interface LibsqlClientOptions extends LibsqlClientBaseOptions {
 /**
  * createLibsqlClient synthesizes a Sdk for LibsqlRdfjsStore quad indexes.
  *
- * The factory assembles the three provider-seam strategy objects internally
- * (worlds-sdk-ts#170): a LibsqlConnectionDriver over the raw client, a
- * LibsqlSchemaBuilder, and a LibsqlSearchQueryBuilder — they document a
- * durable backend's shape, but callers pass the plain LibSQL client.
+ * The factory assembles the three strategy objects internally: a
+ * LibsqlConnectionDriver over the raw client, a LibsqlSchemaBuilder, and a
+ * LibsqlSearchQueryBuilder. Callers pass the plain LibSQL client.
  */
 export async function createLibsqlClient(
   options: LibsqlClientOptions,

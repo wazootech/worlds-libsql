@@ -1,19 +1,53 @@
 import type { Client, InStatement } from "@libsql/client";
-import type {
-  ConnectionDriver,
-  SqlExecutor,
-  SqlResult,
-  SqlStatement,
-} from "@worlds/sdk/durable-backend";
 
 /**
- * LibsqlConnectionDriver adapts an @libsql/client Client to the provider-seam
- * ConnectionDriver (worlds-sdk-ts#170): a uniform SQL surface (execute /
- * batch / transaction / close) over the LibSQL transport (remote Turso or
- * embedded local file). The LibSQL factory and its stores execute through this
- * driver instead of touching the raw client.
+ * SqlStatement is a single parameterized SQL statement.
  */
-export class LibsqlConnectionDriver implements ConnectionDriver {
+export interface SqlStatement {
+  /** sql is the statement text, using `?` placeholders. */
+  sql: string;
+
+  /** args are the positional bind values for the statement's placeholders. */
+  args?: unknown[];
+}
+
+/**
+ * SqlResult is the outcome of executing a single statement.
+ */
+export interface SqlResult<Row = Record<string, unknown>> {
+  /** rows are the returned result rows (empty for writes). */
+  rows: Row[];
+}
+
+/**
+ * SqlExecutor is the minimal statement-execution surface LibSQL exposes —
+ * used both for top-level calls and inside a transaction scope.
+ */
+export interface SqlExecutor {
+  /**
+   * execute runs a single parameterized statement and returns its rows.
+   * @param statement The statement to execute.
+   * @returns A promise resolving to the result rows.
+   */
+  execute<Row = Record<string, unknown>>(
+    statement: SqlStatement,
+  ): Promise<SqlResult<Row>>;
+
+  /**
+   * batch executes multiple write statements in one round-trip.
+   * @param statements The statements to execute atomically as a batch.
+   * @returns A promise resolving when the batch completes.
+   */
+  batch?(statements: readonly SqlStatement[]): Promise<unknown>;
+}
+
+/**
+ * LibsqlConnectionDriver adapts an @libsql/client Client to a uniform SQL
+ * surface (execute / batch / transaction / close) over the LibSQL transport
+ * (remote Turso or embedded local file). The LibSQL factory and its stores
+ * execute through this driver instead of touching the raw client.
+ */
+export class LibsqlConnectionDriver {
   public constructor(private readonly client: Client) {}
 
   /**

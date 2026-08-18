@@ -1,14 +1,11 @@
-import type { SchemaBuilder } from "@worlds/sdk/durable-backend";
-
 /** Maximum embedding dimensions accepted by LibsqlSchemaBuilder (LibSQL / resource guardrail). */
 const LIBSQL_QUERY_BUILDER_MAX_VECTOR_DIMENSIONS = 8192;
 
 /**
  * LibsqlSchemaBuilder exposes DDL/DML helpers bound to a single vector dimension for schema initialization.
- * It satisfies the provider-seam SchemaBuilder (worlds-sdk-ts#170); the LibSQL dialect extras
- * (FTS/trigger/vector statements) stay on the concrete class.
+ * The LibSQL dialect extras (FTS/trigger/vector statements) live on this concrete class.
  */
-export class LibsqlSchemaBuilder implements SchemaBuilder {
+export class LibsqlSchemaBuilder {
   public readonly vectorDimensions: number;
 
   public constructor(vectorDimensions: number) {
@@ -29,7 +26,7 @@ export class LibsqlSchemaBuilder implements SchemaBuilder {
 
   /**
    * buildTables returns the idempotent DDL that creates the quads and chunks
-   * tables in dependency order (provider-seam SchemaBuilder surface).
+   * tables in dependency order.
    */
   public buildTables(): string[] {
     return [this.buildLibsqlQuadsTable(), this.buildLibsqlChunksTable()];
