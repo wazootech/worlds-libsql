@@ -2,7 +2,12 @@ import { assertEquals, assertExists, assertNotEquals } from "@std/assert";
 import { createClient } from "@libsql/client";
 import * as path from "@std/path";
 import { createLibsqlClient } from "@worlds/libsql";
+import { LibsqlConnectionDriver } from "@worlds/libsql";
 import type { Quad } from "@rdfjs/types";
+import {
+  testLibsqlSchemaBuilder,
+  testLibsqlSearchQueryBuilder,
+} from "@/libsql/libsql-test-fixtures.ts";
 import {
   buildHexastorePerfFixtureChecksumInputs,
   computeHexastorePerfFixtureChecksum,
@@ -18,7 +23,9 @@ async function importCorpusIntoLibsqlHexastoreForTest(
   corpusQuads: Quad[],
 ): Promise<void> {
   const worldsClient = await createLibsqlClient({
-    client: databaseClient,
+    connection: new LibsqlConnectionDriver(databaseClient),
+    schema: testLibsqlSchemaBuilder,
+    searchQuery: testLibsqlSearchQueryBuilder,
     searchIndexOnImport: "disabled",
   });
   await worldsClient.import({

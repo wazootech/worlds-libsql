@@ -3,6 +3,7 @@ import { LibsqlSearchIndex } from "@/libsql/search-index/libsql-search-index.ts"
 import { FakeEmbeddingService } from "@worlds/sdk/search-index/embedding-service";
 import type { EmbeddingService } from "@worlds/sdk/search-index/embedding-service";
 import {
+  createTestLibsqlConnectionDriver,
   setupLibsqlSchemaForTest,
   testLibsqlSearchQueryBuilder,
 } from "@/libsql/libsql-test-fixtures.ts";
@@ -16,7 +17,8 @@ class FailingEmbeddingService implements EmbeddingService {
 }
 
 const databaseClient = createClient({ url: ":memory:" });
-await setupLibsqlSchemaForTest(databaseClient);
+const connection = createTestLibsqlConnectionDriver(databaseClient);
+await setupLibsqlSchemaForTest(connection);
 
 const vectorArray = new Array(32).fill(0);
 vectorArray[0] = 1.0;
@@ -39,18 +41,18 @@ for (let index = 0; index < 1000; index++) {
 }
 
 const ftsSearchIndex = new LibsqlSearchIndex({
-  client: databaseClient,
+  connection,
   searchQueryBuilder: testLibsqlSearchQueryBuilder,
 });
 
 const hybridSearchIndex = new LibsqlSearchIndex({
-  client: databaseClient,
+  connection,
   embeddingService: new FakeEmbeddingService(),
   searchQueryBuilder: testLibsqlSearchQueryBuilder,
 });
 
 const fallbackSearchIndex = new LibsqlSearchIndex({
-  client: databaseClient,
+  connection,
   embeddingService: new FailingEmbeddingService(),
   searchQueryBuilder: testLibsqlSearchQueryBuilder,
 });

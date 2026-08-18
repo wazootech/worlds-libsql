@@ -1,17 +1,31 @@
 import { assertEquals, assertExists } from "@std/assert";
-import { createClient } from "@libsql/client";
+import { type Client, createClient } from "@libsql/client";
 import { createLibsqlClient } from "./create-libsql-client.ts";
+import { LibsqlConnectionDriver } from "./libsql-connection-driver.ts";
+import {
+  testLibsqlSchemaBuilder,
+  testLibsqlSearchQueryBuilder,
+} from "./libsql-test-fixtures.ts";
 import { DataFactory } from "n3";
 
 const { quad, namedNode, literal } = DataFactory;
+
+/** buildTestLibsqlOptions wraps a raw client in the three seam strategy objects. */
+function buildTestLibsqlOptions(databaseClient: Client) {
+  return {
+    connection: new LibsqlConnectionDriver(databaseClient),
+    schema: testLibsqlSchemaBuilder,
+    searchQuery: testLibsqlSearchQueryBuilder,
+  };
+}
 
 Deno.test(
   "createLibsqlClient - serves SPARQL on LibsqlRdfjsStore",
   async () => {
     const databaseClient = createClient({ url: ":memory:" });
-    const client = await createLibsqlClient({
-      client: databaseClient,
-    });
+    const client = await createLibsqlClient(
+      buildTestLibsqlOptions(databaseClient),
+    );
 
     assertExists(client);
     await client.import({
@@ -41,11 +55,9 @@ Deno.test(
   "createLibsqlClient - default WazooSparqlEngine serves SPARQL without queryEngine",
   async () => {
     const databaseClient = createClient({ url: ":memory:" });
-    const client = await createLibsqlClient({
-      client: databaseClient,
-      // No queryEngine: the zero-dependency WazooSparqlEngine is the default
-      // (decision worlds-client-ts#152 / worlds-libsql#12).
-    });
+    const client = await createLibsqlClient(
+      buildTestLibsqlOptions(databaseClient),
+    );
 
     assertExists(client);
     await client.import({
@@ -99,9 +111,9 @@ Deno.test(
   "createLibsqlClient - SPARQL INSERT DATA followed by SELECT round-trips through transaction commit",
   async () => {
     const databaseClient = createClient({ url: ":memory:" });
-    const client = await createLibsqlClient({
-      client: databaseClient,
-    });
+    const client = await createLibsqlClient(
+      buildTestLibsqlOptions(databaseClient),
+    );
 
     assertExists(client);
 

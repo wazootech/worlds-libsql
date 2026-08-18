@@ -1,3 +1,4 @@
+import type { SearchQueryBuilder } from "@worlds/sdk/durable-backend";
 import type { QuadFilter } from "@worlds/sdk/quad-store";
 import type { SearchRequest } from "@worlds/sdk/search-index";
 
@@ -162,7 +163,7 @@ export function sanitizeFtsQuery(query: string): string {
 /** Maximum embedding dimensions accepted by LibsqlSearchQueryBuilder (LibSQL / resource guardrail). */
 const LIBSQL_QUERY_BUILDER_MAX_VECTOR_DIMENSIONS = 8192;
 
-export class LibsqlSearchQueryBuilder {
+export class LibsqlSearchQueryBuilder implements SearchQueryBuilder {
   public readonly vectorDimensions: number;
 
   public constructor(vectorDimensions: number) {

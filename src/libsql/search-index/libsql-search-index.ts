@@ -83,7 +83,7 @@ export class LibsqlSearchIndex implements SearchIndexInterface {
       },
     );
 
-    const resultSet = await this.options.client.execute({ sql, args });
+    const resultSet = await this.options.connection.execute({ sql, args });
 
     const minScore = profileRequest.minScore ?? 0;
     const results: SearchResult[] = [];

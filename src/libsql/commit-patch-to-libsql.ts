@@ -1,5 +1,6 @@
-import type { Client, InStatement } from "@libsql/client";
+import type { InStatement } from "@libsql/client";
 import type * as rdfjs from "@rdfjs/types";
+import type { ConnectionDriver } from "@worlds/sdk/durable-backend";
 import type { Patch, TransactionContext } from "@worlds/sdk/quad-store";
 import { isReplaceImportCommit } from "@worlds/sdk/quad-store";
 import { filterQuads, fromRdfjsTerm, hashQuads } from "@worlds/sdk/quad-store";
@@ -32,10 +33,10 @@ export interface CommitPatchToLibsqlResult {
  * executeReplaceImportWipe clears all quads and search chunks before a replace-mode import commit.
  */
 async function executeReplaceImportWipe(
-  client: Client,
+  connection: ConnectionDriver,
   writeBatchSize: number,
 ): Promise<void> {
-  const executor = new LibsqlBatchExecutor({ client, writeBatchSize });
+  const executor = new LibsqlBatchExecutor({ connection, writeBatchSize });
   await executor.stage(buildWipeAllGraphDataStatements());
   await executor.flush();
 }
@@ -50,7 +51,7 @@ export async function commitPatchToLibsql(
   context?: TransactionContext,
 ): Promise<CommitPatchToLibsqlResult> {
   const {
-    client,
+    connection,
     maxLookupChunkSize,
     maxWriteBatchSize,
     include,
@@ -60,11 +61,11 @@ export async function commitPatchToLibsql(
   const lookupChunkSize = maxLookupChunkSize ?? 800; // default lookup chunk size
   const writeBatchSize = maxWriteBatchSize ?? 500; // default write batch size
 
-  const batchExecutor = new LibsqlBatchExecutor({ client, writeBatchSize });
+  const batchExecutor = new LibsqlBatchExecutor({ connection, writeBatchSize });
 
   if (isReplaceImportCommit(context)) {
     await executeReplaceImportWipe(
-      client,
+      connection,
       writeBatchSize,
     );
   }
@@ -98,7 +99,7 @@ export async function commitPatchToLibsql(
   if (targetedInsertions.length) {
     const proposedQuadIds = await hashQuads(targetedInsertions);
     const existingIds = await queryCachePresence(
-      client,
+      connection,
       proposedQuadIds,
       lookupChunkSize,
     );
@@ -189,7 +190,7 @@ export async function stageDeletionStatementsChunked(
  * queryCachePresence polls SQLite to check which Quad IDs have already been fully vectorized and indexed.
  */
 async function queryCachePresence(
-  client: Client,
+  connection: ConnectionDriver,
   quadIds: string[],
   lookupChunkSize: number,
 ): Promise<Set<string>> {
@@ -198,7 +199,7 @@ async function queryCachePresence(
     for (let i = 0; i < quadIds.length; i += lookupChunkSize) {
       const batchIds = quadIds.slice(i, i + lookupChunkSize);
       const query = buildSelectExistingQuadIds(batchIds);
-      const resultSet = await client.execute(query);
+      const resultSet = await connection.execute(query);
       for (const row of resultSet.rows) {
         if (row.id) {
           cachedIds.add(String(row.id));

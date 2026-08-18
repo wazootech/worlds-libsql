@@ -11,6 +11,7 @@ import type { Patch, TransactionContext } from "@worlds/sdk/quad-store";
 
 import { FakeEmbeddingService } from "@worlds/sdk/search-index/embedding-service";
 import {
+  createTestLibsqlConnectionDriver,
   setupLibsqlSchemaForTest,
   sharedTextSplitter,
   testLibsqlSearchQueryBuilder,
@@ -24,7 +25,7 @@ function createLibsqlPersistHooks(
   options: Omit<LibsqlQuadStoreOptions, "store">,
 ) {
   const store = new LibsqlRdfjsStore({
-    client: options.client,
+    connection: options.connection,
     matchPageSize: options.matchPageSize,
   });
   const quadStore = new LibsqlQuadStore({
@@ -49,7 +50,8 @@ Deno.test(
   "createLibsqlPersistHooks - bulk quad INSERT persists expected quads row count",
   async () => {
     const client = createClient({ url: ":memory:" });
-    await setupLibsqlSchemaForTest(client);
+    const connection = createTestLibsqlConnectionDriver(client);
+    await setupLibsqlSchemaForTest(connection);
 
     const bulkQuadCount = 120;
     const bulkQuads = Array.from({ length: bulkQuadCount }, (_, index) =>
@@ -60,9 +62,9 @@ Deno.test(
       ));
 
     const persistHooks = createLibsqlPersistHooks({
-      client,
+      connection,
       searchIndexProjector: new LibsqlSearchIndexProjector({
-        client,
+        connection,
         textSplitter: sharedTextSplitter,
         searchQueryBuilder: testLibsqlSearchQueryBuilder,
         labelPredicates: [],
@@ -83,13 +85,14 @@ Deno.test(
 
 Deno.test("createLibsqlPersistHooks - isolated writes and removals commit correctly to BOTH chunks and quads", async () => {
   const client = createClient({ url: ":memory:" });
-  await setupLibsqlSchemaForTest(client);
+  const connection = createTestLibsqlConnectionDriver(client);
+  await setupLibsqlSchemaForTest(connection);
 
   const persistHooks = createLibsqlPersistHooks({
-    client,
+    connection,
     embeddingService: new FakeEmbeddingService(),
     searchIndexProjector: new LibsqlSearchIndexProjector({
-      client,
+      connection,
       textSplitter: sharedTextSplitter,
       searchQueryBuilder: testLibsqlSearchQueryBuilder,
       labelPredicates: [],
@@ -141,13 +144,14 @@ Deno.test("createLibsqlPersistHooks - isolated writes and removals commit correc
 
 Deno.test("createLibsqlPersistHooks - supports synchronization when embeddingService is omitted (vector column left null)", async () => {
   const client = createClient({ url: ":memory:" });
-  await setupLibsqlSchemaForTest(client);
+  const connection = createTestLibsqlConnectionDriver(client);
+  await setupLibsqlSchemaForTest(connection);
 
   const persistHooks = createLibsqlPersistHooks({
-    client,
+    connection,
     // embeddingService is omitted intentionally
     searchIndexProjector: new LibsqlSearchIndexProjector({
-      client,
+      connection,
       textSplitter: sharedTextSplitter,
       searchQueryBuilder: testLibsqlSearchQueryBuilder,
       labelPredicates: [],
@@ -188,13 +192,14 @@ Deno.test("createLibsqlPersistHooks - supports synchronization when embeddingSer
 
 Deno.test("createLibsqlPersistHooks - stores literal value and discovery fts_value", async () => {
   const client = createClient({ url: ":memory:" });
-  await setupLibsqlSchemaForTest(client);
+  const connection = createTestLibsqlConnectionDriver(client);
+  await setupLibsqlSchemaForTest(connection);
 
   const persistHooks = createLibsqlPersistHooks({
-    client,
+    connection,
     embeddingService: new FakeEmbeddingService(),
     searchIndexProjector: new LibsqlSearchIndexProjector({
-      client,
+      connection,
       textSplitter: sharedTextSplitter,
       searchQueryBuilder: testLibsqlSearchQueryBuilder,
       labelPredicates: [],
@@ -235,7 +240,8 @@ Deno.test(
   "createLibsqlPersistHooks - bulk insertions beyond SQLITE_MAX_VARIABLE_NUMBER do not fail",
   async () => {
     const client = createClient({ url: ":memory:" });
-    await setupLibsqlSchemaForTest(client);
+    const connection = createTestLibsqlConnectionDriver(client);
+    await setupLibsqlSchemaForTest(connection);
 
     const bulkQuadCount = 2_500;
     const bulkQuads = Array.from({ length: bulkQuadCount }, (_, index) =>
@@ -246,9 +252,9 @@ Deno.test(
       ));
 
     const persistHooks = createLibsqlPersistHooks({
-      client,
+      connection,
       searchIndexProjector: new LibsqlSearchIndexProjector({
-        client,
+        connection,
         textSplitter: sharedTextSplitter,
         searchQueryBuilder: testLibsqlSearchQueryBuilder,
         labelPredicates: [],
@@ -274,7 +280,8 @@ Deno.test(
   "createLibsqlPersistHooks - large bulk insertions flush staged statements without stack overflow",
   async () => {
     const client = createClient({ url: ":memory:" });
-    await setupLibsqlSchemaForTest(client);
+    const connection = createTestLibsqlConnectionDriver(client);
+    await setupLibsqlSchemaForTest(connection);
 
     const largeBulkQuadCount = 50_000;
     const largeBulkQuads = Array.from(
@@ -288,9 +295,9 @@ Deno.test(
     );
 
     const persistHooks = createLibsqlPersistHooks({
-      client,
+      connection,
       searchIndexProjector: new LibsqlSearchIndexProjector({
-        client,
+        connection,
         textSplitter: sharedTextSplitter,
         searchQueryBuilder: testLibsqlSearchQueryBuilder,
         labelPredicates: [],
@@ -316,12 +323,13 @@ Deno.test(
   "createLibsqlPersistHooks - deferred mode auto-rebuilds at the end of import",
   async () => {
     const client = createClient({ url: ":memory:" });
-    await setupLibsqlSchemaForTest(client);
+    const connection = createTestLibsqlConnectionDriver(client);
+    await setupLibsqlSchemaForTest(connection);
 
     const options = {
-      client,
+      connection,
       searchIndexProjector: new LibsqlSearchIndexProjector({
-        client,
+        connection,
         textSplitter: sharedTextSplitter,
         searchQueryBuilder: testLibsqlSearchQueryBuilder,
         labelPredicates: [],
@@ -355,12 +363,13 @@ Deno.test(
   "createLibsqlPersistHooks - importMode replace wipes prior quads before insert",
   async () => {
     const client = createClient({ url: ":memory:" });
-    await setupLibsqlSchemaForTest(client);
+    const connection = createTestLibsqlConnectionDriver(client);
+    await setupLibsqlSchemaForTest(connection);
 
     const persistHooks = createLibsqlPersistHooks({
-      client,
+      connection,
       searchIndexProjector: new LibsqlSearchIndexProjector({
-        client,
+        connection,
         textSplitter: sharedTextSplitter,
         searchQueryBuilder: testLibsqlSearchQueryBuilder,
         labelPredicates: [],

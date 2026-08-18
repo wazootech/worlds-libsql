@@ -98,9 +98,9 @@ export class LibsqlQuadStore implements QuadStoreInterface {
             );
           } catch (error) {
             // Clean up persisted quads if search projection fails
-            const client = this.options.client;
+            const connection = this.options.connection;
             const batchExecutor = new LibsqlBatchExecutor({
-              client,
+              connection,
               writeBatchSize: this.options.maxWriteBatchSize ?? 500,
             });
             await stageDeletionStatementsChunked(

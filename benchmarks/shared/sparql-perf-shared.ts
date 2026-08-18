@@ -1,7 +1,11 @@
 import { createClient } from "@libsql/client";
 import type { Quad } from "@rdfjs/types";
 import type { SdkInterface } from "@worlds/sdk";
-import { createLibsqlClient } from "@worlds/libsql";
+import { createLibsqlClient, LibsqlConnectionDriver } from "@worlds/libsql";
+import {
+  testLibsqlSchemaBuilder,
+  testLibsqlSearchQueryBuilder,
+} from "@/libsql/libsql-test-fixtures.ts";
 import {
   buildHexastorePerfFixtureChecksumInputs,
   computeHexastorePerfFixtureChecksum,
@@ -110,7 +114,9 @@ async function importCorpusIntoLibsqlHexastore(
   corpusQuads: Quad[],
 ): Promise<void> {
   const worldsClient = await createLibsqlClient({
-    client: databaseClient,
+    connection: new LibsqlConnectionDriver(databaseClient),
+    schema: testLibsqlSchemaBuilder,
+    searchQuery: testLibsqlSearchQueryBuilder,
     searchIndexOnImport: "disabled",
   });
   await worldsClient.import({
@@ -125,7 +131,9 @@ async function openLibsqlHexastoreSparqlEngine(
   databaseClient: ReturnType<typeof createClient>,
 ): Promise<PreloadedSparqlFixture> {
   const worldsClient = await createLibsqlClient({
-    client: databaseClient,
+    connection: new LibsqlConnectionDriver(databaseClient),
+    schema: testLibsqlSchemaBuilder,
+    searchQuery: testLibsqlSearchQueryBuilder,
     searchIndexOnImport: "disabled",
   });
   return { databaseClient, client: worldsClient };

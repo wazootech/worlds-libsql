@@ -4,17 +4,22 @@ import { rebuildLibsqlSearchIndexFromQuads } from "@/libsql/search-index/rebuild
 import { refreshSearchChunksForSubjects } from "@/libsql/search-index/refresh-search-chunks-for-subjects.ts";
 import { FakeEmbeddingService } from "@worlds/sdk/search-index/embedding-service";
 import {
+  createTestLibsqlConnectionDriver,
   setupLibsqlSchemaForTest,
   sharedTextSplitter,
+  testLibsqlSchemaBuilder,
   testLibsqlSearchQueryBuilder,
 } from "@/libsql/libsql-test-fixtures.ts";
 import { generateSyntheticQuads } from "./shared/synthetic-data.ts";
 
 const databaseClient = createClient({ url: ":memory:" });
-await setupLibsqlSchemaForTest(databaseClient);
+const connection = createTestLibsqlConnectionDriver(databaseClient);
+await setupLibsqlSchemaForTest(connection);
 
 const worldsClient = await createLibsqlClient({
-  client: databaseClient,
+  connection,
+  schema: testLibsqlSchemaBuilder,
+  searchQuery: testLibsqlSearchQueryBuilder,
   searchIndexOnImport: "disabled",
 });
 
@@ -26,7 +31,7 @@ await worldsClient.import({
 const sampleSubjects = sampleQuads.map((quad) => quad.subject.value);
 
 const maintenanceOptions = {
-  client: databaseClient,
+  connection,
   searchQueryBuilder: testLibsqlSearchQueryBuilder,
   embeddingService: new FakeEmbeddingService(),
   textSplitter: sharedTextSplitter,

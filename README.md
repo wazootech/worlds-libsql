@@ -26,10 +26,23 @@ deno add jsr:@worlds/libsql
 
 ```typescript
 import { createClient } from "@libsql/client";
-import { createLibsqlClient } from "@worlds/libsql";
+import {
+  createLibsqlClient,
+  LibsqlConnectionDriver,
+  LibsqlSchemaBuilder,
+  LibsqlSearchQueryBuilder,
+} from "@worlds/libsql";
 
 const databaseClient = createClient({ url: ":memory:" });
-const client = await createLibsqlClient({ client: databaseClient });
+// The factory takes the three provider-seam strategy objects as parameters
+// (worlds-sdk-ts#170): connection (transport), schema (dialect DDL), and
+// searchQuery (chunk/search SQL); it assembles its own quad store and search
+// index internally.
+const client = await createLibsqlClient({
+  connection: new LibsqlConnectionDriver(databaseClient),
+  schema: new LibsqlSchemaBuilder(32),
+  searchQuery: new LibsqlSearchQueryBuilder(32),
+});
 
 await client.import({
   source: {
@@ -61,6 +74,7 @@ import type * as rdfjs from "@rdfjs/types";
 import { WazooSparqlEngine } from "@wazoo/sparql-engine";
 import {
   initializeLibsqlSchema,
+  LibsqlConnectionDriver,
   LibsqlQuadStore,
   LibsqlRdfjsStore,
   LibsqlSchemaBuilder,
@@ -72,15 +86,16 @@ const databaseClient = createClient({ url: ":memory:" });
 
 // Create the quads table + covering indexes (no FTS/vector chunk schema).
 const schemaBuilder = new LibsqlSchemaBuilder(32);
-await initializeLibsqlSchema(databaseClient, schemaBuilder);
+const connection = new LibsqlConnectionDriver(databaseClient);
+await initializeLibsqlSchema(connection, schemaBuilder);
 
 // The RDF/JS read source over LibSQL: match/countQuads via SQL index seeks.
-const store = new LibsqlRdfjsStore({ client: databaseClient });
+const store = new LibsqlRdfjsStore({ connection });
 
 // A quad store for writes (import/export/transaction); chunk projection
 // is skipped by leaving searchIndexProjector unset.
 const quadStore = new LibsqlQuadStore({
-  client: databaseClient,
+  connection,
   store,
   searchQueryBuilder: new LibsqlSearchQueryBuilder(32),
 });

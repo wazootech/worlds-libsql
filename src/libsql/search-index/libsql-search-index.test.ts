@@ -4,6 +4,7 @@ import { LibsqlSearchIndex } from "./libsql-search-index.ts";
 import { FakeEmbeddingService } from "@worlds/sdk/search-index/embedding-service";
 import type { EmbeddingService } from "@worlds/sdk/search-index/embedding-service";
 import {
+  createTestLibsqlConnectionDriver,
   setupLibsqlSchemaForTest,
   testLibsqlSearchQueryBuilder,
 } from "@/libsql/libsql-test-fixtures.ts";
@@ -12,7 +13,8 @@ import {
 
 Deno.test("LibsqlSearchIndex - Tracer Bullet: performs basic hybrid search and maps results", async () => {
   const client = createClient({ url: ":memory:" });
-  await setupLibsqlSchemaForTest(client);
+  const connection = createTestLibsqlConnectionDriver(client);
+  await setupLibsqlSchemaForTest(connection);
 
   const paddedVec = new Array(32).fill(0);
   paddedVec[0] = 1.0;
@@ -51,7 +53,7 @@ Deno.test("LibsqlSearchIndex - Tracer Bullet: performs basic hybrid search and m
   });
 
   const searchIndex = new LibsqlSearchIndex({
-    client,
+    connection,
     embeddingService: new FakeEmbeddingService(),
     searchQueryBuilder: testLibsqlSearchQueryBuilder,
   });
@@ -69,7 +71,8 @@ Deno.test("LibsqlSearchIndex - Tracer Bullet: performs basic hybrid search and m
 
 Deno.test("LibsqlSearchIndex - Scope Inclusion: limits matches only to included subjects", async () => {
   const client = createClient({ url: ":memory:" });
-  await setupLibsqlSchemaForTest(client);
+  const connection = createTestLibsqlConnectionDriver(client);
+  await setupLibsqlSchemaForTest(connection);
 
   const data = new Array(32).fill(0);
   data[0] = 1.0;
@@ -103,7 +106,7 @@ Deno.test("LibsqlSearchIndex - Scope Inclusion: limits matches only to included 
   });
 
   const searchIndex = new LibsqlSearchIndex({
-    client,
+    connection,
     embeddingService: new FakeEmbeddingService(),
     searchQueryBuilder: testLibsqlSearchQueryBuilder,
   });
@@ -132,7 +135,8 @@ Deno.test("LibsqlSearchIndex - Scope Inclusion: limits matches only to included 
 
 Deno.test("LibsqlSearchIndex - Scope Exclusion: suppresses explicitly excluded predicates", async () => {
   const client = createClient({ url: ":memory:" });
-  await setupLibsqlSchemaForTest(client);
+  const connection = createTestLibsqlConnectionDriver(client);
+  await setupLibsqlSchemaForTest(connection);
 
   const data = new Array(32).fill(0);
   data[0] = 1.0;
@@ -166,7 +170,7 @@ Deno.test("LibsqlSearchIndex - Scope Exclusion: suppresses explicitly excluded p
   });
 
   const searchIndex = new LibsqlSearchIndex({
-    client,
+    connection,
     embeddingService: new FakeEmbeddingService(),
     searchQueryBuilder: testLibsqlSearchQueryBuilder,
   });
@@ -188,7 +192,8 @@ Deno.test("LibsqlSearchIndex - Scope Exclusion: suppresses explicitly excluded p
 
 Deno.test("LibsqlSearchIndex - Vectorless Mode: gracefully degrades to keyword-only search when embeddingService is omitted", async () => {
   const client = createClient({ url: ":memory:" });
-  await setupLibsqlSchemaForTest(client);
+  const connection = createTestLibsqlConnectionDriver(client);
+  await setupLibsqlSchemaForTest(connection);
 
   // Insert chunk rows with NULL vectors (Vectorless mode)
   await client.execute({
@@ -217,7 +222,7 @@ Deno.test("LibsqlSearchIndex - Vectorless Mode: gracefully degrades to keyword-o
   });
 
   const searchIndex = new LibsqlSearchIndex({
-    client,
+    connection,
     // embeddingService is omitted intentionally to trigger Keyword-only FTS
     searchQueryBuilder: testLibsqlSearchQueryBuilder,
   });
@@ -239,7 +244,8 @@ Deno.test("LibsqlSearchIndex - Vectorless Mode: gracefully degrades to keyword-o
 
 Deno.test("LibsqlSearchIndex - Stability: executes search safely when query contains special FTS5 syntax characters without throwing crashes", async () => {
   const client = createClient({ url: ":memory:" });
-  await setupLibsqlSchemaForTest(client);
+  const connection = createTestLibsqlConnectionDriver(client);
+  await setupLibsqlSchemaForTest(connection);
 
   // Insert a document we can try to find
   await client.execute({
@@ -256,7 +262,7 @@ Deno.test("LibsqlSearchIndex - Stability: executes search safely when query cont
   });
 
   const searchIndex = new LibsqlSearchIndex({
-    client,
+    connection,
     searchQueryBuilder: testLibsqlSearchQueryBuilder,
   });
 
@@ -296,7 +302,8 @@ Deno.test(
   "LibsqlSearchIndex - degrades to keyword-only search when embeddingService throws",
   async () => {
     const client = createClient({ url: ":memory:" });
-    await setupLibsqlSchemaForTest(client);
+    const connection = createTestLibsqlConnectionDriver(client);
+    await setupLibsqlSchemaForTest(connection);
 
     await client.execute({
       sql:
@@ -312,7 +319,7 @@ Deno.test(
     });
 
     const searchIndex = new LibsqlSearchIndex({
-      client,
+      connection,
       embeddingService: new FailingEmbeddingService(),
       searchQueryBuilder: testLibsqlSearchQueryBuilder,
     });
@@ -328,7 +335,8 @@ Deno.test(
   "LibsqlSearchIndex - degrades when embedding dimensions do not match schema",
   async () => {
     const client = createClient({ url: ":memory:" });
-    await setupLibsqlSchemaForTest(client);
+    const connection = createTestLibsqlConnectionDriver(client);
+    await setupLibsqlSchemaForTest(connection);
 
     await client.execute({
       sql:
@@ -344,7 +352,7 @@ Deno.test(
     });
 
     const searchIndex = new LibsqlSearchIndex({
-      client,
+      connection,
       embeddingService: new WrongDimensionEmbeddingService(),
       searchQueryBuilder: testLibsqlSearchQueryBuilder,
     });
@@ -360,7 +368,8 @@ Deno.test(
 
 Deno.test("LibsqlSearchIndex - respects custom result limit option", async () => {
   const client = createClient({ url: ":memory:" });
-  await setupLibsqlSchemaForTest(client);
+  const connection = createTestLibsqlConnectionDriver(client);
+  await setupLibsqlSchemaForTest(connection);
 
   const vecStr = JSON.stringify(new Array(32).fill(0));
 
@@ -381,7 +390,7 @@ Deno.test("LibsqlSearchIndex - respects custom result limit option", async () =>
   }
 
   const searchIndex = new LibsqlSearchIndex({
-    client,
+    connection,
     embeddingService: new FakeEmbeddingService(),
     searchQueryBuilder: testLibsqlSearchQueryBuilder,
     limit: 2,

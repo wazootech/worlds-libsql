@@ -1,4 +1,5 @@
-import type { Client, InStatement } from "@libsql/client";
+import type { InStatement } from "@libsql/client";
+import type { ConnectionDriver } from "@worlds/sdk/durable-backend";
 import type {
   ChunkRowPayload,
   TextSplitterInterface,
@@ -45,7 +46,7 @@ export async function projectSearchChunks(
     const writeBatchSize = options.maxWriteBatchSize ?? 500;
     try {
       const executor = new LibsqlBatchExecutor({
-        client: options.client,
+        connection: options.connection,
         writeBatchSize,
       });
       await executor.stage(chunkStatements);
@@ -83,7 +84,7 @@ export async function refreshSearchChunksForQuads(
   );
 
   const executor = new LibsqlBatchExecutor({
-    client: options.client,
+    connection: options.connection,
     writeBatchSize,
   });
 
@@ -120,7 +121,7 @@ function buildChunkDeletionStatementsChunked(
 }
 
 async function loadLabelLiteralsBySubject(
-  client: Client,
+  connection: ConnectionDriver,
   subjects: string[],
   labelPredicates: string[],
   lookupChunkSize: number,
@@ -137,7 +138,7 @@ async function loadLabelLiteralsBySubject(
       subjectBatch,
       labelPredicates,
     );
-    const resultSet = await client.execute(query);
+    const resultSet = await connection.execute(query);
     for (const row of resultSet.rows) {
       const subject = String(row.s);
       const literalValue = String(row.o);
@@ -175,7 +176,7 @@ async function buildVectorChunkStatements(
   );
 
   const labelLiteralsBySubject = await loadLabelLiteralsBySubject(
-    options.client,
+    options.connection,
     uniqueSubjects,
     resolvedLabelPredicates,
     lookupChunkSize,

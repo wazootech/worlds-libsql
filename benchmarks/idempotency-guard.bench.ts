@@ -1,13 +1,20 @@
 import { createClient } from "@libsql/client";
 import { DataFactory } from "n3";
 import { createLibsqlClient } from "@/libsql/mod.ts";
+import { LibsqlConnectionDriver } from "@/libsql/libsql-connection-driver.ts";
+import {
+  testLibsqlSchemaBuilder,
+  testLibsqlSearchQueryBuilder,
+} from "@/libsql/libsql-test-fixtures.ts";
 import { generateSyntheticQuads } from "./shared/synthetic-data.ts";
 
 const { quad, namedNode, literal } = DataFactory;
 
 const databaseClient = createClient({ url: ":memory:" });
 const client = await createLibsqlClient({
-  client: databaseClient,
+  connection: new LibsqlConnectionDriver(databaseClient),
+  schema: testLibsqlSchemaBuilder,
+  searchQuery: testLibsqlSearchQueryBuilder,
   searchIndexOnImport: "disabled",
 });
 
