@@ -143,8 +143,8 @@ create a fresh database per iteration and use `warmup: 5`, `n: 50`.
   ```
 
 **Production (millions of quads):** default to
-[`createLibsqlClient`](../src/libsql/create-libsql-client.ts) for hybrid search
-and faster preload. Track guidance in
+[`createLibsqlSdk`](../src/libsql/create-libsql-sdk.ts) for hybrid search and
+faster preload. Track guidance in
 [#68](https://github.com/wazootech/worlds-sdk-ts/issues/68).
 
 ## Baseline table (2026-05-21, pre-preload)

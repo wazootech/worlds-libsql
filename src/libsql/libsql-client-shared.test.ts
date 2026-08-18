@@ -3,8 +3,8 @@ import { createClient } from "@libsql/client";
 import { DataFactory } from "n3";
 
 import type { SdkInterface } from "@worlds/sdk";
-import type { LibsqlClientOptions } from "@/libsql/create-libsql-client.ts";
-import { createLibsqlClient } from "@/libsql/create-libsql-client.ts";
+import type { LibsqlSdkOptions } from "@/libsql/create-libsql-sdk.ts";
+import { createLibsqlSdk } from "@/libsql/create-libsql-sdk.ts";
 
 const { quad, namedNode, literal } = DataFactory;
 
@@ -20,11 +20,11 @@ const expectedIndexNames = [
 
 interface LibsqlClientFixture {
   label: string;
-  createClient: (options: LibsqlClientOptions) => Promise<SdkInterface>;
+  createClient: (options: LibsqlSdkOptions) => Promise<SdkInterface>;
 }
 
 const libsqlClientFixtures: LibsqlClientFixture[] = [
-  { label: "quad-index", createClient: createLibsqlClient },
+  { label: "quad-index", createClient: createLibsqlSdk },
 ];
 
 for (const fixture of libsqlClientFixtures) {

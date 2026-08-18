@@ -18,22 +18,22 @@ import { LibsqlSchemaBuilder } from "./schema/libsql-schema-builder.ts";
 import { LibsqlSearchQueryBuilder } from "./search-index/libsql-search-query-builder.ts";
 
 /**
- * LibsqlClientOptions configures LibSQL execution through LibsqlRdfjsStore and quad indexes.
+ * LibsqlSdkOptions configures LibSQL execution through LibsqlRdfjsStore and quad indexes.
  */
-export interface LibsqlClientOptions extends LibsqlClientBaseOptions {
+export interface LibsqlSdkOptions extends LibsqlClientBaseOptions {
   /** client is the underlying LibSQL client pointing to the database. */
   client: LibsqlClient;
 }
 
 /**
- * createLibsqlClient synthesizes a Sdk for LibsqlRdfjsStore quad indexes.
+ * createLibsqlSdk synthesizes a Sdk for LibsqlRdfjsStore quad indexes.
  *
  * The factory assembles the three strategy objects internally: a
  * LibsqlConnectionDriver over the raw client, a LibsqlSchemaBuilder, and a
  * LibsqlSearchQueryBuilder. Callers pass the plain LibSQL client.
  */
-export async function createLibsqlClient(
-  options: LibsqlClientOptions,
+export async function createLibsqlSdk(
+  options: LibsqlSdkOptions,
 ): Promise<SdkInterface> {
   const vectorDimensions = options.vectorDimensions ?? 32;
   const connection = new LibsqlConnectionDriver(options.client);

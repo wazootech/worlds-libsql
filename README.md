@@ -26,13 +26,13 @@ deno add jsr:@worlds/libsql
 
 ```typescript
 import { createClient } from "@libsql/client";
-import { createLibsqlClient } from "@worlds/libsql";
+import { createLibsqlSdk } from "@worlds/libsql";
 
 const databaseClient = createClient({ url: ":memory:" });
 // The factory assembles the three strategy objects internally: a
 // LibsqlConnectionDriver over the raw client, the schema builder, and the
 // search-query builder. Callers just pass the LibSQL client.
-const client = await createLibsqlClient({ client: databaseClient });
+const client = await createLibsqlSdk({ client: databaseClient });
 
 await client.import({
   source: {

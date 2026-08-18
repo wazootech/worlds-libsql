@@ -1,15 +1,15 @@
 import { assertEquals, assertExists } from "@std/assert";
 import { createClient } from "@libsql/client";
-import { createLibsqlClient } from "./create-libsql-client.ts";
+import { createLibsqlSdk } from "./create-libsql-sdk.ts";
 import { DataFactory } from "n3";
 
 const { quad, namedNode, literal } = DataFactory;
 
 Deno.test(
-  "createLibsqlClient - serves SPARQL on LibsqlRdfjsStore",
+  "createLibsqlSdk - serves SPARQL on LibsqlRdfjsStore",
   async () => {
     const databaseClient = createClient({ url: ":memory:" });
-    const client = await createLibsqlClient({
+    const client = await createLibsqlSdk({
       client: databaseClient,
     });
 
@@ -38,10 +38,10 @@ Deno.test(
 );
 
 Deno.test(
-  "createLibsqlClient - default WazooSparqlEngine serves SPARQL without queryEngine",
+  "createLibsqlSdk - default WazooSparqlEngine serves SPARQL without queryEngine",
   async () => {
     const databaseClient = createClient({ url: ":memory:" });
-    const client = await createLibsqlClient({
+    const client = await createLibsqlSdk({
       client: databaseClient,
       // No queryEngine: the zero-dependency WazooSparqlEngine is the default
       // (decision worlds-client-ts#152 / worlds-libsql#12).
@@ -96,10 +96,10 @@ Deno.test(
 );
 
 Deno.test(
-  "createLibsqlClient - SPARQL INSERT DATA followed by SELECT round-trips through transaction commit",
+  "createLibsqlSdk - SPARQL INSERT DATA followed by SELECT round-trips through transaction commit",
   async () => {
     const databaseClient = createClient({ url: ":memory:" });
-    const client = await createLibsqlClient({
+    const client = await createLibsqlSdk({
       client: databaseClient,
     });
 
