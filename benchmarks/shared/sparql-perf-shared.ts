@@ -1,6 +1,5 @@
 import { createClient } from "@libsql/client";
 import type { Quad } from "@rdfjs/types";
-import { QueryEngine } from "@comunica/query-sparql-rdfjs-lite";
 import type { ClientInterface } from "@worlds/sdk";
 import { createLibsqlClient } from "@worlds/libsql";
 import {
@@ -26,8 +25,6 @@ export const selectiveSparqlQuery =
 /** fullScanSparqlQuery exercises an unbound triple pattern with a small result cap. */
 export const fullScanSparqlQuery =
   "SELECT ?s ?p ?o WHERE { ?s ?p ?o } LIMIT 100";
-
-const sharedQueryEngine = new QueryEngine();
 
 /** SparqlQueryShape labels the SPARQL quad index perf query patterns. */
 export type SparqlQueryShape = "selective" | "fullScan";
@@ -122,7 +119,7 @@ async function importCorpusIntoLibsqlHexastore(
 }
 
 /**
- * openLibsqlHexastoreSparqlEngine wires Comunica over an existing LibsqlRdfjsStore database.
+ * openLibsqlHexastoreSparqlEngine wires the WazooSparqlEngine over an existing LibsqlRdfjsStore database.
  */
 async function openLibsqlHexastoreSparqlEngine(
   databaseClient: ReturnType<typeof createClient>,
@@ -130,13 +127,12 @@ async function openLibsqlHexastoreSparqlEngine(
   const worldsClient = await createLibsqlClient({
     client: databaseClient,
     searchIndexOnImport: "disabled",
-    queryEngine: sharedQueryEngine,
   });
   return { databaseClient, client: worldsClient };
 }
 
 /**
- * createLibsqlHexastoreSparqlEngine wires Comunica over LibsqlRdfjsStore (no N3 hydration).
+ * createLibsqlHexastoreSparqlEngine wires the WazooSparqlEngine over LibsqlRdfjsStore (no N3 hydration).
  */
 async function createLibsqlHexastoreSparqlEngine(
   corpusQuads: Quad[],

@@ -1,6 +1,5 @@
 import { assertEquals } from "@std/assert";
 import { createClient } from "@libsql/client";
-import { QueryEngine } from "@comunica/query-sparql-rdfjs-lite";
 import { DataFactory } from "n3";
 
 import type { ClientInterface } from "@worlds/sdk";
@@ -8,7 +7,6 @@ import type { LibsqlClientOptions } from "@/libsql/create-libsql-client.ts";
 import { createLibsqlClient } from "@/libsql/create-libsql-client.ts";
 
 const { quad, namedNode, literal } = DataFactory;
-const queryEngine = new QueryEngine();
 
 const expectedIndexNames = [
   "idx_quads_spog",
@@ -62,7 +60,6 @@ for (const fixture of libsqlClientFixtures) {
 
       const client = await fixture.createClient({
         client: databaseClient,
-        queryEngine,
       });
 
       await client.import({
@@ -100,7 +97,6 @@ for (const fixture of libsqlClientFixtures) {
       const client = await fixture.createClient({
         client: databaseClient,
         searchIndexOnImport: "disabled",
-        queryEngine,
       });
 
       await client.import({
@@ -138,7 +134,6 @@ for (const fixture of libsqlClientFixtures) {
       const client = await fixture.createClient({
         client: databaseClient,
         searchIndexOnImport: "disabled",
-        queryEngine,
       });
 
       await client.import({

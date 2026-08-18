@@ -13,7 +13,6 @@
     "@/": "./src/",
     "ai": "npm:ai@^6.0.195",
     "@ai-sdk/google": "npm:@ai-sdk/google@^3.0.80",
-    "@comunica/query-sparql-rdfjs-lite": "npm:@comunica/query-sparql-rdfjs-lite@^5.2.3",
     "@rdfjs/types": "npm:@rdfjs/types@^2.0.1",
     "@wazoo/sparql-engine": "jsr:@wazoo/sparql-engine@^0.3.0",
     "@libsql/client": "npm:@libsql/client@^0.17.3",
@@ -22,7 +21,6 @@
     "@worlds/sdk/search-index": "jsr:@worlds/sdk@^0.1.1/search-index",
     "@worlds/sdk/search-index/embedding-service": "jsr:@worlds/sdk@^0.1.1/search-index/embedding-service",
     "@worlds/sdk/search-index/quad-chunker": "jsr:@worlds/sdk@^0.1.1/search-index/quad-chunker",
-    "@worlds/sdk/comunica": "jsr:@worlds/sdk@^0.1.1/comunica",
     "@std/assert": "jsr:@std/assert@^1.0.19",
     "@std/async": "jsr:@std/async@^1.4.0",
     "@std/encoding": "jsr:@std/encoding@^1.0.10",
@@ -37,12 +35,6 @@
     "@langchain/textsplitters": "npm:@langchain/textsplitters@^1.0.1",
     "zod": "npm:zod@^4.4.3"
   },
-  "links": [
-    "./vendor/jsonld-context-parser"
-  ],
-  "exclude": [
-    "vendor/jsonld-context-parser/**"
-  ],
   "tasks": {
     "fmt": "deno fmt",
     "fmt:check": "deno fmt --check",

@@ -3,8 +3,6 @@ import type * as rdfjs from "@rdfjs/types";
 import { Client } from "@worlds/sdk";
 import type { ClientInterface } from "@worlds/sdk";
 import { WazooSparqlEngine } from "@wazoo/sparql-engine";
-import type { ComunicaQueryEngine } from "@worlds/sdk/comunica";
-import { ComunicaSparqlEngine } from "@worlds/sdk/comunica";
 import {
   LibsqlSearchIndex,
   LibsqlSearchIndexProjector,
@@ -20,14 +18,7 @@ import { LibsqlSearchQueryBuilder } from "./search-index/libsql-search-query-bui
 /**
  * LibsqlClientOptions configures LibSQL execution through LibsqlRdfjsStore and quad indexes.
  */
-export interface LibsqlClientOptions extends LibsqlClientBaseOptions {
-  /**
-   * queryEngine optionally swaps the default WazooSparqlEngine for a Comunica
-   * SPARQL engine over LibsqlRdfjsStore. Omit it to use the zero-dependency
-   * in-house engine (decision worlds-client-ts#152).
-   */
-  queryEngine?: ComunicaQueryEngine;
-}
+export interface LibsqlClientOptions extends LibsqlClientBaseOptions {}
 
 /**
  * createLibsqlClient synthesizes a Client for LibsqlRdfjsStore quad indexes.
@@ -68,16 +59,10 @@ export async function createLibsqlClient(
     searchIndexProjector,
   });
 
-  const sparqlEngine = options.queryEngine
-    ? new ComunicaSparqlEngine({
-      queryEngine: options.queryEngine,
-      store: libsqlRdfjsStore as unknown as rdfjs.Store,
-      createTransaction: () => quadStore.createTransaction(),
-    })
-    : new WazooSparqlEngine({
-      store: libsqlRdfjsStore as unknown as rdfjs.Store,
-      createTransaction: () => quadStore.createTransaction(),
-    });
+  const sparqlEngine = new WazooSparqlEngine({
+    store: libsqlRdfjsStore as unknown as rdfjs.Store,
+    createTransaction: () => quadStore.createTransaction(),
+  });
 
   return new Client({
     quadStore,

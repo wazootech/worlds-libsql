@@ -1,12 +1,10 @@
 import { createClient } from "@libsql/client";
 import { createLibsqlClient } from "@worlds/libsql";
-import { QueryEngine } from "@comunica/query-sparql-rdfjs-lite";
 
 if (import.meta.main) {
   const databaseClient = createClient({ url: ":memory:" });
   const client = await createLibsqlClient({
     client: databaseClient,
-    queryEngine: new QueryEngine(),
   });
 
   await client.import({

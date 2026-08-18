@@ -1,19 +1,16 @@
 import { assertEquals, assertExists } from "@std/assert";
 import { createClient } from "@libsql/client";
-import { QueryEngine } from "@comunica/query-sparql-rdfjs-lite";
 import { createLibsqlClient } from "./create-libsql-client.ts";
 import { DataFactory } from "n3";
 
-const queryEngine = new QueryEngine();
 const { quad, namedNode, literal } = DataFactory;
 
 Deno.test(
-  "createLibsqlClient - queryEngine enables SPARQL on LibsqlRdfjsStore",
+  "createLibsqlClient - serves SPARQL on LibsqlRdfjsStore",
   async () => {
     const databaseClient = createClient({ url: ":memory:" });
     const client = await createLibsqlClient({
       client: databaseClient,
-      queryEngine,
     });
 
     assertExists(client);
@@ -104,7 +101,6 @@ Deno.test(
     const databaseClient = createClient({ url: ":memory:" });
     const client = await createLibsqlClient({
       client: databaseClient,
-      queryEngine,
     });
 
     assertExists(client);

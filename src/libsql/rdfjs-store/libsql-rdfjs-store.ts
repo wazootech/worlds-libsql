@@ -102,7 +102,7 @@ export class LibsqlRdfjsStore {
   }
 
   /**
-   * countQuads returns the number of quads matching the given quad pattern (Comunica cardinality hint).
+   * countQuads returns the number of quads matching the given quad pattern (WazooSparqlEngine cardinality hint).
    */
   public async countQuads(
     subject?: rdfjs.Term | null,
