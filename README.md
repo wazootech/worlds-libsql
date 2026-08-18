@@ -22,12 +22,88 @@ deno add jsr:@worlds/libsql
 
 ## Usage
 
+### Full client: quad store + search index + SPARQL
+
 ```typescript
 import { createClient } from "@libsql/client";
 import { createLibsqlClient } from "@worlds/libsql";
-import { LibsqlQuadStore } from "@worlds/libsql/quad-store";
-import { LibsqlSearchIndex } from "@worlds/libsql/search-index";
-import { LibsqlRdfjsStore } from "@worlds/libsql/rdfjs-store";
+
+const databaseClient = createClient({ url: ":memory:" });
+const client = await createLibsqlClient({ client: databaseClient });
+
+await client.import({
+  source: {
+    kind: "serialized",
+    data:
+      `<http://example.com/alice> <http://example.com/knows> <http://example.com/bob> .`,
+    contentType: "text/turtle",
+  },
+});
+
+const { search, sparql } = await Promise.all([
+  client.search({ query: "alice" }),
+  client.sparql({
+    query:
+      `SELECT ?o WHERE { <http://example.com/alice> <http://example.com/knows> ?o }`,
+  }),
+]);
+```
+
+### SPARQL only: the RDF/JS store + `WazooSparqlEngine` over LibSQL
+
+When you only need SPARQL over an RDF/JS store backed by LibSQL (no chunk
+search, no embeddings), wire `LibsqlRdfjsStore` directly into
+`@wazoo/sparql-engine`'s `WazooSparqlEngine`:
+
+```typescript
+import { createClient } from "@libsql/client";
+import type * as rdfjs from "@rdfjs/types";
+import { WazooSparqlEngine } from "@wazoo/sparql-engine";
+import {
+  initializeLibsqlSchema,
+  LibsqlQuadStore,
+  LibsqlRdfjsStore,
+  LibsqlSchemaBuilder,
+  LibsqlSearchQueryBuilder,
+} from "@worlds/libsql";
+
+// A raw LibSQL client — in-memory here, any remote/embedded URL works.
+const databaseClient = createClient({ url: ":memory:" });
+
+// Create the quads table + covering indexes (no FTS/vector chunk schema).
+const schemaBuilder = new LibsqlSchemaBuilder(32);
+await initializeLibsqlSchema(databaseClient, schemaBuilder);
+
+// The RDF/JS read source over LibSQL: match/countQuads via SQL index seeks.
+const store = new LibsqlRdfjsStore({ client: databaseClient });
+
+// A quad store for writes (import/export/transaction); chunk projection
+// is skipped by leaving searchIndexProjector unset.
+const quadStore = new LibsqlQuadStore({
+  client: databaseClient,
+  store,
+  searchQueryBuilder: new LibsqlSearchQueryBuilder(32),
+});
+
+// SPARQL engine over the same LibSQL-backed store.
+const sparqlEngine = new WazooSparqlEngine({
+  store: store as unknown as rdfjs.Store,
+  createTransaction: () => quadStore.createTransaction(),
+});
+
+await quadStore.import({
+  source: {
+    kind: "serialized",
+    data:
+      `<http://example.com/alice> <http://example.com/knows> <http://example.com/bob> .`,
+    contentType: "text/turtle",
+  },
+});
+
+const result = await sparqlEngine.execute({
+  query:
+    `SELECT ?o WHERE { <http://example.com/alice> <http://example.com/knows> ?o }`,
+});
 ```
 
 ## Development
