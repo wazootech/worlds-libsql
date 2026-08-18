@@ -10,6 +10,7 @@ import {
 import { LibsqlRdfjsStore } from "@/libsql/rdfjs-store/mod.ts";
 import type { Patch, TransactionContext } from "@worlds/sdk/quad-store";
 import {
+  createTestLibsqlConnectionDriver,
   setupLibsqlSchemaForTest,
   sharedTextSplitter,
   testLibsqlSchemaBuilder,
@@ -21,7 +22,7 @@ function createLibsqlPersistHooks(
   options: Omit<LibsqlQuadStoreOptions, "store">,
 ) {
   const store = new LibsqlRdfjsStore({
-    client: options.client,
+    connection: options.connection,
     matchPageSize: options.matchPageSize,
   });
   const quadStore = new LibsqlQuadStore({
@@ -56,12 +57,13 @@ Deno.test(
   "rebuildLibsqlSearchIndexFromQuads - discovers subject via fts_value while value stays literal",
   async () => {
     const client = createClient({ url: ":memory:" });
-    await setupLibsqlSchemaForTest(client);
+    const connection = createTestLibsqlConnectionDriver(client);
+    await setupLibsqlSchemaForTest(connection);
 
     const persistHooks = createLibsqlPersistHooks({
-      client,
+      connection,
       searchIndexProjector: new LibsqlSearchIndexProjector({
-        client,
+        connection,
         textSplitter: sharedTextSplitter,
         searchQueryBuilder: testLibsqlSearchQueryBuilder,
         embeddingService: new FakeEmbeddingService(),
@@ -90,7 +92,7 @@ Deno.test(
     );
 
     const searchIndex = new LibsqlSearchIndex({
-      client,
+      connection,
       searchQueryBuilder: testLibsqlSearchQueryBuilder,
     });
 
@@ -105,12 +107,13 @@ Deno.test(
   "rebuildLibsqlSearchIndexFromQuads - label literals enable discovery by alias",
   async () => {
     const client = createClient({ url: ":memory:" });
-    await setupLibsqlSchemaForTest(client);
+    const connection = createTestLibsqlConnectionDriver(client);
+    await setupLibsqlSchemaForTest(connection);
 
     const persistHooks = createLibsqlPersistHooks({
-      client,
+      connection,
       searchIndexProjector: new LibsqlSearchIndexProjector({
-        client,
+        connection,
         textSplitter: sharedTextSplitter,
         searchQueryBuilder: testLibsqlSearchQueryBuilder,
         embeddingService: new FakeEmbeddingService(),
@@ -135,7 +138,7 @@ Deno.test(
     });
 
     const searchIndex = new LibsqlSearchIndex({
-      client,
+      connection,
       searchQueryBuilder: testLibsqlSearchQueryBuilder,
     });
 
@@ -155,12 +158,13 @@ Deno.test(
   "rebuildLibsqlSearchIndexFromQuads - rebuild refreshes fts_value after schema-style reindex",
   async () => {
     const client = createClient({ url: ":memory:" });
-    await setupLibsqlSchemaForTest(client);
+    const connection = createTestLibsqlConnectionDriver(client);
+    await setupLibsqlSchemaForTest(connection);
 
     const persistHooks = createLibsqlPersistHooks({
-      client,
+      connection,
       searchIndexProjector: new LibsqlSearchIndexProjector({
-        client,
+        connection,
         textSplitter: sharedTextSplitter,
         searchQueryBuilder: testLibsqlSearchQueryBuilder,
         embeddingService: new FakeEmbeddingService(),
@@ -188,7 +192,7 @@ Deno.test(
     );
 
     const rebuildResult = await rebuildLibsqlSearchIndexFromQuads({
-      client,
+      connection,
       textSplitter: sharedTextSplitter,
       searchQueryBuilder: testLibsqlSearchQueryBuilder,
     });
@@ -206,7 +210,7 @@ Deno.test(
     );
 
     const searchIndex = new LibsqlSearchIndex({
-      client,
+      connection,
       searchQueryBuilder: testLibsqlSearchQueryBuilder,
     });
     const discovery = await searchIndex.search({ query: "Aurelia" });
@@ -219,12 +223,13 @@ Deno.test(
   "rebuildLibsqlSearchIndexFromQuads - extended labelPredicates union is indexed",
   async () => {
     const client = createClient({ url: ":memory:" });
-    await setupLibsqlSchemaForTest(client);
+    const connection = createTestLibsqlConnectionDriver(client);
+    await setupLibsqlSchemaForTest(connection);
 
     const persistHooks = createLibsqlPersistHooks({
-      client,
+      connection,
       searchIndexProjector: new LibsqlSearchIndexProjector({
-        client,
+        connection,
         textSplitter: sharedTextSplitter,
         searchQueryBuilder: testLibsqlSearchQueryBuilder,
         embeddingService: new FakeEmbeddingService(),
@@ -256,7 +261,7 @@ Deno.test(
     assertEquals(predicates.includes(RDFS_LABEL), true);
 
     const searchIndex = new LibsqlSearchIndex({
-      client,
+      connection,
       searchQueryBuilder: testLibsqlSearchQueryBuilder,
     });
 
@@ -278,12 +283,13 @@ Deno.test(
   "rebuildLibsqlSearchIndexFromQuads - label update fan-out refreshes sibling fact chunks",
   async () => {
     const client = createClient({ url: ":memory:" });
-    await setupLibsqlSchemaForTest(client);
+    const connection = createTestLibsqlConnectionDriver(client);
+    await setupLibsqlSchemaForTest(connection);
 
     const persistHooks = createLibsqlPersistHooks({
-      client,
+      connection,
       searchIndexProjector: new LibsqlSearchIndexProjector({
-        client,
+        connection,
         textSplitter: sharedTextSplitter,
         searchQueryBuilder: testLibsqlSearchQueryBuilder,
         embeddingService: new FakeEmbeddingService(),
@@ -323,7 +329,7 @@ Deno.test(
     );
 
     const searchIndex = new LibsqlSearchIndex({
-      client,
+      connection,
       searchQueryBuilder: testLibsqlSearchQueryBuilder,
     });
     const discovery = await searchIndex.search({ query: "New Kingdom" });

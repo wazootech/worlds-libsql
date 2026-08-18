@@ -1,9 +1,10 @@
 import { assertEquals, assertRejects } from "@std/assert";
-import type { Client } from "@libsql/client";
 import { createClient } from "@libsql/client";
 import { DataFactory } from "n3";
 import type * as rdfjs from "@rdfjs/types";
+import type { ConnectionDriver } from "@worlds/sdk/durable-backend";
 import { collectQuadsFromStream } from "@worlds/sdk/quad-store";
+import { LibsqlConnectionDriver } from "@/libsql/libsql-connection-driver.ts";
 import { LibsqlRdfjsStore } from "./mod.ts";
 import { testLibsqlSchemaBuilder } from "@/libsql/libsql-test-fixtures.ts";
 
@@ -14,7 +15,7 @@ function createTestLibsqlRdfjsStore(
   matchPageSize?: number,
 ): LibsqlRdfjsStore {
   return new LibsqlRdfjsStore({
-    client,
+    connection: new LibsqlConnectionDriver(client),
     matchPageSize,
   });
 }
@@ -423,10 +424,10 @@ Deno.test("LibsqlRdfjsStore.match - BlankNode graph terms round-trip", async () 
 Deno.test(
   "LibsqlRdfjsStore.match - propagates database errors through the result stream",
   async () => {
-    const failingClient = {
+    const failingConnection = {
       execute: () => Promise.reject(new Error("database unavailable")),
-    } as unknown as Client;
-    const store = createTestLibsqlRdfjsStore(failingClient);
+    } as unknown as ConnectionDriver;
+    const store = new LibsqlRdfjsStore({ connection: failingConnection });
 
     await assertRejects(
       () => collectQuadsFromStream(store.match(null, null, null, null)),

@@ -1,5 +1,5 @@
-import type { Client } from "@libsql/client";
 import type * as rdfjs from "@rdfjs/types";
+import type { ConnectionDriver } from "@worlds/sdk/durable-backend";
 import { Readable } from "node:stream";
 import {
   buildCountQuadsQuery,
@@ -13,10 +13,8 @@ import { quadFromLibsqlRow } from "@/libsql/libsql-quad-row.ts";
  * LibsqlRdfjsStoreOptions configures LibsqlRdfjsStore dependencies and read behavior.
  */
 export interface LibsqlRdfjsStoreOptions {
-  /** client is the LibSQL client. */
-  client: Client;
-
-  /** queryBuilder is the LibsqlQueryBuilder. */
+  /** connection is the provider-seam ConnectionDriver wrapping the LibSQL transport. */
+  connection: ConnectionDriver;
 
   /** matchPageSize limits rows per match SQL round-trip (default 1000). */
   matchPageSize?: number;
@@ -74,7 +72,10 @@ export class LibsqlRdfjsStore {
               limit: this.matchPageSize,
             },
           );
-          const resultSet = await this.options.client.execute({ sql, args });
+          const resultSet = await this.options.connection.execute({
+            sql,
+            args,
+          });
 
           if (resultSet.rows.length === 0) {
             rowStream.push(null);
@@ -116,7 +117,7 @@ export class LibsqlRdfjsStore {
       object: object ?? null,
       graph: graph ?? null,
     });
-    const resultSet = await this.options.client.execute({ sql, args });
+    const resultSet = await this.options.connection.execute({ sql, args });
     const firstRow = resultSet.rows[0];
     if (!firstRow) {
       return 0;

@@ -34,7 +34,7 @@ export async function rebuildLibsqlSearchIndexFromQuads(
   options: ReadProjectSearchChunksOptions,
 ): Promise<RebuildLibsqlSearchIndexFromQuadsResult> {
   const {
-    client,
+    connection,
     include,
     exclude,
     readPageSize,
@@ -54,7 +54,7 @@ export async function rebuildLibsqlSearchIndexFromQuads(
       { subject: null, predicate: null, object: null, graph: null },
       { afterQuadId, limit: pageSize },
     );
-    const resultSet = await client.execute(query);
+    const resultSet = await connection.execute(query);
 
     if (resultSet.rows.length === 0) {
       break;

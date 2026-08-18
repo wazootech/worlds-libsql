@@ -10,7 +10,7 @@
     "jsr:@std/internal@^1.0.14": "1.0.14",
     "jsr:@std/path@^1.1.5": "1.1.6",
     "jsr:@wazoo/sparql-engine@~0.4.1": "0.4.1",
-    "jsr:@worlds/sdk@0.2": "0.2.0",
+    "jsr:@worlds/sdk@~0.2.1": "0.2.1",
     "npm:@ai-sdk/google@^3.0.80": "3.0.80_zod@4.4.3",
     "npm:@langchain/core@^1.1.48": "1.1.48",
     "npm:@langchain/textsplitters@^1.0.1": "1.0.1_@langchain+core@1.1.48",
@@ -19,7 +19,7 @@
     "npm:@tensorflow/tfjs-backend-wasm@^4.22.0": "4.22.0_@tensorflow+tfjs-core@4.22.0",
     "npm:@tensorflow/tfjs@^4.22.0": "4.22.0_seedrandom@3.0.5",
     "npm:@types/n3@1.26.1": "1.26.1",
-    "npm:ai@^6.0.195": "6.0.256_zod@4.4.3",
+    "npm:ai@^6.0.195": "6.0.257_zod@4.4.3",
     "npm:n3@^2.0.3": "2.2.0",
     "npm:rdf-canonize@5": "5.0.0",
     "npm:zod@^4.4.3": "4.4.3"
@@ -65,8 +65,8 @@
         "npm:@rdfjs/types"
       ]
     },
-    "@worlds/sdk@0.2.0": {
-      "integrity": "1f3b87e0358fe50b6bd6121e472be4bba3ddac49f7da73f59687103a689e2ded",
+    "@worlds/sdk@0.2.1": {
+      "integrity": "ef6d1429f3adf44c529b8921e86739d2f2e30866488e18940d00e67b655863de",
       "dependencies": [
         "jsr:@std/encoding",
         "jsr:@std/path",
@@ -80,8 +80,8 @@
     }
   },
   "npm": {
-    "@ai-sdk/gateway@3.0.174_zod@4.4.3": {
-      "integrity": "sha512-RXDYc+FGEuy1Y/HlM4MThtQAzG99AIs8ki4tIoVnVweOlW5HDSfaNGNLw556ZR4TifTRuPfBc6QljX4UkuGG6A==",
+    "@ai-sdk/gateway@3.0.175_zod@4.4.3": {
+      "integrity": "sha512-fK5e5OtgjlpLio1M50ng+XKozPlBIKM/MKrlAIFyFfjC6gWWZaEh76e+OQPq7N0kkO/biVHyFXajxOtCN7YXQg==",
       "dependencies": [
         "@ai-sdk/provider@3.0.15",
         "@ai-sdk/provider-utils@4.0.46_zod@4.4.3",
@@ -370,8 +370,8 @@
         "event-target-shim"
       ]
     },
-    "ai@6.0.256_zod@4.4.3": {
-      "integrity": "sha512-xYvQfvwFG1AsiLv8wSS1o1077q/494HxzI6SIw0G/5zIoirNyJUzFlh/BTZBqbHMa03Pt5EouIGAbGimldiDGg==",
+    "ai@6.0.257_zod@4.4.3": {
+      "integrity": "sha512-ezz/d5KKHmYl96qk8JdU3JRZwO6tFfaXVtDYCQmSUkdHwyF+cnygL75xE0EiCCMgpnmAcJSaPWaz8oGGf6TsEA==",
       "dependencies": [
         "@ai-sdk/gateway",
         "@ai-sdk/provider@3.0.15",
@@ -779,7 +779,7 @@
       "jsr:@std/fs@^1.0.24",
       "jsr:@std/path@^1.1.5",
       "jsr:@wazoo/sparql-engine@~0.4.1",
-      "jsr:@worlds/sdk@0.2",
+      "jsr:@worlds/sdk@~0.2.1",
       "npm:@ai-sdk/google@^3.0.80",
       "npm:@langchain/core@^1.1.48",
       "npm:@langchain/textsplitters@^1.0.1",

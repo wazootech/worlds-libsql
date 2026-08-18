@@ -1,4 +1,3 @@
-import type { Client as LibsqlClient } from "@libsql/client";
 import type { QuadFilter } from "@worlds/sdk/quad-store";
 import type { SearchIndexOnImport } from "@worlds/sdk/search-index";
 import type { EmbeddingService } from "@worlds/sdk/search-index/embedding-service";
@@ -8,9 +7,6 @@ import type { TextSplitterInterface } from "@worlds/sdk/search-index/quad-chunke
  * LibsqlClientBaseOptions lists configuration shared by quad index LibSQL client factories.
  */
 export interface LibsqlClientBaseOptions extends QuadFilter {
-  /** client is the underlying LibSQL client pointing to the database. */
-  client: LibsqlClient;
-
   /** embeddingService is an optional service projected for transforming text literals into comparison vectors. */
   embeddingService?: EmbeddingService;
 

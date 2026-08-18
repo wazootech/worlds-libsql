@@ -1,4 +1,8 @@
-import type { Client, InStatement } from "@libsql/client";
+import type { InStatement } from "@libsql/client";
+import type {
+  ConnectionDriver,
+  SqlStatement,
+} from "@worlds/sdk/durable-backend";
 
 /** DEFAULT_MAX_LOOKUP_CHUNK_SIZE is the default IN-clause and deletion chunk width. */
 export const DEFAULT_MAX_LOOKUP_CHUNK_SIZE = 800;
@@ -13,11 +17,32 @@ export const STAGING_FLUSH_THRESHOLD = 10_000;
  * LibsqlBatchExecutorOptions defines the configuration for the batch executor.
  */
 export interface LibsqlBatchExecutorOptions {
-  /** client is the LibSQL client connection used for executing writes. */
-  client: Client;
+  /** connection is the provider-seam ConnectionDriver used for executing writes. */
+  connection: ConnectionDriver;
 
   /** writeBatchSize limits statements per LibSQL write batch. */
   writeBatchSize: number;
+}
+
+/**
+ * normalizeToSqlStatement converts an @libsql/client InStatement to the
+ * provider-seam SqlStatement shape ({ sql, args?: unknown[] }). The executor
+ * stages only parameterized positional-args statements; bare SQL strings are
+ * wrapped and named-args records are unwrapped to their positional values.
+ */
+function normalizeToSqlStatement(statement: InStatement): SqlStatement {
+  if (typeof statement === "string") {
+    return { sql: statement };
+  }
+  const { sql, args } = statement;
+  return {
+    sql,
+    args: args === undefined
+      ? undefined
+      : Array.isArray(args)
+      ? args
+      : Object.values(args),
+  };
 }
 
 /**
@@ -25,7 +50,7 @@ export interface LibsqlBatchExecutorOptions {
  * It prevents memory blowouts by eagerly flushing when the staging buffer reaches the threshold.
  */
 export class LibsqlBatchExecutor {
-  private readonly statements: InStatement[] = [];
+  private readonly statements: SqlStatement[] = [];
 
   public constructor(private readonly options: LibsqlBatchExecutorOptions) {}
 
@@ -35,7 +60,7 @@ export class LibsqlBatchExecutor {
   public async stage(source: readonly InStatement[]): Promise<void> {
     const sourceLength = source.length;
     for (let index = 0; index < sourceLength; index++) {
-      this.statements.push(source[index]!);
+      this.statements.push(normalizeToSqlStatement(source[index]!));
       if (this.statements.length >= STAGING_FLUSH_THRESHOLD) {
         await this.flush();
       }
@@ -50,10 +75,15 @@ export class LibsqlBatchExecutor {
       return;
     }
 
-    const { client } = this.options;
+    const { connection } = this.options;
+    if (!connection.batch) {
+      throw new Error(
+        "LibsqlBatchExecutor requires a ConnectionDriver with batch support",
+      );
+    }
 
     try {
-      await client.batch(this.statements, "write");
+      await connection.batch(this.statements);
     } finally {
       this.statements.length = 0;
     }

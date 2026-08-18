@@ -8,6 +8,7 @@ import { LibsqlRdfjsStore } from "@/libsql/rdfjs-store/mod.ts";
 import { LibsqlSearchIndexProjector } from "@/libsql/search-index/libsql-search-index-projector.ts";
 import { FakeEmbeddingService } from "@worlds/sdk/search-index/embedding-service";
 import {
+  createTestLibsqlConnectionDriver,
   setupLibsqlSchemaForTest,
   sharedTextSplitter,
   testLibsqlSearchQueryBuilder,
@@ -21,10 +22,11 @@ Deno.test(
   "LibsqlBatchExecutor - batch failure rolls back all statements within transaction",
   async () => {
     const client = createClient({ url: ":memory:" });
-    await setupLibsqlSchemaForTest(client);
+    const connection = createTestLibsqlConnectionDriver(client);
+    await setupLibsqlSchemaForTest(connection);
 
     const executor = new LibsqlBatchExecutor({
-      client,
+      connection,
       writeBatchSize: 2,
     });
 
@@ -49,13 +51,14 @@ Deno.test(
   "LibsqlQuadStore commit - quads roll back when searchProjector throws",
   async () => {
     const client = createClient({ url: ":memory:" });
-    await setupLibsqlSchemaForTest(client);
+    const connection = createTestLibsqlConnectionDriver(client);
+    await setupLibsqlSchemaForTest(connection);
 
     const searchIndexProjector: LibsqlSearchIndexProjector =
       new (class FailingProjector extends LibsqlSearchIndexProjector {
         public constructor() {
           super({
-            client,
+            connection,
             textSplitter: sharedTextSplitter,
             searchQueryBuilder: testLibsqlSearchQueryBuilder,
             labelPredicates: [],
@@ -68,9 +71,9 @@ Deno.test(
         }
       })();
 
-    const store = new LibsqlRdfjsStore({ client, matchPageSize: 100 });
+    const store = new LibsqlRdfjsStore({ connection, matchPageSize: 100 });
     const quadStore = new LibsqlQuadStore({
-      client,
+      connection,
       store,
       searchQueryBuilder: testLibsqlSearchQueryBuilder,
       searchIndexProjector,
@@ -103,7 +106,8 @@ Deno.test(
   "commitPatchToLibsql - flush failure with multi-batch write rolls back earlier batches",
   async () => {
     const client = createClient({ url: ":memory:" });
-    await setupLibsqlSchemaForTest(client);
+    const connection = createTestLibsqlConnectionDriver(client);
+    await setupLibsqlSchemaForTest(connection);
 
     const existingQuad = quad(
       namedNode("urn:will-delete"),
@@ -157,7 +161,7 @@ Deno.test(
       commitPatchToLibsql(
         { insertions: newInsertions, deletions: [existingQuad] },
         {
-          client,
+          connection,
           searchQueryBuilder: testLibsqlSearchQueryBuilder,
           maxWriteBatchSize: writeBatchSize,
         },
@@ -180,7 +184,8 @@ Deno.test(
   "commitPatchToLibsql - flush error wrapping preserves original cause and includes message detail",
   async () => {
     const client = createClient({ url: ":memory:" });
-    await setupLibsqlSchemaForTest(client);
+    const connection = createTestLibsqlConnectionDriver(client);
+    await setupLibsqlSchemaForTest(connection);
 
     client.batch = () => {
       throw new Error("TURSO_NETWORK_TIMEOUT");
@@ -195,7 +200,7 @@ Deno.test(
           ],
           deletions: [],
         },
-        { client, searchQueryBuilder: testLibsqlSearchQueryBuilder },
+        { connection, searchQueryBuilder: testLibsqlSearchQueryBuilder },
       );
     } catch (e) {
       caught = e;

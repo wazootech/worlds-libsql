@@ -81,3 +81,10 @@ Deno.test("buildIndexes - indexes are idempotent (CREATE IF NOT EXISTS)", async 
     "idx_quads_spog",
   ]);
 });
+
+Deno.test("buildTables - returns quads and chunks DDL in dependency order (seam SchemaBuilder surface)", () => {
+  const tables = testSchemaBuilder.buildTables();
+  assertEquals(tables.length, 2);
+  assertEquals(tables[0]!.includes("CREATE TABLE IF NOT EXISTS quads"), true);
+  assertEquals(tables[1]!.includes("CREATE TABLE IF NOT EXISTS chunks"), true);
+});

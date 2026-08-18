@@ -34,7 +34,7 @@ export async function refreshSearchChunksForSubjects(
   for (let index = 0; index < uniqueSubjects.length; index += lookupChunkSize) {
     const subjectBatch = uniqueSubjects.slice(index, index + lookupChunkSize);
     const query = buildSelectTextualLiteralQuadsForSubjects(subjectBatch);
-    const resultSet = await options.client.execute(query);
+    const resultSet = await options.connection.execute(query);
     for (const row of resultSet.rows) {
       try {
         const reconstructedQuad = quadFromLibsqlRow(row);

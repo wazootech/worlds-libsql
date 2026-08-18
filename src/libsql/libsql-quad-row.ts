@@ -1,4 +1,3 @@
-import type { Row } from "@libsql/client";
 import type * as rdfjs from "@rdfjs/types";
 import { DataFactory } from "@wazoo/sparql-engine/data-model";
 import { toRdfjsTerm } from "@worlds/sdk/quad-store";
@@ -7,8 +6,10 @@ const { quad } = DataFactory;
 
 /**
  * quadFromLibsqlRow reconstructs an RDF/JS quad from a LibSQL `quads` table row.
+ * Rows come from the provider-seam ConnectionDriver, which exposes plain
+ * column records (not the @libsql/client array-like Row).
  */
-export function quadFromLibsqlRow(row: Row): rdfjs.Quad {
+export function quadFromLibsqlRow(row: Record<string, unknown>): rdfjs.Quad {
   const subject = toRdfjsTerm({
     termType: String(row.s_type),
     value: String(row.s),

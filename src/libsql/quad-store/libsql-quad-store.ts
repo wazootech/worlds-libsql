@@ -1,4 +1,5 @@
 import type * as rdfjs from "@rdfjs/types";
+import type { ConnectionDriver } from "@worlds/sdk/durable-backend";
 import type {
   ExportRequest,
   ExportResponse,
@@ -24,6 +25,9 @@ import {
  * LibsqlQuadStoreOptions defines the configurations for the LibsqlQuadStore.
  */
 export interface LibsqlQuadStoreOptions extends LibsqlClientBaseOptions {
+  /** connection is the provider-seam ConnectionDriver wrapping the LibSQL transport. */
+  connection: ConnectionDriver;
+
   /** store is the underlying LibSQL RDF/JS ReadSource store. */
   store: LibsqlRdfjsStore;
 
@@ -98,9 +102,9 @@ export class LibsqlQuadStore implements QuadStoreInterface {
             );
           } catch (error) {
             // Clean up persisted quads if search projection fails
-            const client = this.options.client;
+            const connection = this.options.connection;
             const batchExecutor = new LibsqlBatchExecutor({
-              client,
+              connection,
               writeBatchSize: this.options.maxWriteBatchSize ?? 500,
             });
             await stageDeletionStatementsChunked(

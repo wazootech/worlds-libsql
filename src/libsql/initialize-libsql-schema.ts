@@ -1,4 +1,4 @@
-import type { Client as LibsqlClient } from "@libsql/client";
+import type { ConnectionDriver } from "@worlds/sdk/durable-backend";
 import type { LibsqlSchemaBuilder } from "./schema/libsql-schema-builder.ts";
 
 /**
@@ -7,46 +7,51 @@ import type { LibsqlSchemaBuilder } from "./schema/libsql-schema-builder.ts";
  * (see https://github.com/wazootech/worlds-sdk-ts/discussions/45).
  */
 export async function initializeLibsqlSchema(
-  databaseClient: LibsqlClient,
+  connection: ConnectionDriver,
   schemaBuilder: LibsqlSchemaBuilder,
 ): Promise<void> {
-  await databaseClient.execute(schemaBuilder.buildLibsqlQuadsTable());
-  for (const ddl of schemaBuilder.buildIndexes()) {
-    await databaseClient.execute(ddl);
+  for (const ddl of schemaBuilder.buildTables()) {
+    await connection.execute({ sql: ddl });
   }
-  await databaseClient.execute(schemaBuilder.buildLibsqlChunksTable());
-  await migrateLibsqlChunksFtsValue(databaseClient, schemaBuilder);
-  await databaseClient.execute(schemaBuilder.buildLibsqlChunksQuadIdIndex());
-  await recreateLibsqlChunksFts(databaseClient, schemaBuilder);
-  await databaseClient.execute(schemaBuilder.buildLibsqlChunksIndex());
+  for (const ddl of schemaBuilder.buildIndexes()) {
+    await connection.execute({ sql: ddl });
+  }
+  await migrateLibsqlChunksFtsValue(connection, schemaBuilder);
+  await connection.execute({
+    sql: schemaBuilder.buildLibsqlChunksQuadIdIndex(),
+  });
+  await recreateLibsqlChunksFts(connection, schemaBuilder);
+  await connection.execute({ sql: schemaBuilder.buildLibsqlChunksIndex() });
 }
 
 /**
  * migrateLibsqlChunksFtsValue adds fts_value to legacy chunk tables and backfills from value when missing.
  */
 async function migrateLibsqlChunksFtsValue(
-  databaseClient: LibsqlClient,
+  connection: ConnectionDriver,
   schemaBuilder: LibsqlSchemaBuilder,
 ): Promise<void> {
-  const tableInfo = await databaseClient.execute("PRAGMA table_info(chunks)");
+  const tableInfo = await connection.execute(
+    { sql: "PRAGMA table_info(chunks)" },
+  );
   const hasFtsValueColumn = tableInfo.rows.some((row) =>
     String(row.name) === "fts_value"
   );
 
   if (!hasFtsValueColumn) {
     try {
-      await databaseClient.execute(
-        schemaBuilder.buildMigrateChunksFtsValueColumn(),
-      );
+      await connection.execute({
+        sql: schemaBuilder.buildMigrateChunksFtsValueColumn(),
+      });
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       if (!message.toLowerCase().includes("duplicate column")) {
         throw error;
       }
     }
-    await databaseClient.execute(
-      schemaBuilder.buildBackfillChunksFtsValueFromValue(),
-    );
+    await connection.execute({
+      sql: schemaBuilder.buildBackfillChunksFtsValueFromValue(),
+    });
   }
 }
 
@@ -54,40 +59,45 @@ async function migrateLibsqlChunksFtsValue(
  * recreateLibsqlChunksFts rebuilds FTS5 virtual tables and triggers so discovery indexes fts_value.
  */
 async function recreateLibsqlChunksFts(
-  databaseClient: LibsqlClient,
+  connection: ConnectionDriver,
   schemaBuilder: LibsqlSchemaBuilder,
 ): Promise<void> {
   for (const dropTriggerSql of schemaBuilder.buildDropChunksFtsTriggers()) {
-    await databaseClient.execute(dropTriggerSql);
+    await connection.execute({ sql: dropTriggerSql });
   }
 
-  const ftsTableExists = await databaseClient.execute(
-    "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'chunks_fts'",
-  );
+  const ftsTableExists = await connection.execute({
+    sql:
+      "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'chunks_fts'",
+  });
   if (ftsTableExists.rows.length > 0) {
-    const ftsColumns = await databaseClient.execute(
-      "PRAGMA table_info(chunks_fts)",
+    const ftsColumns = await connection.execute(
+      { sql: "PRAGMA table_info(chunks_fts)" },
     );
     const indexesFtsValue = ftsColumns.rows.some((row) =>
       String(row.name) === "fts_value"
     );
     if (!indexesFtsValue) {
-      await databaseClient.execute(schemaBuilder.buildDropChunksFtsTable());
+      await connection.execute({
+        sql: schemaBuilder.buildDropChunksFtsTable(),
+      });
     }
   }
 
-  await databaseClient.execute(schemaBuilder.buildLibsqlChunksFtsTable());
+  await connection.execute({ sql: schemaBuilder.buildLibsqlChunksFtsTable() });
   for (const triggerSql of schemaBuilder.buildLibsqlChunksTriggers()) {
-    await databaseClient.execute(triggerSql);
+    await connection.execute({ sql: triggerSql });
   }
 
-  const chunkCount = await databaseClient.execute(
-    "SELECT COUNT(*) AS total FROM chunks",
+  const chunkCount = await connection.execute(
+    { sql: "SELECT COUNT(*) AS total FROM chunks" },
   );
   const totalChunks = Number(chunkCount.rows[0]?.total ?? 0);
   if (totalChunks > 0) {
     try {
-      await databaseClient.execute(schemaBuilder.buildRebuildChunksFtsIndex());
+      await connection.execute({
+        sql: schemaBuilder.buildRebuildChunksFtsIndex(),
+      });
     } catch {
       // FTS rebuild is best-effort during migration; callers can run rebuildLibsqlSearchIndexFromQuads.
     }

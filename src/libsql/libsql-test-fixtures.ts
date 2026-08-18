@@ -1,5 +1,7 @@
 import type { Client } from "@libsql/client";
+import type { ConnectionDriver } from "@worlds/sdk/durable-backend";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
+import { LibsqlConnectionDriver } from "./libsql-connection-driver.ts";
 import { initializeLibsqlSchema } from "./initialize-libsql-schema.ts";
 import { LibsqlSchemaBuilder } from "./schema/libsql-schema-builder.ts";
 import { LibsqlSearchQueryBuilder } from "./search-index/libsql-search-query-builder.ts";
@@ -13,10 +15,20 @@ export const sharedTextSplitter = new RecursiveCharacterTextSplitter({
 });
 
 /**
+ * createTestLibsqlConnectionDriver wraps a raw LibSQL client in the
+ * provider-seam ConnectionDriver for adapter tests.
+ */
+export function createTestLibsqlConnectionDriver(
+  client: Client,
+): LibsqlConnectionDriver {
+  return new LibsqlConnectionDriver(client);
+}
+
+/**
  * setupLibsqlSchemaForTest initializes the LibSQL schema for adapter tests.
  */
 export async function setupLibsqlSchemaForTest(
-  client: Client,
+  connection: ConnectionDriver,
 ): Promise<void> {
-  await initializeLibsqlSchema(client, testLibsqlSchemaBuilder);
+  await initializeLibsqlSchema(connection, testLibsqlSchemaBuilder);
 }
