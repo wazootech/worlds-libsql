@@ -1,6 +1,6 @@
 import type { Row } from "@libsql/client";
 import type * as rdfjs from "@rdfjs/types";
-import { DataFactory } from "@wazoo/sparql-engine";
+import { DataFactory } from "@wazoo/sparql-engine/data-model";
 import { toRdfjsTerm } from "@worlds/sdk/quad-store";
 
 const { quad } = DataFactory;

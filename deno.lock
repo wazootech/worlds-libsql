@@ -5,12 +5,11 @@
     "jsr:@std/async@^1.4.0": "1.4.0",
     "jsr:@std/data-structures@^1.1.0": "1.1.0",
     "jsr:@std/encoding@^1.0.10": "1.0.11",
-    "jsr:@std/fs@^1.0.24": "1.0.24",
     "jsr:@std/internal@^1.0.12": "1.0.14",
     "jsr:@std/internal@^1.0.14": "1.0.14",
     "jsr:@std/path@^1.1.5": "1.1.6",
-    "jsr:@wazoo/sparql-engine@0.3": "0.3.0",
-    "jsr:@worlds/sdk@~0.1.1": "0.1.1",
+    "jsr:@wazoo/sparql-engine@~0.4.1": "0.4.1",
+    "jsr:@worlds/sdk@0.2": "0.2.0",
     "npm:@ai-sdk/google@^3.0.80": "3.0.80_zod@4.4.3",
     "npm:@langchain/core@^1.1.48": "1.1.48",
     "npm:@langchain/textsplitters@^1.0.1": "1.0.1_@langchain+core@1.1.48",
@@ -43,13 +42,6 @@
     "@std/encoding@1.0.11": {
       "integrity": "e7cef2f0b3153bccc17431e7c864a1de03a4b6d9647389c43e08aaa775d37385"
     },
-    "@std/fs@1.0.24": {
-      "integrity": "f3061b45b81673a2bece689da041df32d174be064c89eb6397fb5718d3fb7877",
-      "dependencies": [
-        "jsr:@std/internal@^1.0.14",
-        "jsr:@std/path"
-      ]
-    },
     "@std/internal@1.0.14": {
       "integrity": "291516b3d4c35024d6ffbc0a9df5bf4c64116e05b50012cf846710152d2ffdf7"
     },
@@ -59,23 +51,18 @@
         "jsr:@std/internal@^1.0.14"
       ]
     },
-    "@wazoo/sparql-engine@0.3.0": {
-      "integrity": "fc0c11ea0569c318baf5ded1f43a7a02b27d2f43466d29feb67294877bb7430a",
+    "@wazoo/sparql-engine@0.4.1": {
+      "integrity": "6881bda5e45aaf8bac2cd87f8b43db5db51d307fccbffc1cd4edaa46454f9bd7",
       "dependencies": [
         "npm:@rdfjs/types"
       ]
     },
-    "@worlds/sdk@0.1.1": {
-      "integrity": "d3035db029f171b517484a4825027eb39755bae1313f2c13c759aa62c56a8d0a",
+    "@worlds/sdk@0.2.0": {
+      "integrity": "1f3b87e0358fe50b6bd6121e472be4bba3ddac49f7da73f59687103a689e2ded",
       "dependencies": [
         "jsr:@std/encoding",
-        "jsr:@std/path",
+        "jsr:@wazoo/sparql-engine",
         "npm:@rdfjs/types",
-        "npm:@tensorflow/tfjs",
-        "npm:@tensorflow/tfjs-backend-wasm",
-        "npm:@types/n3",
-        "npm:ai",
-        "npm:n3",
         "npm:rdf-canonize"
       ]
     }
@@ -779,8 +766,8 @@
       "jsr:@std/encoding@^1.0.10",
       "jsr:@std/fs@^1.0.24",
       "jsr:@std/path@^1.1.5",
-      "jsr:@wazoo/sparql-engine@0.3",
-      "jsr:@worlds/sdk@~0.1.1",
+      "jsr:@wazoo/sparql-engine@~0.4.1",
+      "jsr:@worlds/sdk@0.2",
       "npm:@ai-sdk/google@^3.0.80",
       "npm:@langchain/core@^1.1.48",
       "npm:@langchain/textsplitters@^1.0.1",

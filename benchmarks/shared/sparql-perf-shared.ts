@@ -1,6 +1,6 @@
 import { createClient } from "@libsql/client";
 import type { Quad } from "@rdfjs/types";
-import type { ClientInterface } from "@worlds/sdk";
+import type { SdkInterface } from "@worlds/sdk";
 import { createLibsqlClient } from "@worlds/libsql";
 import {
   buildHexastorePerfFixtureChecksumInputs,
@@ -60,7 +60,7 @@ export const libsqlHexastorePerfBackends = [
 /** PreloadedSparqlFixture holds a warmed Client and its storage handle. */
 export interface PreloadedSparqlFixture {
   /** client executes SPARQL against the preloaded corpus. */
-  client: ClientInterface;
+  client: SdkInterface;
   /** databaseClient is set for libsqlStore fixtures. */
   databaseClient?: ReturnType<typeof createClient>;
 }

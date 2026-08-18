@@ -2,7 +2,7 @@ import { assertEquals } from "@std/assert";
 import { createClient } from "@libsql/client";
 import { DataFactory } from "n3";
 
-import type { ClientInterface } from "@worlds/sdk";
+import type { SdkInterface } from "@worlds/sdk";
 import type { LibsqlClientOptions } from "@/libsql/create-libsql-client.ts";
 import { createLibsqlClient } from "@/libsql/create-libsql-client.ts";
 
@@ -20,7 +20,7 @@ const expectedIndexNames = [
 
 interface LibsqlClientFixture {
   label: string;
-  createClient: (options: LibsqlClientOptions) => Promise<ClientInterface>;
+  createClient: (options: LibsqlClientOptions) => Promise<SdkInterface>;
 }
 
 const libsqlClientFixtures: LibsqlClientFixture[] = [

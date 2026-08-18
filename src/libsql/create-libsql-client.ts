@@ -1,7 +1,7 @@
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import type * as rdfjs from "@rdfjs/types";
-import { Client } from "@worlds/sdk";
-import type { ClientInterface } from "@worlds/sdk";
+import { Sdk } from "@worlds/sdk";
+import type { SdkInterface } from "@worlds/sdk";
 import { WazooSparqlEngine } from "@wazoo/sparql-engine";
 import {
   LibsqlSearchIndex,
@@ -21,11 +21,11 @@ import { LibsqlSearchQueryBuilder } from "./search-index/libsql-search-query-bui
 export interface LibsqlClientOptions extends LibsqlClientBaseOptions {}
 
 /**
- * createLibsqlClient synthesizes a Client for LibsqlRdfjsStore quad indexes.
+ * createLibsqlClient synthesizes a Sdk for LibsqlRdfjsStore quad indexes.
  */
 export async function createLibsqlClient(
   options: LibsqlClientOptions,
-): Promise<ClientInterface> {
+): Promise<SdkInterface> {
   const vectorDimensions = options.vectorDimensions ?? 32;
   const schemaBuilder = new LibsqlSchemaBuilder(vectorDimensions);
   const searchQueryBuilder = new LibsqlSearchQueryBuilder(vectorDimensions);
@@ -64,7 +64,7 @@ export async function createLibsqlClient(
     createTransaction: () => quadStore.createTransaction(),
   });
 
-  return new Client({
+  return new Sdk({
     quadStore,
     searchIndex,
     sparqlEngine,
