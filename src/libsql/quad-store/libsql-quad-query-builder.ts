@@ -244,11 +244,14 @@ function appendTermCondition(
     }
     if (literalTerm.datatype) {
       const datatypeValue = literalTerm.datatype.value;
-      if (
-        datatypeValue === xsdStringIri ||
-        datatypeValue === rdfLangStringIri
-      ) {
-        conditions.push(`o_datatype IS NULL`);
+      if (datatypeValue === xsdStringIri) {
+        conditions.push(
+          `(o_datatype IS NULL OR o_datatype = '' OR o_datatype = '${xsdStringIri}')`,
+        );
+      } else if (datatypeValue === rdfLangStringIri) {
+        conditions.push(
+          `(o_datatype IS NULL OR o_datatype = '' OR o_datatype = '${rdfLangStringIri}')`,
+        );
       } else {
         conditions.push(`o_datatype = ?`);
         args.push(datatypeValue);

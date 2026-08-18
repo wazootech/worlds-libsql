@@ -1,8 +1,12 @@
 import { assertEquals } from "@std/assert";
+import { DataFactory } from "n3";
 import {
   buildBulkInsertQuads,
   buildInsertQuad,
+  buildMatchQuadsQuery,
 } from "./libsql-quad-query-builder.ts";
+
+const { namedNode, literal } = DataFactory;
 
 Deno.test(
   "buildBulkInsertQuads - chunks rows under SQLite host-parameter budget",
@@ -64,5 +68,74 @@ Deno.test(
 
     assertEquals(bulkStatement.sql, singleStatement.sql);
     assertEquals(bulkStatement.args, singleStatement.args);
+  },
+);
+
+Deno.test(
+  "buildMatchQuadsQuery - exact xsd:string literal seek matches the stored datatype IRI",
+  () => {
+    const { sql, args } = buildMatchQuadsQuery({
+      subject: null,
+      predicate: namedNode("http://schema.org/name"),
+      object: literal("Caroline"),
+      graph: null,
+    });
+
+    assertEquals(args[1], "Literal");
+    assertEquals(
+      sql.includes(
+        "(o_datatype IS NULL OR o_datatype = '' OR o_datatype = 'http://www.w3.org/2001/XMLSchema#string')",
+      ),
+      true,
+    );
+    assertEquals(sql.includes("o_datatype IS NULL"), true);
+  },
+);
+
+Deno.test(
+  "buildMatchQuadsQuery - exact rdf:langString literal seek matches the stored datatype IRI",
+  () => {
+    const { sql, args } = buildMatchQuadsQuery({
+      subject: null,
+      predicate: namedNode("http://schema.org/name"),
+      object: literal("Caroline", "en"),
+      graph: null,
+    });
+
+    assertEquals(args[1], "Literal");
+    assertEquals(
+      sql.includes(
+        "(o_datatype IS NULL OR o_datatype = '' OR o_datatype = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#langString')",
+      ),
+      true,
+    );
+    assertEquals(sql.includes("o_lang = ?"), true);
+  },
+);
+
+Deno.test(
+  "buildMatchQuadsQuery - non-string datatype still emits an exact o_datatype seek",
+  () => {
+    const { sql, args } = buildMatchQuadsQuery({
+      subject: null,
+      predicate: namedNode("http://schema.org/age"),
+      object: literal(
+        "42",
+        namedNode("http://www.w3.org/2001/XMLSchema#integer"),
+      ),
+      graph: null,
+    });
+
+    assertEquals(
+      sql.includes(
+        "(o_datatype IS NULL OR o_datatype = '' OR o_datatype = 'http://www.w3.org/2001/XMLSchema#string')",
+      ),
+      false,
+    );
+    assertEquals(sql.includes("o_datatype = ?"), true);
+    assertEquals(
+      args.includes("http://www.w3.org/2001/XMLSchema#integer"),
+      true,
+    );
   },
 );
