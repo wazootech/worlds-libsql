@@ -27,11 +27,6 @@ export interface LibsqlClientBaseOptions extends QuadFilter {
   matchPageSize?: number;
 
   /**
-   * labelPredicates extends built-in label IRIs used for subject alias discovery (union, deduped).
-   */
-  labelPredicates?: string[];
-
-  /**
    * searchIndexOnImport controls when FTS/vector chunk projection runs during import.
    *
    * - `"incremental"` (default when omitted): chunks each quad on commit.

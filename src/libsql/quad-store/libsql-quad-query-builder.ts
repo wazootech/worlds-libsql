@@ -53,30 +53,6 @@ export function generatePlaceholders(count: number): string {
   return Array(count).fill("?").join(", ");
 }
 
-export function buildSelectLabelLiteralsForSubjects(
-  subjects: string[],
-  labelPredicates: string[],
-): { sql: string; args: string[] } {
-  const subjectPlaceholders = generatePlaceholders(subjects.length);
-  const predicatePlaceholders = generatePlaceholders(labelPredicates.length);
-  return {
-    sql:
-      `SELECT s, o FROM quads WHERE s IN (${subjectPlaceholders}) AND p IN (${predicatePlaceholders}) AND o_type = 'Literal' ORDER BY s, o`,
-    args: [...subjects, ...labelPredicates],
-  };
-}
-
-export function buildSelectTextualLiteralQuadsForSubjects(
-  subjects: string[],
-): { sql: string; args: string[] } {
-  const subjectPlaceholders = generatePlaceholders(subjects.length);
-  return {
-    sql:
-      `SELECT id, s, s_type, p, o, o_type, o_datatype, o_lang, g, g_type FROM quads WHERE s IN (${subjectPlaceholders}) AND o_type = 'Literal' AND (o_datatype IS NULL OR o_datatype = '' OR o_datatype = 'http://www.w3.org/2001/XMLSchema#string' OR o_lang IS NOT NULL AND o_lang != '') ORDER BY id ASC`,
-    args: subjects,
-  };
-}
-
 export function buildDeleteQuadsByQuadIds(
   quadIds: string[],
 ): { sql: string; args: string[] } {

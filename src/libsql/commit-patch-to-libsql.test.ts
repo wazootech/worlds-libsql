@@ -16,7 +16,6 @@ import {
   sharedTextSplitter,
   testLibsqlSearchQueryBuilder,
 } from "@/libsql/libsql-test-fixtures.ts";
-import { buildChunkFtsValue } from "@/libsql/search-index/search-chunk-fts.ts";
 
 const { quad, namedNode, literal } = DataFactory;
 
@@ -67,7 +66,6 @@ Deno.test(
         connection,
         textSplitter: sharedTextSplitter,
         searchQueryBuilder: testLibsqlSearchQueryBuilder,
-        labelPredicates: [],
         embeddingService: new FakeEmbeddingService(),
       }),
       searchQueryBuilder: testLibsqlSearchQueryBuilder,
@@ -95,7 +93,6 @@ Deno.test("createLibsqlPersistHooks - isolated writes and removals commit correc
       connection,
       textSplitter: sharedTextSplitter,
       searchQueryBuilder: testLibsqlSearchQueryBuilder,
-      labelPredicates: [],
       embeddingService: new FakeEmbeddingService(),
     }),
     searchQueryBuilder: testLibsqlSearchQueryBuilder,
@@ -154,7 +151,6 @@ Deno.test("createLibsqlPersistHooks - supports synchronization when embeddingSer
       connection,
       textSplitter: sharedTextSplitter,
       searchQueryBuilder: testLibsqlSearchQueryBuilder,
-      labelPredicates: [],
     }),
     searchQueryBuilder: testLibsqlSearchQueryBuilder,
   });
@@ -190,7 +186,7 @@ Deno.test("createLibsqlPersistHooks - supports synchronization when embeddingSer
   assertEquals(quadRows.rows[0].total, 1);
 });
 
-Deno.test("createLibsqlPersistHooks - stores literal value and discovery fts_value", async () => {
+Deno.test("createLibsqlPersistHooks - stores object value as fts_value", async () => {
   const client = createClient({ url: ":memory:" });
   const connection = createTestLibsqlConnectionDriver(client);
   await setupLibsqlSchemaForTest(connection);
@@ -202,7 +198,6 @@ Deno.test("createLibsqlPersistHooks - stores literal value and discovery fts_val
       connection,
       textSplitter: sharedTextSplitter,
       searchQueryBuilder: testLibsqlSearchQueryBuilder,
-      labelPredicates: [],
       embeddingService: new FakeEmbeddingService(),
     }),
     searchQueryBuilder: testLibsqlSearchQueryBuilder,
@@ -226,13 +221,8 @@ Deno.test("createLibsqlPersistHooks - stores literal value and discovery fts_val
   assertEquals(chunkRows.rows[0].value, "Lume");
   assertEquals(
     chunkRows.rows[0].fts_value,
-    buildChunkFtsValue({
-      quad_id: "unused",
-      subject: "http://example.org/Aurelia",
-      predicate: "http://example.org/hasCapital",
-      graph: "",
-      value: "Lume",
-    }, { labelLiteralsForSubject: [] }),
+    "Lume",
+    "fts_value must index the object value only",
   );
 });
 
@@ -257,7 +247,6 @@ Deno.test(
         connection,
         textSplitter: sharedTextSplitter,
         searchQueryBuilder: testLibsqlSearchQueryBuilder,
-        labelPredicates: [],
         embeddingService: new FakeEmbeddingService(),
       }),
       searchQueryBuilder: testLibsqlSearchQueryBuilder,
@@ -300,7 +289,6 @@ Deno.test(
         connection,
         textSplitter: sharedTextSplitter,
         searchQueryBuilder: testLibsqlSearchQueryBuilder,
-        labelPredicates: [],
         embeddingService: new FakeEmbeddingService(),
       }),
       searchQueryBuilder: testLibsqlSearchQueryBuilder,
@@ -332,7 +320,6 @@ Deno.test(
         connection,
         textSplitter: sharedTextSplitter,
         searchQueryBuilder: testLibsqlSearchQueryBuilder,
-        labelPredicates: [],
         embeddingService: new FakeEmbeddingService(),
       }),
       searchQueryBuilder: testLibsqlSearchQueryBuilder,
@@ -372,7 +359,6 @@ Deno.test(
         connection,
         textSplitter: sharedTextSplitter,
         searchQueryBuilder: testLibsqlSearchQueryBuilder,
-        labelPredicates: [],
         embeddingService: new FakeEmbeddingService(),
       }),
       searchQueryBuilder: testLibsqlSearchQueryBuilder,

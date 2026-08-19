@@ -1,48 +1,36 @@
 import { assertEquals } from "@std/assert";
-import {
-  buildChunkFtsValue,
-  extractRdfLocalLabel,
-  formatPredicatePhrase,
-} from "./search-chunk-fts.ts";
+import { buildChunkFtsValue } from "./search-chunk-fts.ts";
 
-Deno.test("buildChunkFtsValue - includes subject local name predicate and literal", () => {
+Deno.test("buildChunkFtsValue - indexes object value text only, ignoring quad surface", () => {
   const ftsValue = buildChunkFtsValue({
     quad_id: "q1",
     subject: "http://example.org/Aurelia",
     predicate: "http://example.org/hasCapital",
     graph: "",
     value: "Lume",
-  }, { labelLiteralsForSubject: [] });
+  });
 
-  assertEquals(ftsValue, "Aurelia has capital Lume");
+  assertEquals(ftsValue, "Lume");
 });
 
-Deno.test("buildChunkFtsValue - appends configured label literals for subject", () => {
-  const ftsValue = buildChunkFtsValue({
-    quad_id: "q1",
-    subject: "http://example.org/Aurelia",
-    predicate: "http://example.org/hasCapital",
+Deno.test("buildChunkFtsValue - subject and predicate IRIs are never searchable", () => {
+  const chunk = {
+    quad_id: "q2",
+    subject: "urn:alice",
+    predicate: "urn:activity",
     graph: "",
-    value: "Lume",
-  }, { labelLiteralsForSubject: ["Kingdom of Aurelia"] });
+    value: "sailing",
+  };
 
-  assertEquals(ftsValue, "Aurelia has capital Lume Kingdom of Aurelia");
-});
-
-Deno.test("extractRdfLocalLabel - humanizes underscore and camelCase IRIs", () => {
+  assertEquals(buildChunkFtsValue(chunk), "sailing");
   assertEquals(
-    extractRdfLocalLabel("http://example.org/has_capital_city"),
-    "has capital city",
+    buildChunkFtsValue(chunk).includes("alice"),
+    false,
+    "subject IRI must not leak into the searchable text",
   );
   assertEquals(
-    extractRdfLocalLabel("http://example.org/hasCapitalCity"),
-    "has Capital City",
-  );
-});
-
-Deno.test("formatPredicatePhrase - lowercases predicate local name", () => {
-  assertEquals(
-    formatPredicatePhrase("http://example.org/hasCapital"),
-    "has capital",
+    buildChunkFtsValue(chunk).includes("activity"),
+    false,
+    "predicate IRI must not leak into the searchable text",
   );
 });

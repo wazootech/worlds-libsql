@@ -9,8 +9,6 @@ export { LibsqlSearchQueryBuilder } from "./search-index/libsql-search-query-bui
 export {
   LibsqlSearchIndex,
   rebuildLibsqlSearchIndexFromQuads,
-  refreshSearchChunksForSubjects,
 } from "./search-index/mod.ts";
-export type { RefreshSearchChunksForSubjectsResult } from "./search-index/mod.ts";
 export { LibsqlQuadStore } from "./quad-store/mod.ts";
 export type { LibsqlQuadStoreOptions } from "./quad-store/mod.ts";

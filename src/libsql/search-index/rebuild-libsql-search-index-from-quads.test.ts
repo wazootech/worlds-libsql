@@ -44,17 +44,15 @@ function createLibsqlPersistHooks(
 }
 import { LibsqlSearchIndex } from "./libsql-search-index.ts";
 import { rebuildLibsqlSearchIndexFromQuads } from "./rebuild-libsql-search-index-from-quads.ts";
-import { resolveLabelPredicates } from "./search-chunk-fts.ts";
 
 const { quad, namedNode, literal } = DataFactory;
 
 const AURELIA = "http://example.org/Aurelia";
 const HAS_CAPITAL = "http://example.org/hasCapital";
 const RDFS_LABEL = "http://www.w3.org/2000/01/rdf-schema#label";
-const CUSTOM_LABEL = "http://example.org/customLabel";
 
 Deno.test(
-  "rebuildLibsqlSearchIndexFromQuads - discovers subject via fts_value while value stays literal",
+  "rebuildLibsqlSearchIndexFromQuads - fts_value is object text only; subject IRIs are not searchable",
   async () => {
     const client = createClient({ url: ":memory:" });
     const connection = createTestLibsqlConnectionDriver(client);
@@ -87,8 +85,9 @@ Deno.test(
     );
     assertEquals(chunkRows.rows[0].value, "Lume");
     assertEquals(
-      String(chunkRows.rows[0].fts_value).includes("Aurelia"),
-      true,
+      String(chunkRows.rows[0].fts_value),
+      "Lume",
+      "fts_value must index the object text only",
     );
 
     const searchIndex = new LibsqlSearchIndex({
@@ -96,15 +95,22 @@ Deno.test(
       searchQueryBuilder: testLibsqlSearchQueryBuilder,
     });
 
-    const discovery = await searchIndex.search({ query: "Aurelia" });
-    assertEquals(discovery.results?.length, 1);
-    assertEquals(discovery.results?.[0].subject, AURELIA);
-    assertEquals(discovery.results?.[0].text, "Lume");
+    const subjectHit = await searchIndex.search({ query: "Aurelia" });
+    assertEquals(
+      subjectHit.results?.length,
+      0,
+      "subject IRI must never match keyword search",
+    );
+
+    const valueHit = await searchIndex.search({ query: "Lume" });
+    assertEquals(valueHit.results?.length, 1);
+    assertEquals(valueHit.results?.[0].subject, AURELIA);
+    assertEquals(valueHit.results?.[0].text, "Lume");
   },
 );
 
 Deno.test(
-  "rebuildLibsqlSearchIndexFromQuads - label literals enable discovery by alias",
+  "rebuildLibsqlSearchIndexFromQuads - label quads match by their own text, not as aliases for sibling facts",
   async () => {
     const client = createClient({ url: ":memory:" });
     const connection = createTestLibsqlConnectionDriver(client);
@@ -142,15 +148,18 @@ Deno.test(
       searchQueryBuilder: testLibsqlSearchQueryBuilder,
     });
 
-    const discovery = await searchIndex.search({ query: "Kingdom" });
+    const labelHit = await searchIndex.search({ query: "Kingdom" });
+    assertEquals(labelHit.results?.length, 1);
+    assertEquals(labelHit.results?.[0].predicate, RDFS_LABEL);
     assertEquals(
-      discovery.results?.some((result) => result.subject === AURELIA),
-      true,
+      labelHit.results?.some((result) => result.predicate === HAS_CAPITAL),
+      false,
+      "label text must not fan out to sibling fact chunks",
     );
-    assertEquals(
-      discovery.results?.some((result) => result.predicate === HAS_CAPITAL),
-      true,
-    );
+
+    const capitalHit = await searchIndex.search({ query: "Lume" });
+    assertEquals(capitalHit.results?.length, 1);
+    assertEquals(capitalHit.results?.[0].predicate, HAS_CAPITAL);
   },
 );
 
@@ -204,83 +213,23 @@ Deno.test(
       "SELECT value, fts_value FROM chunks",
     );
     assertEquals(chunkRows.rows[0].value, "Lume");
-    assertEquals(
-      String(chunkRows.rows[0].fts_value).includes("Aurelia"),
-      true,
-    );
+    assertEquals(String(chunkRows.rows[0].fts_value), "Lume");
 
     const searchIndex = new LibsqlSearchIndex({
       connection,
       searchQueryBuilder: testLibsqlSearchQueryBuilder,
     });
-    const discovery = await searchIndex.search({ query: "Aurelia" });
-    assertExists(discovery.results?.[0]);
-    assertEquals(discovery.results?.[0].subject, AURELIA);
-  },
-);
-
-Deno.test(
-  "rebuildLibsqlSearchIndexFromQuads - extended labelPredicates union is indexed",
-  async () => {
-    const client = createClient({ url: ":memory:" });
-    const connection = createTestLibsqlConnectionDriver(client);
-    await setupLibsqlSchemaForTest(connection);
-
-    const persistHooks = createLibsqlPersistHooks({
-      connection,
-      searchIndexProjector: new LibsqlSearchIndexProjector({
-        connection,
-        textSplitter: sharedTextSplitter,
-        searchQueryBuilder: testLibsqlSearchQueryBuilder,
-        embeddingService: new FakeEmbeddingService(),
-        labelPredicates: [CUSTOM_LABEL],
-      }),
-      searchQueryBuilder: testLibsqlSearchQueryBuilder,
-      labelPredicates: [CUSTOM_LABEL],
-    });
-
-    const entity = "http://example.org/Entity";
-    const factQuad = quad(
-      namedNode(entity),
-      namedNode("http://example.org/description"),
-      literal("A remote outpost"),
-    );
-    const customLabelQuad = quad(
-      namedNode(entity),
-      namedNode(CUSTOM_LABEL),
-      literal("Outpost Alpha"),
-    );
-
-    await persistHooks.commit({
-      insertions: [factQuad, customLabelQuad],
-      deletions: [],
-    });
-
-    const predicates = resolveLabelPredicates([CUSTOM_LABEL]);
-    assertEquals(predicates.includes(CUSTOM_LABEL), true);
-    assertEquals(predicates.includes(RDFS_LABEL), true);
-
-    const searchIndex = new LibsqlSearchIndex({
-      connection,
-      searchQueryBuilder: testLibsqlSearchQueryBuilder,
-    });
-
-    const discovery = await searchIndex.search({ query: "Outpost" });
+    const subjectHit = await searchIndex.search({ query: "Aurelia" });
     assertEquals(
-      discovery.results?.some((result) => result.subject === entity),
-      true,
-    );
-    assertEquals(
-      discovery.results?.some((result) =>
-        result.predicate === "http://example.org/description"
-      ),
-      true,
+      subjectHit.results?.length,
+      0,
+      "rebuild must not restore subject-surface matching",
     );
   },
 );
 
 Deno.test(
-  "rebuildLibsqlSearchIndexFromQuads - label update fan-out refreshes sibling fact chunks",
+  "rebuildLibsqlSearchIndexFromQuads - subject IRI does not leak into keyword search (parity #22 corpus case)",
   async () => {
     const client = createClient({ url: ":memory:" });
     const connection = createTestLibsqlConnectionDriver(client);
@@ -297,46 +246,34 @@ Deno.test(
       searchQueryBuilder: testLibsqlSearchQueryBuilder,
     });
 
-    const capitalQuad = quad(
-      namedNode(AURELIA),
-      namedNode(HAS_CAPITAL),
-      literal("Lume"),
+    // The exact shape that surfaced #22: quad whose subject urn:alice
+    // must not make the row match a query for "alice".
+    const sailingQuad = quad(
+      namedNode("urn:alice"),
+      namedNode("urn:activity"),
+      literal("sailing", "en"),
     );
 
     await persistHooks.commit({
-      insertions: [capitalQuad],
+      insertions: [sailingQuad],
       deletions: [],
     });
-
-    await persistHooks.commit({
-      insertions: [
-        quad(
-          namedNode(AURELIA),
-          namedNode(RDFS_LABEL),
-          literal("New Kingdom Name"),
-        ),
-      ],
-      deletions: [],
-    });
-
-    const capitalChunk = await client.execute({
-      sql: "SELECT fts_value FROM chunks WHERE predicate = ?",
-      args: [HAS_CAPITAL],
-    });
-    assertEquals(
-      String(capitalChunk.rows[0].fts_value).includes("New Kingdom Name"),
-      true,
-    );
 
     const searchIndex = new LibsqlSearchIndex({
       connection,
       searchQueryBuilder: testLibsqlSearchQueryBuilder,
     });
-    const discovery = await searchIndex.search({ query: "New Kingdom" });
-    const capitalHit = discovery.results?.find((result) =>
-      result.predicate === HAS_CAPITAL
+
+    const subjectHit = await searchIndex.search({ query: "alice" });
+    assertExists(subjectHit.results);
+    assertEquals(
+      subjectHit.results.length,
+      0,
+      '"alice" must not match via the subject IRI urn:alice',
     );
-    assertEquals(capitalHit?.subject, AURELIA);
-    assertEquals(capitalHit?.text, "Lume");
+
+    const valueHit = await searchIndex.search({ query: "sailing" });
+    assertEquals(valueHit.results?.length, 1);
+    assertEquals(valueHit.results?.[0].subject, "urn:alice");
   },
 );

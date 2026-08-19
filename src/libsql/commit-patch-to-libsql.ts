@@ -12,7 +12,6 @@ import {
 } from "./quad-store/libsql-quad-query-builder.ts";
 import { LibsqlBatchExecutor } from "./libsql-batch-executor.ts";
 import type { LibsqlConnectionDriver } from "./libsql-connection-driver.ts";
-import { resolveLabelPredicates } from "./search-index/search-chunk-fts.ts";
 import type { LibsqlSearchQueryBuilder } from "./search-index/libsql-search-query-builder.ts";
 
 export interface CommitPatchToLibsqlOptions extends LibsqlClientBaseOptions {
@@ -29,7 +28,6 @@ export interface CommitPatchToLibsqlOptions extends LibsqlClientBaseOptions {
 export interface CommitPatchToLibsqlResult {
   novelInsertions: rdfjs.Quad[];
   novelQuadIds: string[];
-  labelTouchedSubjects: string[];
 }
 
 /**
@@ -143,21 +141,9 @@ export async function commitPatchToLibsql(
     throw new Error(`failed to execute sync batch: ${detail}`, { cause });
   }
 
-  const resolvedLabelPredicates = resolveLabelPredicates(
-    options.labelPredicates,
-  );
-  const labelPredicateSet = new Set(resolvedLabelPredicates);
-  const subjects = new Set<string>();
-  for (const quad of [...targetedInsertions, ...targetedDeletions]) {
-    if (labelPredicateSet.has(quad.predicate.value)) {
-      subjects.add(quad.subject.value);
-    }
-  }
-
   return {
     novelInsertions,
     novelQuadIds,
-    labelTouchedSubjects: Array.from(subjects),
   };
 }
 
