@@ -9,12 +9,8 @@ import { hashQuads } from "@worlds/sdk/quad-store";
 import type { LibsqlClientBaseOptions } from "@/libsql/libsql-client-base-options.ts";
 import type { LibsqlConnectionDriver } from "@/libsql/libsql-connection-driver.ts";
 import type { LibsqlSearchQueryBuilder } from "./libsql-search-query-builder.ts";
-import { buildSelectLabelLiteralsForSubjects } from "@/libsql/quad-store/libsql-quad-query-builder.ts";
 
-import {
-  buildChunkFtsValue,
-  resolveLabelPredicates,
-} from "./search-chunk-fts.ts";
+import { buildChunkFtsValue } from "./search-chunk-fts.ts";
 import { LibsqlBatchExecutor } from "@/libsql/libsql-batch-executor.ts";
 
 export interface ProjectSearchChunksOptions extends LibsqlClientBaseOptions {
@@ -34,15 +30,10 @@ export async function projectSearchChunks(
   novelQuadIds: string[],
   options: ProjectSearchChunksOptions,
 ): Promise<void> {
-  const resolvedLabelPredicates = resolveLabelPredicates(
-    options.labelPredicates,
-  );
-
   const chunkStatements = await buildVectorChunkStatements(
     novelInsertions,
     novelQuadIds,
     options,
-    resolvedLabelPredicates,
   );
 
   if (chunkStatements.length > 0) {
@@ -74,16 +65,12 @@ export async function refreshSearchChunksForQuads(
 
   const lookupChunkSize = options.maxLookupChunkSize ?? 800;
   const writeBatchSize = options.maxWriteBatchSize ?? 500;
-  const resolvedLabelPredicates = resolveLabelPredicates(
-    options.labelPredicates,
-  );
 
   const quadIds = await hashQuads(quads);
   const chunkInsertStatements = await buildVectorChunkStatements(
     quads,
     quadIds,
     options,
-    resolvedLabelPredicates,
   );
 
   const executor = new LibsqlBatchExecutor({
@@ -123,42 +110,10 @@ function buildChunkDeletionStatementsChunked(
   return statements;
 }
 
-async function loadLabelLiteralsBySubject(
-  connection: LibsqlConnectionDriver,
-  subjects: string[],
-  labelPredicates: string[],
-  lookupChunkSize: number,
-): Promise<Map<string, string[]>> {
-  const labelLiteralsBySubject = new Map<string, string[]>();
-  if (subjects.length === 0 || labelPredicates.length === 0) {
-    return labelLiteralsBySubject;
-  }
-
-  const uniqueSubjects = Array.from(new Set(subjects));
-  for (let index = 0; index < uniqueSubjects.length; index += lookupChunkSize) {
-    const subjectBatch = uniqueSubjects.slice(index, index + lookupChunkSize);
-    const query = buildSelectLabelLiteralsForSubjects(
-      subjectBatch,
-      labelPredicates,
-    );
-    const resultSet = await connection.execute(query);
-    for (const row of resultSet.rows) {
-      const subject = String(row.s);
-      const literalValue = String(row.o);
-      const existing = labelLiteralsBySubject.get(subject) ?? [];
-      existing.push(literalValue);
-      labelLiteralsBySubject.set(subject, existing);
-    }
-  }
-
-  return labelLiteralsBySubject;
-}
-
 async function buildVectorChunkStatements(
   quads: rdfjs.Quad[],
   quadIds: string[],
   options: ProjectSearchChunksOptions,
-  resolvedLabelPredicates: string[],
 ): Promise<InStatement[]> {
   const statements: InStatement[] = [];
 
@@ -173,23 +128,9 @@ async function buildVectorChunkStatements(
     return [];
   }
 
-  const lookupChunkSize = options.maxLookupChunkSize ?? 800;
-  const uniqueSubjects = Array.from(
-    new Set(chunks.map((chunk) => chunk.subject)),
-  );
-
-  const labelLiteralsBySubject = await loadLabelLiteralsBySubject(
-    options.connection,
-    uniqueSubjects,
-    resolvedLabelPredicates,
-    lookupChunkSize,
-  );
-
   const chunksWithFtsValue = chunks.map((chunk) => ({
     chunk,
-    fts_value: buildChunkFtsValue(chunk, {
-      labelLiteralsForSubject: labelLiteralsBySubject.get(chunk.subject) ?? [],
-    }),
+    fts_value: buildChunkFtsValue(chunk),
   }));
 
   let vectorLookupMap: Map<string, Float32Array | number[]> | undefined;

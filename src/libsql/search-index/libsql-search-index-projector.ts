@@ -1,7 +1,6 @@
 import type * as rdfjs from "@rdfjs/types";
 import type { ProjectSearchChunksOptions } from "./project-search-chunks.ts";
 import { projectSearchChunks } from "./project-search-chunks.ts";
-import { refreshSearchChunksForSubjects } from "./refresh-search-chunks-for-subjects.ts";
 import { rebuildLibsqlSearchIndexFromQuads } from "./rebuild-libsql-search-index-from-quads.ts";
 
 export interface LibsqlSearchIndexProjectorOptions
@@ -25,19 +24,11 @@ export class LibsqlSearchIndexProjector {
   public async projectNovelQuads(
     novelInsertions: rdfjs.Quad[],
     novelQuadIds: string[],
-    labelTouchedSubjects: string[],
   ): Promise<void> {
     if (novelQuadIds.length > 0) {
       await projectSearchChunks(
         novelInsertions,
         novelQuadIds,
-        this.options,
-      );
-    }
-
-    if (labelTouchedSubjects.length > 0) {
-      await refreshSearchChunksForSubjects(
-        labelTouchedSubjects,
         this.options,
       );
     }

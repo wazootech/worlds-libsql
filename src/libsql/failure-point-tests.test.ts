@@ -61,7 +61,6 @@ Deno.test(
             connection,
             textSplitter: sharedTextSplitter,
             searchQueryBuilder: testLibsqlSearchQueryBuilder,
-            labelPredicates: [],
             embeddingService: new FakeEmbeddingService(),
           });
         }

@@ -86,19 +86,17 @@ export class LibsqlQuadStore implements QuadStoreInterface {
           this.options.searchIndexOnImport === "disabled" ||
           (isImport && searchIndexOnImport === "deferred");
 
-        const { novelInsertions, novelQuadIds, labelTouchedSubjects } =
-          await commitPatchToLibsql(
-            patch,
-            this.options,
-            context,
-          );
+        const { novelInsertions, novelQuadIds } = await commitPatchToLibsql(
+          patch,
+          this.options,
+          context,
+        );
 
         if (!skipSearchIndexProjection && this.options.searchIndexProjector) {
           try {
             await this.options.searchIndexProjector.projectNovelQuads(
               novelInsertions,
               novelQuadIds,
-              labelTouchedSubjects,
             );
           } catch (error) {
             // Clean up persisted quads if search projection fails
