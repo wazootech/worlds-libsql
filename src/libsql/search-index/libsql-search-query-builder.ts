@@ -136,8 +136,14 @@ function buildIncludeExcludeFilterClauses(
 
 /**
  * sanitizeFtsQuery defends SQLite against internal parsing crash vectors
- * by splitting inputs into safe alphanumeric tokens, stripping filler words,
- * and wrapping the remaining content words in explicit quotes.
+ * by splitting inputs into safe token fragments (Unicode letters, numbers,
+ * and combining marks — FTS5's default unicode61 tokenizer handles the
+ * rest), stripping filler words, and wrapping the remaining content words
+ * in explicit quotes.
+ *
+ * Returns an empty string when the query contains no searchable tokens
+ * (e.g. pure punctuation); callers must treat that as "no keyword match"
+ * rather than emitting `MATCH ""` (which crashes FTS5).
  */
 export function sanitizeFtsQuery(query: string): string {
   const tokens = query
@@ -145,7 +151,7 @@ export function sanitizeFtsQuery(query: string): string {
     .map((token) =>
       token
         .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "")
+        .replace(/[^\p{L}\p{N}\p{M}]+/gu, "")
     )
     .filter((token) => token.length > 0);
 
@@ -243,8 +249,11 @@ export class LibsqlSearchQueryBuilder {
     const hasVector = !!vectorJson;
     const hasQuery = !!request.query && request.query.trim().length > 0;
     const sanitizedQuery = hasQuery ? sanitizeFtsQuery(request.query) : "";
+    // A present query with zero searchable tokens (pure punctuation, emoji)
+    // must not emit `MATCH ""` — FTS5 crashes on the empty match string.
+    const hasKeyword = sanitizedQuery.length > 0;
 
-    if (hasVector && hasQuery) {
+    if (hasVector && hasKeyword) {
       const args: (string | number)[] = [
         vectorJson!,
         limit,
@@ -331,7 +340,7 @@ export class LibsqlSearchQueryBuilder {
       return { sql, args };
     }
 
-    if (hasQuery) {
+    if (hasKeyword) {
       const args: (string | number)[] = [
         sanitizedQuery,
         limit,
