@@ -7,7 +7,7 @@ import type {
   SearchResult,
 } from "@worlds/sdk/search-index";
 import { buildSearchResultId } from "./build-search-result-id.ts";
-import type { LibsqlClientBaseOptions } from "@/libsql/libsql-client-base-options.ts";
+import type { LibsqlSdkBaseOptions } from "@/libsql/libsql-sdk-base-options.ts";
 import type { LibsqlConnectionDriver } from "@/libsql/libsql-connection-driver.ts";
 import type { LibsqlSearchQueryBuilder } from "./libsql-search-query-builder.ts";
 import { rebuildLibsqlSearchIndexFromQuads } from "./rebuild-libsql-search-index-from-quads.ts";
@@ -24,7 +24,7 @@ interface SearchRequestWithProfile extends SearchRequest {
 /**
  * LibsqlSearchIndexOptions defines the structured configuration and dependency parameters needed to construct the LibSQL search engine.
  */
-export interface LibsqlSearchIndexOptions extends LibsqlClientBaseOptions {
+export interface LibsqlSearchIndexOptions extends LibsqlSdkBaseOptions {
   /** connection is the LibsqlConnectionDriver wrapping the LibSQL transport. */
   connection: LibsqlConnectionDriver;
 
