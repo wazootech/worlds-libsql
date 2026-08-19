@@ -3,7 +3,7 @@ import type * as rdfjs from "@rdfjs/types";
 import type { Patch, TransactionContext } from "@worlds/sdk/quad-store";
 import { isReplaceImportCommit } from "@worlds/sdk/quad-store";
 import { filterQuads, fromRdfjsTerm, hashQuads } from "@worlds/sdk/quad-store";
-import type { LibsqlClientBaseOptions } from "@/libsql/libsql-client-base-options.ts";
+import type { LibsqlSdkBaseOptions } from "@/libsql/libsql-sdk-base-options.ts";
 import {
   buildBulkInsertQuads,
   buildDeleteQuadsByQuadIds,
@@ -14,7 +14,7 @@ import { LibsqlBatchExecutor } from "./libsql-batch-executor.ts";
 import type { LibsqlConnectionDriver } from "./libsql-connection-driver.ts";
 import type { LibsqlSearchQueryBuilder } from "./search-index/libsql-search-query-builder.ts";
 
-export interface CommitPatchToLibsqlOptions extends LibsqlClientBaseOptions {
+export interface CommitPatchToLibsqlOptions extends LibsqlSdkBaseOptions {
   /** connection is the LibsqlConnectionDriver wrapping the LibSQL transport. */
   connection: LibsqlConnectionDriver;
 

@@ -10,7 +10,7 @@ import {
 } from "@/libsql/search-index/mod.ts";
 import { LibsqlQuadStore } from "./quad-store/mod.ts";
 
-import type { LibsqlClientBaseOptions } from "./libsql-client-base-options.ts";
+import type { LibsqlSdkBaseOptions } from "./libsql-sdk-base-options.ts";
 import { LibsqlConnectionDriver } from "./libsql-connection-driver.ts";
 import { LibsqlRdfjsStore } from "./rdfjs-store/mod.ts";
 import { initializeLibsqlSchema } from "./initialize-libsql-schema.ts";
@@ -20,7 +20,7 @@ import { LibsqlSearchQueryBuilder } from "./search-index/libsql-search-query-bui
 /**
  * LibsqlSdkOptions configures LibSQL execution through LibsqlRdfjsStore and quad indexes.
  */
-export interface LibsqlSdkOptions extends LibsqlClientBaseOptions {
+export interface LibsqlSdkOptions extends LibsqlSdkBaseOptions {
   /** client is the underlying LibSQL client pointing to the database. */
   client: LibsqlClient;
 }
