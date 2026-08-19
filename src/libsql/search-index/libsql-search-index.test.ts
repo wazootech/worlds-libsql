@@ -405,3 +405,39 @@ Deno.test("LibsqlSearchIndex - respects custom result limit option", async () =>
     "Custom limit should cap the number of returned rows",
   );
 });
+
+Deno.test("LibsqlSearchIndex - non-ASCII queries do not crash and match via unicode61 (parity #21)", async () => {
+  const client = createClient({ url: ":memory:" });
+  const connection = createTestLibsqlConnectionDriver(client);
+  await setupLibsqlSchemaForTest(connection);
+
+  await client.execute({
+    sql:
+      `INSERT INTO chunks (quad_id, subject, predicate, graph, value, fts_value, vector) VALUES (?, ?, ?, ?, ?, ?, NULL)`,
+    args: [
+      "id-ar",
+      "urn:item1",
+      "urn:greeting",
+      "",
+      "\u0645\u0631\u062d\u0628\u0627",
+      "\u0645\u0631\u062d\u0628\u0627",
+    ],
+  });
+
+  const searchIndex = new LibsqlSearchIndex({
+    connection,
+    searchQueryBuilder: testLibsqlSearchQueryBuilder,
+  });
+
+  const response = await searchIndex.search({
+    query: "\u0645\u0631\u062d\u0628\u0627",
+  });
+
+  assertExists(response.results);
+  assertEquals(
+    response.results.length,
+    1,
+    "Arabic query must match the Arabic chunk without crashing FTS5",
+  );
+  assertEquals(response.results[0].text, "\u0645\u0631\u062d\u0628\u0627");
+});

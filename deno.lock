@@ -10,7 +10,7 @@
     "jsr:@std/internal@^1.0.14": "1.0.14",
     "jsr:@std/path@^1.1.5": "1.1.6",
     "jsr:@wazoo/sparql-engine@~0.4.1": "0.4.1",
-    "jsr:@worlds/sdk@~0.2.1": "0.2.1",
+    "jsr:@worlds/sdk@0.4": "0.4.0",
     "npm:@ai-sdk/google@^3.0.80": "3.0.80_zod@4.4.3",
     "npm:@langchain/core@^1.1.48": "1.1.48",
     "npm:@langchain/textsplitters@^1.0.1": "1.0.1_@langchain+core@1.1.48",
@@ -65,8 +65,8 @@
         "npm:@rdfjs/types"
       ]
     },
-    "@worlds/sdk@0.2.1": {
-      "integrity": "ef6d1429f3adf44c529b8921e86739d2f2e30866488e18940d00e67b655863de",
+    "@worlds/sdk@0.4.0": {
+      "integrity": "8023123d43d800125c3130f3ef5a3ea4b4f498d48e6678934598a4aa3b8c93b7",
       "dependencies": [
         "jsr:@std/encoding",
         "jsr:@std/path",
@@ -779,7 +779,7 @@
       "jsr:@std/fs@^1.0.24",
       "jsr:@std/path@^1.1.5",
       "jsr:@wazoo/sparql-engine@~0.4.1",
-      "jsr:@worlds/sdk@~0.2.1",
+      "jsr:@worlds/sdk@0.4",
       "npm:@ai-sdk/google@^3.0.80",
       "npm:@langchain/core@^1.1.48",
       "npm:@langchain/textsplitters@^1.0.1",
