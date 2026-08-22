@@ -10,7 +10,7 @@ import {
   importViaTransaction,
   Transaction,
 } from "@worlds/sdk/quad-store";
-import type { LibsqlSdkBaseOptions } from "../libsql-sdk-base-options.ts";
+import type { LibsqlWorldsSdkBaseOptions } from "../libsql-sdk-base-options.ts";
 import type { LibsqlConnectionDriver } from "../libsql-connection-driver.ts";
 import type { LibsqlRdfjsStore } from "../rdfjs-store/mod.ts";
 import type { LibsqlSearchQueryBuilder } from "../search-index/libsql-search-query-builder.ts";
@@ -24,7 +24,7 @@ import {
 /**
  * LibsqlQuadStoreOptions defines the configurations for the LibsqlQuadStore.
  */
-export interface LibsqlQuadStoreOptions extends LibsqlSdkBaseOptions {
+export interface LibsqlQuadStoreOptions extends LibsqlWorldsSdkBaseOptions {
   /** connection is the LibsqlConnectionDriver wrapping the LibSQL transport. */
   connection: LibsqlConnectionDriver;
 

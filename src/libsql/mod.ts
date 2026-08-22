@@ -1,5 +1,5 @@
-export type { LibsqlSdkOptions } from "./create-libsql-sdk.ts";
-export { createLibsqlSdk } from "./create-libsql-sdk.ts";
+export type { LibsqlWorldsSdkOptions } from "./create-libsql-sdk.ts";
+export { createLibsqlWorldsSdk } from "./create-libsql-sdk.ts";
 export { LibsqlConnectionDriver } from "./libsql-connection-driver.ts";
 export { LibsqlRdfjsStore } from "./rdfjs-store/mod.ts";
 export { initializeLibsqlSchema } from "./initialize-libsql-schema.ts";

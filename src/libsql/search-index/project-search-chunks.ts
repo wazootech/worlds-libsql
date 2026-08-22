@@ -6,14 +6,14 @@ import type {
 import { chunkQuads } from "@worlds/sdk/search-index/quad-chunker";
 import type * as rdfjs from "@rdfjs/types";
 import { hashQuads } from "@worlds/sdk/quad-store";
-import type { LibsqlSdkBaseOptions } from "@/libsql/libsql-sdk-base-options.ts";
+import type { LibsqlWorldsSdkBaseOptions } from "@/libsql/libsql-sdk-base-options.ts";
 import type { LibsqlConnectionDriver } from "@/libsql/libsql-connection-driver.ts";
 import type { LibsqlSearchQueryBuilder } from "./libsql-search-query-builder.ts";
 
 import { buildChunkFtsValue } from "./search-chunk-fts.ts";
 import { LibsqlBatchExecutor } from "@/libsql/libsql-batch-executor.ts";
 
-export interface ProjectSearchChunksOptions extends LibsqlSdkBaseOptions {
+export interface ProjectSearchChunksOptions extends LibsqlWorldsSdkBaseOptions {
   /** connection is the LibsqlConnectionDriver wrapping the LibSQL transport. */
   connection: LibsqlConnectionDriver;
 

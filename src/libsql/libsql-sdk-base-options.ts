@@ -4,9 +4,9 @@ import type { EmbeddingService } from "@worlds/sdk/search-index/embedding-servic
 import type { TextSplitterInterface } from "@worlds/sdk/search-index/quad-chunker";
 
 /**
- * LibsqlSdkBaseOptions lists configuration shared by quad index LibSQL sdk factories.
+ * LibsqlWorldsSdkBaseOptions lists configuration shared by quad index LibSQL sdk factories.
  */
-export interface LibsqlSdkBaseOptions extends QuadFilter {
+export interface LibsqlWorldsSdkBaseOptions extends QuadFilter {
   /** embeddingService is an optional service projected for transforming text literals into comparison vectors. */
   embeddingService?: EmbeddingService;
 

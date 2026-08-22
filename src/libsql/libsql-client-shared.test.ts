@@ -2,9 +2,9 @@ import { assertEquals } from "@std/assert";
 import { createClient } from "@libsql/client";
 import { DataFactory } from "n3";
 
-import type { SdkInterface } from "@worlds/sdk";
-import type { LibsqlSdkOptions } from "@/libsql/create-libsql-sdk.ts";
-import { createLibsqlSdk } from "@/libsql/create-libsql-sdk.ts";
+import type { WorldsSdkInterface } from "@worlds/sdk";
+import type { LibsqlWorldsSdkOptions } from "@/libsql/create-libsql-sdk.ts";
+import { createLibsqlWorldsSdk } from "@/libsql/create-libsql-sdk.ts";
 
 const { quad, namedNode, literal } = DataFactory;
 
@@ -20,11 +20,11 @@ const expectedIndexNames = [
 
 interface LibsqlClientFixture {
   label: string;
-  createClient: (options: LibsqlSdkOptions) => Promise<SdkInterface>;
+  createClient: (options: LibsqlWorldsSdkOptions) => Promise<WorldsSdkInterface>;
 }
 
 const libsqlClientFixtures: LibsqlClientFixture[] = [
-  { label: "quad-index", createClient: createLibsqlSdk },
+  { label: "quad-index", createClient: createLibsqlWorldsSdk },
 ];
 
 for (const fixture of libsqlClientFixtures) {
