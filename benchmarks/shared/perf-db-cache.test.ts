@@ -1,7 +1,7 @@
 import { assertEquals, assertExists, assertNotEquals } from "@std/assert";
 import { createClient } from "@libsql/client";
 import * as path from "@std/path";
-import { createLibsqlSdk } from "@worlds/libsql";
+import { createLibsqlWorldsSdk } from "@worlds/libsql";
 import type { Quad } from "@rdfjs/types";
 import {
   buildHexastorePerfFixtureChecksumInputs,
@@ -17,7 +17,7 @@ async function importCorpusIntoLibsqlHexastoreForTest(
   databaseClient: ReturnType<typeof createClient>,
   corpusQuads: Quad[],
 ): Promise<void> {
-  const worldsClient = await createLibsqlSdk({
+  const worldsClient = await createLibsqlWorldsSdk({
     client: databaseClient,
     searchIndexOnImport: "disabled",
   });

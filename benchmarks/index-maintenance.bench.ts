@@ -1,5 +1,5 @@
 import { createClient } from "@libsql/client";
-import { createLibsqlSdk } from "@/libsql/mod.ts";
+import { createLibsqlWorldsSdk } from "@/libsql/mod.ts";
 import { rebuildLibsqlSearchIndexFromQuads } from "@/libsql/search-index/rebuild-libsql-search-index-from-quads.ts";
 import { FakeEmbeddingService } from "@worlds/sdk/search-index/embedding-service";
 import {
@@ -14,7 +14,7 @@ const databaseClient = createClient({ url: ":memory:" });
 const connection = createTestLibsqlConnectionDriver(databaseClient);
 await setupLibsqlSchemaForTest(connection);
 
-const worldsClient = await createLibsqlSdk({
+const worldsClient = await createLibsqlWorldsSdk({
   client: databaseClient,
   searchIndexOnImport: "disabled",
 });
