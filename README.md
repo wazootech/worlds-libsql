@@ -46,7 +46,7 @@ With an import map:
 }
 </script>
 <script type="module">
-import { createLibsqlWorldsSdk } from "@worlds/libsql";
+  import { createLibsqlWorldsSdk } from "@worlds/libsql";
 </script>
 ```
 
@@ -62,7 +62,7 @@ import { createLibsqlWorldsSdk } from "https://esm.sh/jsr/@worlds/libsql@0.4.1?p
 
 ```typescript
 import { createClient } from "@libsql/client";
-import { createLibsqlWorldsSdk } from "@worlds/libsql";
+  import { createLibsqlWorldsSdk } from "@worlds/libsql";
 
 const databaseClient = createClient({ url: ":memory:" });
 // The factory assembles the three strategy objects internally: a
