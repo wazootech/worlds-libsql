@@ -1,11 +1,11 @@
 import { createClient } from "@libsql/client";
 import { DataFactory } from "n3";
-import { createLibsqlSdk } from "@/libsql/mod.ts";
+import { createLibsqlWorldsSdk } from "@/libsql/mod.ts";
 
 const { quad, namedNode, literal } = DataFactory;
 
 const databaseClient = createClient({ url: ":memory:" });
-const client = await createLibsqlSdk({
+const client = await createLibsqlWorldsSdk({
   client: databaseClient,
   searchIndexOnImport: "disabled",
 });

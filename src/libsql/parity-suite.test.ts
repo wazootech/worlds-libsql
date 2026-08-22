@@ -2,8 +2,8 @@
  * Reference-side parity suite (workspace#67, #72) — keeps the L2 reference
  * continuously validated in CI, mirroring worlds-sqlite's suite.
  *
- * Runs the shared fixture corpus with reference = createMemorySdk (the
- * portable in-memory reference) and candidate = createLibsqlSdk over
+ * Runs the shared fixture corpus with reference = createMemoryWorldsSdk (the
+ * portable in-memory reference) and candidate = createLibsqlWorldsSdk over
  * :memory:.
  *
  * Exemptions (explicit, documented on workspace#72 — never silent):
@@ -18,15 +18,15 @@
  */
 import { assertEquals } from "@std/assert";
 import { createClient } from "@libsql/client";
-import { createLibsqlSdk } from "@/libsql/mod.ts";
-import { createMemorySdk } from "@worlds/sdk/memory";
+import { createLibsqlWorldsSdk } from "@/libsql/mod.ts";
+import { createMemoryWorldsSdk } from "@worlds/sdk/memory";
 import { parityCorpus, runParitySuite } from "@worlds/sdk/testing";
 
 const CHUNKER_DIVERGENT_FIXTURE = "chunkBoundaryWorld";
 
-function createLibsqlSdkForParity() {
+function createLibsqlWorldsSdkForParity() {
   const client = createClient({ url: ":memory:" });
-  return createLibsqlSdk({ client });
+  return createLibsqlWorldsSdk({ client });
 }
 
 Deno.test(
@@ -37,8 +37,8 @@ Deno.test(
     );
 
     const report = await runParitySuite({
-      reference: () => createMemorySdk(),
-      candidate: () => createLibsqlSdkForParity(),
+      reference: () => createMemoryWorldsSdk(),
+      candidate: () => createLibsqlWorldsSdkForParity(),
       fixtures,
       strictSearchOrder: false,
     });

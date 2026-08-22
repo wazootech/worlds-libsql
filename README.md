@@ -32,7 +32,7 @@ npx jsr add @worlds/libsql
 bundler needed.
 
 ```js
-import { createLibsqlSdk } from "https://esm.sh/jsr/@worlds/libsql@0.4.1";
+import { createLibsqlWorldsSdk } from "https://esm.sh/jsr/@worlds/libsql@0.4.1";
 ```
 
 With an import map:
@@ -46,14 +46,14 @@ With an import map:
 }
 </script>
 <script type="module">
-  import { createLibsqlSdk } from "@worlds/libsql";
+import { createLibsqlWorldsSdk } from "@worlds/libsql";
 </script>
 ```
 
 Pin to an exact build for deterministic caching:
 
 ```js
-import { createLibsqlSdk } from "https://esm.sh/jsr/@worlds/libsql@0.4.1?pin=v1724100000";
+import { createLibsqlWorldsSdk } from "https://esm.sh/jsr/@worlds/libsql@0.4.1?pin=v1724100000";
 ```
 
 ## Usage
@@ -62,13 +62,13 @@ import { createLibsqlSdk } from "https://esm.sh/jsr/@worlds/libsql@0.4.1?pin=v17
 
 ```typescript
 import { createClient } from "@libsql/client";
-import { createLibsqlSdk } from "@worlds/libsql";
+import { createLibsqlWorldsSdk } from "@worlds/libsql";
 
 const databaseClient = createClient({ url: ":memory:" });
 // The factory assembles the three strategy objects internally: a
 // LibsqlConnectionDriver over the raw client, the schema builder, and the
 // search-query builder. Callers just pass the LibSQL client.
-const client = await createLibsqlSdk({ client: databaseClient });
+const client = await createLibsqlWorldsSdk({ client: databaseClient });
 
 await client.import({
   source: {

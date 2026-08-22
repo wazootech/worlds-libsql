@@ -5,12 +5,11 @@
     "jsr:@std/async@^1.4.0": "1.4.0",
     "jsr:@std/data-structures@^1.1.0": "1.1.0",
     "jsr:@std/encoding@^1.0.10": "1.0.11",
-    "jsr:@std/fs@^1.0.24": "1.0.24",
     "jsr:@std/internal@^1.0.12": "1.0.14",
     "jsr:@std/internal@^1.0.14": "1.0.14",
     "jsr:@std/path@^1.1.5": "1.1.6",
     "jsr:@wazoo/sparql-engine@~0.4.1": "0.4.1",
-    "jsr:@worlds/sdk@0.4": "0.4.0",
+    "jsr:@worlds/sdk@0.6": "0.6.0",
     "npm:@ai-sdk/google@^3.0.80": "3.0.80_zod@4.4.3",
     "npm:@langchain/core@^1.1.48": "1.1.48",
     "npm:@langchain/textsplitters@^1.0.1": "1.0.1_@langchain+core@1.1.48",
@@ -43,13 +42,6 @@
     "@std/encoding@1.0.11": {
       "integrity": "e7cef2f0b3153bccc17431e7c864a1de03a4b6d9647389c43e08aaa775d37385"
     },
-    "@std/fs@1.0.24": {
-      "integrity": "f3061b45b81673a2bece689da041df32d174be064c89eb6397fb5718d3fb7877",
-      "dependencies": [
-        "jsr:@std/internal@^1.0.14",
-        "jsr:@std/path"
-      ]
-    },
     "@std/internal@1.0.14": {
       "integrity": "291516b3d4c35024d6ffbc0a9df5bf4c64116e05b50012cf846710152d2ffdf7"
     },
@@ -65,17 +57,12 @@
         "npm:@rdfjs/types"
       ]
     },
-    "@worlds/sdk@0.4.0": {
-      "integrity": "8023123d43d800125c3130f3ef5a3ea4b4f498d48e6678934598a4aa3b8c93b7",
+    "@worlds/sdk@0.6.0": {
+      "integrity": "c8e7285a733d4a2e451b099ddf7a10f3920b4e1a02286ff000ca386d2502263b",
       "dependencies": [
         "jsr:@std/encoding",
-        "jsr:@std/path",
         "jsr:@wazoo/sparql-engine",
-        "npm:@rdfjs/types",
-        "npm:@tensorflow/tfjs",
-        "npm:@tensorflow/tfjs-backend-wasm",
-        "npm:ai",
-        "npm:rdf-canonize"
+        "npm:@rdfjs/types"
       ]
     }
   },
@@ -779,7 +766,7 @@
       "jsr:@std/fs@^1.0.24",
       "jsr:@std/path@^1.1.5",
       "jsr:@wazoo/sparql-engine@~0.4.1",
-      "jsr:@worlds/sdk@0.4",
+      "jsr:@worlds/sdk@0.6",
       "npm:@ai-sdk/google@^3.0.80",
       "npm:@langchain/core@^1.1.48",
       "npm:@langchain/textsplitters@^1.0.1",

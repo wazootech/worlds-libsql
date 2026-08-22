@@ -1,7 +1,7 @@
 import { createClient } from "@libsql/client";
 import type { Quad } from "@rdfjs/types";
-import type { SdkInterface } from "@worlds/sdk";
-import { createLibsqlSdk } from "@worlds/libsql";
+import type { WorldsSdkInterface } from "@worlds/sdk";
+import { createLibsqlWorldsSdk } from "@worlds/libsql";
 import {
   buildHexastorePerfFixtureChecksumInputs,
   computeHexastorePerfFixtureChecksum,
@@ -60,7 +60,7 @@ export const libsqlHexastorePerfBackends = [
 /** PreloadedSparqlFixture holds a warmed Client and its storage handle. */
 export interface PreloadedSparqlFixture {
   /** client executes SPARQL against the preloaded corpus. */
-  client: SdkInterface;
+  client: WorldsSdkInterface;
   /** databaseClient is set for libsqlStore fixtures. */
   databaseClient?: ReturnType<typeof createClient>;
 }
@@ -109,7 +109,7 @@ async function importCorpusIntoLibsqlHexastore(
   databaseClient: ReturnType<typeof createClient>,
   corpusQuads: Quad[],
 ): Promise<void> {
-  const worldsClient = await createLibsqlSdk({
+  const worldsClient = await createLibsqlWorldsSdk({
     client: databaseClient,
     searchIndexOnImport: "disabled",
   });
@@ -124,7 +124,7 @@ async function importCorpusIntoLibsqlHexastore(
 async function openLibsqlHexastoreSparqlEngine(
   databaseClient: ReturnType<typeof createClient>,
 ): Promise<PreloadedSparqlFixture> {
-  const worldsClient = await createLibsqlSdk({
+  const worldsClient = await createLibsqlWorldsSdk({
     client: databaseClient,
     searchIndexOnImport: "disabled",
   });
