@@ -20,7 +20,9 @@ const expectedIndexNames = [
 
 interface LibsqlClientFixture {
   label: string;
-  createClient: (options: LibsqlWorldsSdkOptions) => Promise<WorldsSdkInterface>;
+  createClient: (
+    options: LibsqlWorldsSdkOptions,
+  ) => Promise<WorldsSdkInterface>;
 }
 
 const libsqlClientFixtures: LibsqlClientFixture[] = [

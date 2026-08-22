@@ -46,7 +46,7 @@ With an import map:
 }
 </script>
 <script type="module">
-  import { createLibsqlWorldsSdk } from "@worlds/libsql";
+import { createLibsqlWorldsSdk } from "@worlds/libsql";
 </script>
 ```
 
