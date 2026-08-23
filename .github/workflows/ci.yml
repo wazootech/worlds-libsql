@@ -16,6 +16,9 @@ jobs:
       - uses: denoland/setup-deno@v2
         with:
           cache: true
+          # Temporary pin: floating Deno segfaults libsql tests at shutdown (exit 139).
+          # Remove when the upstream Deno/libsql incompatibility is fixed.
+          deno-version: 2.9.5
       - name: Install dependencies
         run: deno ci
       - name: Run CI checks
