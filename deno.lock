@@ -23,6 +23,7 @@
     "npm:ai@^6.0.195": "6.0.257_zod@4.4.3",
     "npm:n3@^2.0.3": "2.2.0",
     "npm:rdf-canonize@5": "5.0.0",
+    "npm:sqlite-vec@~0.1.9": "0.1.9",
     "npm:zod@^4.4.3": "4.4.3"
   },
   "jsr": {
@@ -79,7 +80,10 @@
       "integrity": "3b5210b0b9e1c4926f7caa6f28e1b492a680228c61d3da36d4af2ae3508abf95",
       "dependencies": [
         "jsr:@wazoo/sparql-engine",
-        "jsr:@worlds/sdk"
+        "jsr:@worlds/sdk",
+        "npm:@langchain/textsplitters",
+        "npm:@rdfjs/types",
+        "npm:sqlite-vec"
       ]
     }
   },
@@ -696,6 +700,41 @@
     },
     "sprintf-js@1.0.3": {
       "integrity": "sha512-D9cPgkvLlV3t3IzL0D0YLvGA9Ahk4PcvVwUbN0dSGr1aP0Nrt4AEnTUbuGvquEC0mA64Gqt1fzirlRs5ibXx8g=="
+    },
+    "sqlite-vec-darwin-arm64@0.1.9": {
+      "integrity": "sha512-jSsZpE42OfBkGL/ItyJTVCUwl6o6Ka3U5rc4j+UBDIQzC1ulSSKMEhQLthsOnF/MdAf1MuAkYhkdKmmcjaIZQg==",
+      "os": ["darwin"],
+      "cpu": ["arm64"]
+    },
+    "sqlite-vec-darwin-x64@0.1.9": {
+      "integrity": "sha512-KDlVyqQT7pnOhU1ymB9gs7dMbSoVmKHitT+k1/xkjarcX8bBqPxWrGlK/R+C5WmWkfvWwyq5FfXfiBYCBs6PlA==",
+      "os": ["darwin"],
+      "cpu": ["x64"]
+    },
+    "sqlite-vec-linux-arm64@0.1.9": {
+      "integrity": "sha512-5wXVJ9c9kR4CHm/wVqXb/R+XUHTdpZ4nWbPHlS+gc9qQFVHs92Km4bPnCKX4rtcPMzvNis+SIzMJR1SCEwpuUw==",
+      "os": ["linux"],
+      "cpu": ["arm64"]
+    },
+    "sqlite-vec-linux-x64@0.1.9": {
+      "integrity": "sha512-w3tCH8xK2finW8fQJ/m8uqKodXUZ9KAuAar2UIhz4BHILfpE0WM/MTGCRfa7RjYbrYim5Luk3guvMOGI7T7JQA==",
+      "os": ["linux"],
+      "cpu": ["x64"]
+    },
+    "sqlite-vec-windows-x64@0.1.9": {
+      "integrity": "sha512-y3gEIyy/17bq2QFPQOWLE68TYWcRZkBQVA2XLrTPHNTOp55xJi/BBBmOm40tVMDMjtP+Elpk6UBUXdaq+46b0Q==",
+      "os": ["win32"],
+      "cpu": ["x64"]
+    },
+    "sqlite-vec@0.1.9": {
+      "integrity": "sha512-L7XJWRIBNvR9O5+vh1FQ+IGkh/3D2AzVksW5gdtk28m78Hy8skFD0pqReKH1Yp0/BUKRGcffgKvyO/EON5JXpA==",
+      "optionalDependencies": [
+        "sqlite-vec-darwin-arm64",
+        "sqlite-vec-darwin-x64",
+        "sqlite-vec-linux-arm64",
+        "sqlite-vec-linux-x64",
+        "sqlite-vec-windows-x64"
+      ]
     },
     "string-width@4.2.3": {
       "integrity": "sha512-wKyQRQpjJ0sIp62ErSZdGsjMJWsap5oRNihHhu6G7JVO/9jIB6UyevL+tXuOqrng8j/cxKTWyWUwvSTriiZz/g==",
