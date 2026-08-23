@@ -1,3 +1,9 @@
+import {
+  buildChunksFtsTable,
+  buildChunksQuadIdIndex,
+  buildChunksTriggers,
+} from "@worlds/sqlite/sql-core";
+
 /** Maximum embedding dimensions accepted by LibsqlSchemaBuilder (LibSQL / resource guardrail). */
 const LIBSQL_QUERY_BUILDER_MAX_VECTOR_DIMENSIONS = 8192;
 
@@ -78,15 +84,11 @@ export class LibsqlSchemaBuilder {
   }
 
   public buildLibsqlChunksQuadIdIndex(): string {
-    return `CREATE INDEX IF NOT EXISTS idx_chunks_quad_id ON chunks (quad_id)`;
+    return buildChunksQuadIdIndex();
   }
 
   public buildLibsqlChunksFtsTable(): string {
-    return `CREATE VIRTUAL TABLE IF NOT EXISTS chunks_fts USING fts5(
-    fts_value,
-    content='chunks',
-    content_rowid='id'
-  )`;
+    return buildChunksFtsTable();
   }
 
   public buildLibsqlChunksIndex(): string {
@@ -96,14 +98,7 @@ export class LibsqlSchemaBuilder {
   }
 
   public buildLibsqlChunksTriggers(): string[] {
-    return [
-      `CREATE TRIGGER IF NOT EXISTS chunks_ai AFTER INSERT ON chunks BEGIN
-      INSERT INTO chunks_fts(rowid, fts_value) VALUES (new.id, new.fts_value);
-    END;`,
-      `CREATE TRIGGER IF NOT EXISTS chunks_ad AFTER DELETE ON chunks BEGIN
-      INSERT INTO chunks_fts(chunks_fts, rowid, fts_value) VALUES('delete', old.id, old.fts_value);
-    END;`,
-    ];
+    return buildChunksTriggers();
   }
 
   /**
