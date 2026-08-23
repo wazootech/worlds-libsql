@@ -6,3 +6,9 @@
   barrel.
 - Follow the existing JSDoc and naming style in the source files.
 - Run `deno fmt` before committing, then `deno task ci` before merging.
+
+## CI Deno pin
+
+CI pins Deno to 2.9.5 as a temporary exception: the floating latest segfaults
+the test process at shutdown (exit 139) under this repo's native libsql
+bindings. Remove the pin once upstream fixes the crash.

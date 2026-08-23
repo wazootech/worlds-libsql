@@ -16,7 +16,7 @@
     "@rdfjs/types": "npm:@rdfjs/types@^2.0.1",
     "@wazoo/sparql-engine": "jsr:@wazoo/sparql-engine@^0.4.1",
     "@worlds/sqlite": "jsr:@worlds/sqlite@^0.6.0",
-    "@libsql/client": "npm:@libsql/client@^0.17.3",
+    "@libsql/client": "npm:@libsql/client@^0.17.4",
     "@worlds/sdk": "jsr:@worlds/sdk@^0.6.0",
     "@worlds/sdk/quad-store": "jsr:@worlds/sdk@^0.6.0/quad-store",
     "@worlds/sdk/search-index": "jsr:@worlds/sdk@^0.6.0/search-index",

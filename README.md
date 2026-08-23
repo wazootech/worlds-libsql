@@ -45,9 +45,12 @@ With an import map:
   }
 }
 </script>
-<script type="module">
+```
+
+Then a module script:
+
+```js
 import { createLibsqlWorldsSdk } from "@worlds/libsql";
-</script>
 ```
 
 Pin to an exact build for deterministic caching:
