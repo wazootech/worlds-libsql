@@ -1,70 +1,12 @@
-import type { QuadFilter } from "@worlds/sdk/quad-store";
 import type { SearchRequest } from "@worlds/sdk/search-index";
+import {
+  buildIncludeExcludeFilterClauses,
+  generatePlaceholders,
+  sanitizeFtsQuery,
+} from "@worlds/sqlite/sql-core";
+import type { ColumnMapping } from "@worlds/sqlite/sql-core";
 
-const LIBSQL_FTS_STOPWORDS = new Set([
-  "a",
-  "an",
-  "and",
-  "are",
-  "as",
-  "at",
-  "be",
-  "been",
-  "being",
-  "but",
-  "by",
-  "did",
-  "do",
-  "does",
-  "for",
-  "from",
-  "had",
-  "has",
-  "have",
-  "how",
-  "i",
-  "if",
-  "in",
-  "into",
-  "is",
-  "it",
-  "its",
-  "me",
-  "my",
-  "not",
-  "of",
-  "on",
-  "or",
-  "our",
-  "please",
-  "that",
-  "the",
-  "their",
-  "these",
-  "those",
-  "this",
-  "to",
-  "us",
-  "was",
-  "we",
-  "were",
-  "what",
-  "when",
-  "where",
-  "which",
-  "who",
-  "why",
-  "with",
-  "you",
-  "your",
-]);
-
-/** ColumnMapping maps QuadFilter dimensions to SQL column names. */
-interface ColumnMapping {
-  subjects: string;
-  predicates: string;
-  graphs: string;
-}
+export { sanitizeFtsQuery };
 
 /** CHUNKS_TABLE_COLUMNS maps QuadFilter fields to chunks table column names. */
 const CHUNKS_TABLE_COLUMNS: ColumnMapping = {
@@ -72,98 +14,6 @@ const CHUNKS_TABLE_COLUMNS: ColumnMapping = {
   predicates: "chunks.predicate",
   graphs: "chunks.graph",
 };
-
-/**
- * generatePlaceholders generates a comma-delimited set of parameterized SQLite bound variables.
- */
-function generatePlaceholders(count: number): string {
-  return Array(count).fill("?").join(", ");
-}
-
-/**
- * buildIncludeExcludeFilterClauses builds parameterized WHERE fragments from a QuadFilter using the given column mapping.
- */
-function buildIncludeExcludeFilterClauses(
-  filter: QuadFilter | undefined,
-  columnMapping: ColumnMapping,
-): { whereClauses: string[]; filterArgs: string[] } {
-  const whereClauses: string[] = [];
-  const filterArgs: string[] = [];
-
-  const filterConfigurations = [
-    {
-      values: filter?.exclude?.subjects,
-      column: columnMapping.subjects,
-      operator: "NOT IN",
-    },
-    {
-      values: filter?.exclude?.predicates,
-      column: columnMapping.predicates,
-      operator: "NOT IN",
-    },
-    {
-      values: filter?.exclude?.graphs,
-      column: columnMapping.graphs,
-      operator: "NOT IN",
-    },
-    {
-      values: filter?.include?.subjects,
-      column: columnMapping.subjects,
-      operator: "IN",
-    },
-    {
-      values: filter?.include?.predicates,
-      column: columnMapping.predicates,
-      operator: "IN",
-    },
-    {
-      values: filter?.include?.graphs,
-      column: columnMapping.graphs,
-      operator: "IN",
-    },
-  ] as const;
-
-  for (const { values, column, operator } of filterConfigurations) {
-    if (values?.length) {
-      const placeholders = generatePlaceholders(values.length);
-      whereClauses.push(`${column} ${operator} (${placeholders})`);
-      filterArgs.push(...values);
-    }
-  }
-
-  return { whereClauses, filterArgs };
-}
-
-/**
- * sanitizeFtsQuery defends SQLite against internal parsing crash vectors
- * by splitting inputs into safe token fragments (Unicode letters, numbers,
- * and combining marks — FTS5's default unicode61 tokenizer handles the
- * rest), stripping filler words, and wrapping the remaining content words
- * in explicit quotes.
- *
- * Returns an empty string when the query contains no searchable tokens
- * (e.g. pure punctuation); callers must treat that as "no keyword match"
- * rather than emitting `MATCH ""` (which crashes FTS5).
- */
-export function sanitizeFtsQuery(query: string): string {
-  const tokens = query
-    .split(/\s+/)
-    .map((token) =>
-      token
-        .toLowerCase()
-        .replace(/[^\p{L}\p{N}\p{M}]+/gu, "")
-    )
-    .filter((token) => token.length > 0);
-
-  const filteredTokens = tokens.filter((token) =>
-    !LIBSQL_FTS_STOPWORDS.has(token)
-  );
-  const normalizedTokens = filteredTokens.length > 0 ? filteredTokens : tokens;
-
-  return normalizedTokens
-    .map((token) => `"${token.replace(/"/g, "")}"`)
-    .join(" ");
-}
 
 /** Maximum embedding dimensions accepted by LibsqlSearchQueryBuilder (LibSQL / resource guardrail). */
 const LIBSQL_QUERY_BUILDER_MAX_VECTOR_DIMENSIONS = 8192;

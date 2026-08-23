@@ -6,7 +6,7 @@ import type {
   SearchResponse,
   SearchResult,
 } from "@worlds/sdk/search-index";
-import { buildSearchResultId } from "./build-search-result-id.ts";
+import { buildSearchResultId } from "@worlds/sqlite/sql-core";
 import type { LibsqlWorldsSdkBaseOptions } from "@/libsql/libsql-sdk-base-options.ts";
 import type { LibsqlConnectionDriver } from "@/libsql/libsql-connection-driver.ts";
 import type { LibsqlSearchQueryBuilder } from "./libsql-search-query-builder.ts";

@@ -46,7 +46,7 @@ With an import map:
 }
 </script>
 <script type="module">
-  import { createLibsqlWorldsSdk } from "@worlds/libsql";
+import { createLibsqlWorldsSdk } from "@worlds/libsql";
 </script>
 ```
 
@@ -148,6 +148,14 @@ const result = await sparqlEngine.execute({
 ```
 
 ## Development
+
+This package consumes the shared, driver-free SQL plan layer from
+[`@worlds/sqlite/sql-core`](https://jsr.io/@worlds/sqlite) — the FTS5
+sanitizer/stopwords, `buildChunkFtsValue`, `buildSearchResultId`, the
+`chunks_fts` DDL/triggers, and filter-clause helpers. The LibSQL-specific
+dialect (native `vector32` columns, in-SQL RRF fusion over
+`vector_top_k('idx_chunks_vector', ...)`, and the column-per-position quads
+table) stays local to this repo.
 
 ```bash
 deno task ci

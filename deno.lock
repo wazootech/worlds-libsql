@@ -11,6 +11,7 @@
     "jsr:@std/path@^1.1.5": "1.1.6",
     "jsr:@wazoo/sparql-engine@~0.4.1": "0.4.1",
     "jsr:@worlds/sdk@0.6": "0.6.0",
+    "jsr:@worlds/sqlite@0.6": "0.6.0",
     "npm:@ai-sdk/google@^3.0.80": "3.0.80_zod@4.4.3",
     "npm:@langchain/core@^1.1.48": "1.1.48",
     "npm:@langchain/textsplitters@^1.0.1": "1.0.1_@langchain+core@1.1.48",
@@ -72,6 +73,13 @@
         "jsr:@wazoo/sparql-engine",
         "npm:@rdfjs/types",
         "npm:ai"
+      ]
+    },
+    "@worlds/sqlite@0.6.0": {
+      "integrity": "3b5210b0b9e1c4926f7caa6f28e1b492a680228c61d3da36d4af2ae3508abf95",
+      "dependencies": [
+        "jsr:@wazoo/sparql-engine",
+        "jsr:@worlds/sdk"
       ]
     }
   },
@@ -776,6 +784,7 @@
       "jsr:@std/path@^1.1.5",
       "jsr:@wazoo/sparql-engine@~0.4.1",
       "jsr:@worlds/sdk@0.6",
+      "jsr:@worlds/sqlite@0.6",
       "npm:@ai-sdk/google@^3.0.80",
       "npm:@langchain/core@^1.1.48",
       "npm:@langchain/textsplitters@^1.0.1",

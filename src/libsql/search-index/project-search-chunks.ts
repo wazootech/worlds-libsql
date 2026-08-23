@@ -10,7 +10,7 @@ import type { LibsqlWorldsSdkBaseOptions } from "@/libsql/libsql-sdk-base-option
 import type { LibsqlConnectionDriver } from "@/libsql/libsql-connection-driver.ts";
 import type { LibsqlSearchQueryBuilder } from "./libsql-search-query-builder.ts";
 
-import { buildChunkFtsValue } from "./search-chunk-fts.ts";
+import { buildChunkFtsValue } from "@worlds/sqlite/sql-core";
 import { LibsqlBatchExecutor } from "@/libsql/libsql-batch-executor.ts";
 
 export interface ProjectSearchChunksOptions extends LibsqlWorldsSdkBaseOptions {
