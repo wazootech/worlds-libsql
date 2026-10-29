@@ -23,6 +23,24 @@ CI runs `deno ci` (a frozen-lockfile install) instead. Then validate with
 
 ## CI Deno pin
 
-CI pins Deno to 2.9.5 as a temporary exception: the floating latest segfaults
-the test process at shutdown (exit 139) under this repo's native libsql
-bindings. Remove the pin once upstream fixes the crash.
+CI pins Deno (now `v2.9.8`) as a temporary exception: the floating latest
+segfaults the test process at shutdown (exit 139) under this repo's native
+libsql bindings. Remove the pin once upstream fixes the crash.
+
+## Code health
+
+Family-wide rules live in the
+[wazootech workspace constitution](https://github.com/wazootech/workspace/blob/main/AGENTS.md#code-health-standards);
+this repo's specifics:
+
+- Before pushing, run `deno task ci` (fmt check, lint, type check, tests).
+- Deno type checking is strict by default; do not weaken it.
+- No `no-explicit-any` lint ignores exist today; add none without a reason.
+- Actions in `.github/workflows/` are pinned to full commit SHAs, CI pins Deno
+  to `v2.9.8`, and installs are frozen (`deno ci`).
+- `secret-scan.yml` runs gitleaks on every PR and push to `main`; report
+  findings, never suppress them.
+- `code-health.yml` is warn-only (file length, TODO/FIXME without an issue
+  link); it does not fail the build.
+- `.github/CODEOWNERS` and `renovate.json` are present; Renovate only acts where
+  the org has the Renovate GitHub App installed.
