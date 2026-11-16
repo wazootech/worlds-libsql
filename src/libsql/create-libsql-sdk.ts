@@ -1,9 +1,9 @@
 import type { Client as LibsqlClient } from "@libsql/client";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
-import type * as rdfjs from "@rdfjs/types";
 import { WorldsSdk } from "@worlds/sdk";
 import type { WorldsSdkInterface } from "@worlds/sdk";
 import { WazooSparqlEngine } from "@wazoo/sparql-engine";
+import type { WazooSparqlEngineOptions } from "@wazoo/sparql-engine";
 import {
   LibsqlSearchIndex,
   LibsqlSearchIndexProjector,
@@ -72,8 +72,12 @@ export async function createLibsqlWorldsSdk(
     searchIndexProjector,
   });
 
+  const readStore: Pick<WazooSparqlEngineOptions["store"], "match"> =
+    libsqlRdfjsStore;
   const sparqlEngine = new WazooSparqlEngine({
-    store: libsqlRdfjsStore as unknown as rdfjs.Store,
+    // SPARQL engine 0.5.0+ requires a writable store type even when its transaction
+    // factory handles all writes.
+    store: readStore as WazooSparqlEngineOptions["store"],
     createTransaction: () => quadStore.createTransaction(),
   });
 
