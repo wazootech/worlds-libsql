@@ -15,11 +15,8 @@ import type { LibsqlConnectionDriver } from "../libsql-connection-driver.ts";
 import type { LibsqlRdfjsStore } from "../rdfjs-store/mod.ts";
 import type { LibsqlSearchQueryBuilder } from "../search-index/libsql-search-query-builder.ts";
 import type { LibsqlSearchIndexProjector } from "../search-index/mod.ts";
-import { LibsqlBatchExecutor } from "../libsql-batch-executor.ts";
-import {
-  commitPatchToLibsql,
-  stageDeletionStatementsChunked,
-} from "../commit-patch-to-libsql.ts";
+import { commitPatchToLibsql } from "../commit-patch-to-libsql.ts";
+import { reindexesAfterCommit } from "../search-index/search-index-mode.ts";
 
 /**
  * LibsqlQuadStoreOptions defines the configurations for the LibsqlQuadStore.
@@ -74,53 +71,25 @@ export class LibsqlQuadStore implements QuadStoreInterface {
   }
 
   /**
-   * createTransaction returns a pre-configured Transaction bound to internal commit hooks.
+   * createTransaction returns a Transaction whose commit writes the patch and its
+   * search-index chunk rows as one atomic batch (see commitPatchToLibsql), so a
+   * failed projection or write leaves neither quads nor chunks behind.
+   *
+   * With searchIndexOnImport "deferred", an import writes only quads and then
+   * rebuilds the whole index in a separate pass; if that pass fails, the quads are
+   * kept and the caller can run reindex() again.
    */
   public createTransaction(): Transaction {
     return new Transaction({
       commit: async (patch, context) => {
-        const isImport = context?.importMode !== undefined;
-        const searchIndexOnImport = this.options.searchIndexOnImport ??
-          "incremental";
-        const skipSearchIndexProjection =
-          this.options.searchIndexOnImport === "disabled" ||
-          (isImport && searchIndexOnImport === "deferred");
+        await commitPatchToLibsql(patch, this.options, context);
 
-        const { novelInsertions, novelQuadIds } = await commitPatchToLibsql(
-          patch,
-          this.options,
-          context,
-        );
-
-        if (!skipSearchIndexProjection && this.options.searchIndexProjector) {
-          try {
-            await this.options.searchIndexProjector.projectNovelQuads(
-              novelInsertions,
-              novelQuadIds,
-            );
-          } catch (error) {
-            // Clean up persisted quads if search projection fails
-            const connection = this.options.connection;
-            const batchExecutor = new LibsqlBatchExecutor({
-              connection,
-              writeBatchSize: this.options.maxWriteBatchSize ?? 500,
-            });
-            await stageDeletionStatementsChunked(
-              batchExecutor,
-              novelQuadIds,
-              this.options.searchQueryBuilder,
-              this.options.maxLookupChunkSize ?? 800,
-            );
-            await batchExecutor.flush();
-            throw error;
-          }
-        }
-
+        const projector = this.options.searchIndexProjector;
         if (
-          isImport && searchIndexOnImport === "deferred" &&
-          this.options.searchIndexProjector
+          projector &&
+          reindexesAfterCommit(this.options.searchIndexOnImport, context)
         ) {
-          await this.options.searchIndexProjector.reindexAll();
+          await projector.reindexAll();
         }
       },
     });
