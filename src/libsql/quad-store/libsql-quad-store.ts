@@ -15,11 +15,8 @@ import type { LibsqlConnectionDriver } from "../libsql-connection-driver.ts";
 import type { LibsqlRdfjsStore } from "../rdfjs-store/mod.ts";
 import type { LibsqlSearchQueryBuilder } from "../search-index/libsql-search-query-builder.ts";
 import type { LibsqlSearchIndexProjector } from "../search-index/mod.ts";
-import { LibsqlBatchExecutor } from "../libsql-batch-executor.ts";
-import {
-  commitPatchToLibsql,
-  stageDeletionStatementsChunked,
-} from "../commit-patch-to-libsql.ts";
+import { commitPatchToLibsql } from "../commit-patch-to-libsql.ts";
+import { reindexesAfterCommit } from "../search-index/search-index-mode.ts";
 
 /**
  * LibsqlQuadStoreOptions defines the configurations for the LibsqlQuadStore.
@@ -37,7 +34,14 @@ export interface LibsqlQuadStoreOptions extends LibsqlWorldsSdkBaseOptions {
   /** searchIndexProjector manages vector embedding and text chunk synchronisation. */
   searchIndexProjector?: LibsqlSearchIndexProjector;
 
-  /** maxWriteBatchSize caps how many statements are sent per LibSQL write batch. Defaults to 500. */
+  /**
+   * maxAtomicStatements is the largest commit (statements, including search
+   * chunk rows) written as one atomic batch. Defaults to 10,000, the largest
+   * batch the previous implementation sent. Larger commits are not atomic.
+   */
+  maxAtomicStatements?: number;
+
+  /** maxWriteBatchSize is how many statements go in each batch once a commit exceeds maxAtomicStatements. Defaults to 500. */
   maxWriteBatchSize?: number;
 }
 
@@ -74,53 +78,27 @@ export class LibsqlQuadStore implements QuadStoreInterface {
   }
 
   /**
-   * createTransaction returns a pre-configured Transaction bound to internal commit hooks.
+   * createTransaction returns a Transaction whose commit writes the patch and its
+   * search-index chunk rows as one atomic batch (see commitPatchToLibsql), so a
+   * failed projection or write leaves neither quads nor chunks behind. Commits
+   * above maxAtomicStatements are written in chunks instead: not atomic, with
+   * the novel quads deleted again if a later chunk fails.
+   *
+   * With searchIndexOnImport "deferred", an import writes only quads and then
+   * rebuilds the whole index in a separate pass; if that pass fails, the quads are
+   * kept and the caller can run reindex() again.
    */
   public createTransaction(): Transaction {
     return new Transaction({
       commit: async (patch, context) => {
-        const isImport = context?.importMode !== undefined;
-        const searchIndexOnImport = this.options.searchIndexOnImport ??
-          "incremental";
-        const skipSearchIndexProjection =
-          this.options.searchIndexOnImport === "disabled" ||
-          (isImport && searchIndexOnImport === "deferred");
+        await commitPatchToLibsql(patch, this.options, context);
 
-        const { novelInsertions, novelQuadIds } = await commitPatchToLibsql(
-          patch,
-          this.options,
-          context,
-        );
-
-        if (!skipSearchIndexProjection && this.options.searchIndexProjector) {
-          try {
-            await this.options.searchIndexProjector.projectNovelQuads(
-              novelInsertions,
-              novelQuadIds,
-            );
-          } catch (error) {
-            // Clean up persisted quads if search projection fails
-            const connection = this.options.connection;
-            const batchExecutor = new LibsqlBatchExecutor({
-              connection,
-              writeBatchSize: this.options.maxWriteBatchSize ?? 500,
-            });
-            await stageDeletionStatementsChunked(
-              batchExecutor,
-              novelQuadIds,
-              this.options.searchQueryBuilder,
-              this.options.maxLookupChunkSize ?? 800,
-            );
-            await batchExecutor.flush();
-            throw error;
-          }
-        }
-
+        const projector = this.options.searchIndexProjector;
         if (
-          isImport && searchIndexOnImport === "deferred" &&
-          this.options.searchIndexProjector
+          projector &&
+          reindexesAfterCommit(this.options.searchIndexOnImport, context)
         ) {
-          await this.options.searchIndexProjector.reindexAll();
+          await projector.reindexAll();
         }
       },
     });

@@ -48,7 +48,7 @@ Deno.test(
 );
 
 Deno.test(
-  "LibsqlQuadStore commit - quads roll back when searchProjector throws",
+  "LibsqlQuadStore commit - nothing is written when search projection throws",
   async () => {
     const client = createClient({ url: ":memory:" });
     const connection = createTestLibsqlConnectionDriver(client);
@@ -65,7 +65,7 @@ Deno.test(
           });
         }
 
-        public override projectNovelQuads(): Promise<void> {
+        public override buildNovelQuadStatements(): Promise<never> {
           throw new Error("Simulated search projection failure");
         }
       })();

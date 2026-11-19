@@ -28,7 +28,7 @@ export interface LibsqlBatchExecutorOptions {
  * parameterized positional-args statements; bare SQL strings are wrapped and
  * named-args records are unwrapped to their positional values.
  */
-function normalizeToSqlStatement(statement: InStatement): SqlStatement {
+export function normalizeToSqlStatement(statement: InStatement): SqlStatement {
   if (typeof statement === "string") {
     return { sql: statement };
   }
