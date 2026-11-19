@@ -34,7 +34,14 @@ export interface LibsqlQuadStoreOptions extends LibsqlWorldsSdkBaseOptions {
   /** searchIndexProjector manages vector embedding and text chunk synchronisation. */
   searchIndexProjector?: LibsqlSearchIndexProjector;
 
-  /** maxWriteBatchSize caps how many statements are sent per LibSQL write batch. Defaults to 500. */
+  /**
+   * maxAtomicStatements is the largest commit (statements, including search
+   * chunk rows) written as one atomic batch. Defaults to 10,000, the largest
+   * batch the previous implementation sent. Larger commits are not atomic.
+   */
+  maxAtomicStatements?: number;
+
+  /** maxWriteBatchSize is how many statements go in each batch once a commit exceeds maxAtomicStatements. Defaults to 500. */
   maxWriteBatchSize?: number;
 }
 
@@ -73,7 +80,9 @@ export class LibsqlQuadStore implements QuadStoreInterface {
   /**
    * createTransaction returns a Transaction whose commit writes the patch and its
    * search-index chunk rows as one atomic batch (see commitPatchToLibsql), so a
-   * failed projection or write leaves neither quads nor chunks behind.
+   * failed projection or write leaves neither quads nor chunks behind. Commits
+   * above maxAtomicStatements are written in chunks instead: not atomic, with
+   * the novel quads deleted again if a later chunk fails.
    *
    * With searchIndexOnImport "deferred", an import writes only quads and then
    * rebuilds the whole index in a separate pass; if that pass fails, the quads are

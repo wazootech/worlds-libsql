@@ -10,7 +10,7 @@ import {
   buildRelationalStatements,
   queryCachePresence,
 } from "./commit-patch-statements.ts";
-import { normalizeToSqlStatement } from "./libsql-batch-executor.ts";
+import { writeCommitStatements } from "./commit-patch-write.ts";
 import type { LibsqlConnectionDriver } from "./libsql-connection-driver.ts";
 import type { LibsqlSearchQueryBuilder } from "./search-index/libsql-search-query-builder.ts";
 import type { LibsqlSearchIndexProjector } from "./search-index/libsql-search-index-projector.ts";
@@ -20,7 +20,15 @@ export interface CommitPatchToLibsqlOptions extends LibsqlWorldsSdkBaseOptions {
   /** connection is the LibsqlConnectionDriver wrapping the LibSQL transport. */
   connection: LibsqlConnectionDriver;
 
-  /** maxWriteBatchSize is accepted for compatibility; a commit is always one atomic batch. */
+  /**
+   * maxAtomicStatements is the largest commit written as one atomic batch
+   * (default 10,000, the largest batch the previous implementation sent). Above
+   * it the commit is written in non-atomic batches of maxWriteBatchSize; see
+   * writeCommitStatements for the cleanup contract.
+   */
+  maxAtomicStatements?: number;
+
+  /** maxWriteBatchSize is the statements per batch once a commit exceeds maxAtomicStatements (default 500). */
   maxWriteBatchSize?: number;
 
   /** searchQueryBuilder supplies dimension-aware SQL used for deletions, inserts, and chunk replication. */
@@ -31,11 +39,12 @@ export interface CommitPatchToLibsqlOptions extends LibsqlWorldsSdkBaseOptions {
 }
 
 /**
- * commitPatchToLibsql commits a patch and its search-index chunk rows as one
- * atomic write: the optional replace-import wipe, deletions, quad inserts, and
- * FTS/vector chunk inserts all go in a single LibSQL batch, which commits or
- * rolls back as a whole. Reads (which quads are new) and the async chunking and
- * embedding happen first, so a failure there writes nothing.
+ * commitPatchToLibsql commits a patch and its search-index chunk rows. The
+ * optional replace-import wipe, deletions, quad inserts, and FTS/vector chunk
+ * inserts go in a single atomic LibSQL batch when they fit within
+ * maxAtomicStatements; larger commits are chunked and not atomic (see
+ * writeCommitStatements). Reads (which quads are new) and the async chunking
+ * and embedding happen first, so a failure there writes nothing.
  */
 export async function commitPatchToLibsql(
   patch: Patch,
@@ -117,12 +126,7 @@ export async function commitPatchToLibsql(
     }
   }
 
-  // 4. One atomic write
+  // 4. Write: one atomic batch, or chunked batches with cleanup for very large commits
   if (statements.length === 0) return;
-  try {
-    await connection.batch(statements.map(normalizeToSqlStatement));
-  } catch (cause) {
-    const detail = cause instanceof Error ? cause.message : String(cause);
-    throw new Error(`failed to execute sync batch: ${detail}`, { cause });
-  }
+  await writeCommitStatements(statements, novelQuadIds, options);
 }
