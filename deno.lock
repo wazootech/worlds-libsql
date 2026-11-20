@@ -9,19 +9,21 @@
     "jsr:@std/internal@^1.0.12": "1.0.14",
     "jsr:@std/internal@^1.0.14": "1.0.14",
     "jsr:@std/path@^1.1.5": "1.1.6",
-    "jsr:@wazoo/sparql-engine@~0.4.1": "0.4.1",
+    "jsr:@wazoo/sparql-engine@0.5": "0.5.0",
+    "jsr:@wazoo/sparql-engine@~0.4.1": "0.4.4",
+    "jsr:@worlds/client@0.1": "0.1.0",
     "jsr:@worlds/sdk@0.6": "0.6.1",
-    "jsr:@worlds/sdk@0.7": "0.7.0",
+    "jsr:@worlds/sdk@~0.9.1": "0.9.1",
     "jsr:@worlds/sqlite@0.6": "0.6.0",
     "npm:@ai-sdk/google@^3.0.80": "3.0.111_zod@4.4.3",
     "npm:@langchain/core@^1.1.48": "1.2.9",
-    "npm:@langchain/textsplitters@^1.0.1": "1.0.1_@langchain+core@1.2.9",
+    "npm:@langchain/textsplitters@^1.0.1": "1.0.2_@langchain+core@1.2.9",
     "npm:@libsql/client@~0.17.4": "0.17.4",
     "npm:@rdfjs/types@^2.0.1": "2.0.1",
     "npm:@tensorflow/tfjs-backend-wasm@^4.22.0": "4.22.0_@tensorflow+tfjs-core@4.22.0",
     "npm:@tensorflow/tfjs@^4.22.0": "4.22.0_seedrandom@3.0.5",
     "npm:@types/n3@1.26.1": "1.26.1",
-    "npm:ai@^6.0.195": "6.0.271_zod@4.4.3",
+    "npm:ai@^6.0.195": "6.0.333_zod@4.4.3",
     "npm:n3@^2.0.3": "2.6.4",
     "npm:rdf-canonize@5": "5.0.0",
     "npm:sqlite-vec@~0.1.9": "0.1.9",
@@ -62,36 +64,48 @@
         "jsr:@std/internal@^1.0.14"
       ]
     },
-    "@wazoo/sparql-engine@0.4.1": {
-      "integrity": "6881bda5e45aaf8bac2cd87f8b43db5db51d307fccbffc1cd4edaa46454f9bd7",
+    "@wazoo/sparql-engine@0.4.4": {
+      "integrity": "a3c88d00fddf13ca078321463e554d52c8d8e8d083adfcd2df08e7b9bd289c53",
       "dependencies": [
         "npm:@rdfjs/types"
       ]
+    },
+    "@wazoo/sparql-engine@0.5.0": {
+      "integrity": "2ffa7d4a542e0a3ddb4b75fb6fcf88d295d81b9ba99eedfd0904dbd2497b0afc",
+      "dependencies": [
+        "npm:@rdfjs/types"
+      ]
+    },
+    "@worlds/client@0.1.0": {
+      "integrity": "0f55a9cdeb6316417233129e9fa000c92d79739b7317a8e1a33704cf2bb2b458"
     },
     "@worlds/sdk@0.6.1": {
       "integrity": "12a1ba2d69322b13e1b271c00e9c7873cd4d5aca8b08b681f40fa004808067d6",
       "dependencies": [
         "jsr:@std/encoding",
-        "jsr:@wazoo/sparql-engine",
+        "jsr:@wazoo/sparql-engine@~0.4.1",
         "npm:@rdfjs/types"
       ]
     },
-    "@worlds/sdk@0.7.0": {
-      "integrity": "36459ea81bf12322d05e4a978f9b778cdd02829c6d93a2fc804d65e10dde7e29",
+    "@worlds/sdk@0.9.1": {
+      "integrity": "533a1787a2aaebf6746ae12bbb49840c67f5db86f1c80b32f5c3447bb47470ba",
       "dependencies": [
         "jsr:@std/encoding",
         "jsr:@std/path",
-        "jsr:@wazoo/sparql-engine",
+        "jsr:@wazoo/sparql-engine@0.5",
+        "jsr:@worlds/client",
         "npm:@rdfjs/types",
         "npm:@tensorflow/tfjs",
         "npm:@tensorflow/tfjs-backend-wasm",
-        "npm:ai"
+        "npm:@types/n3",
+        "npm:ai",
+        "npm:n3"
       ]
     },
     "@worlds/sqlite@0.6.0": {
       "integrity": "3b5210b0b9e1c4926f7caa6f28e1b492a680228c61d3da36d4af2ae3508abf95",
       "dependencies": [
-        "jsr:@wazoo/sparql-engine",
+        "jsr:@wazoo/sparql-engine@~0.4.1",
         "jsr:@worlds/sdk@0.6",
         "npm:@langchain/textsplitters",
         "npm:@rdfjs/types",
@@ -100,11 +114,11 @@
     }
   },
   "npm": {
-    "@ai-sdk/gateway@3.0.184_zod@4.4.3": {
-      "integrity": "sha512-7SuKsT4RS9lm6ShODj0vzS+S1ZKw5GukA7x3gg3t/gVwk0bu7l3XXC3sdEdBsBlTP97KklMYdZHmjcJoOVt67Q==",
+    "@ai-sdk/gateway@3.0.238_zod@4.4.3": {
+      "integrity": "sha512-Kqdof17ZXdaKaHsoY/Z4HSbji86DVbIaG0kSgQwrKlEQIfp9Aip2S6xbba063EtLKWx0m/psvzCBYP73YUyWKA==",
       "dependencies": [
-        "@ai-sdk/provider",
-        "@ai-sdk/provider-utils@4.0.49_zod@4.4.3",
+        "@ai-sdk/provider@3.0.19",
+        "@ai-sdk/provider-utils@4.0.67_zod@4.4.3",
         "@vercel/oidc",
         "zod"
       ]
@@ -112,7 +126,7 @@
     "@ai-sdk/google@3.0.111_zod@4.4.3": {
       "integrity": "sha512-XWWju5pVD7Tf30c2VziMfPph3XpN/jDTE5aJhqAPJ2zRmHSSveNYFoosFLOWWFIgQnwGe9AM3bAXR8kHyC2MdA==",
       "dependencies": [
-        "@ai-sdk/provider",
+        "@ai-sdk/provider@3.0.15",
         "@ai-sdk/provider-utils@4.0.46_zod@4.4.3",
         "zod"
       ]
@@ -120,17 +134,17 @@
     "@ai-sdk/provider-utils@4.0.46_zod@4.4.3": {
       "integrity": "sha512-tEtld97plCFiYevsJuOkGkeuhQndeMWFBVrJS4AjnbD5AqrNSXRCe0p+BZ3Cju/sxDeeZ9ym3q9YUV8fASA7aQ==",
       "dependencies": [
-        "@ai-sdk/provider",
+        "@ai-sdk/provider@3.0.15",
         "@standard-schema/spec",
         "eventsource-parser",
         "undici",
         "zod"
       ]
     },
-    "@ai-sdk/provider-utils@4.0.49_zod@4.4.3": {
-      "integrity": "sha512-8e7pd+82bobqrFOaD5dG/PiEuvLYr5olaE3I56ch0jipR0H7sGD6ohwTUynv6k8O8QidWiyIbEsZCtr/2dyXIA==",
+    "@ai-sdk/provider-utils@4.0.67_zod@4.4.3": {
+      "integrity": "sha512-0WV1upni0SUAKdsMTOADbPFU0CBji/XjNPcG0J+LWb5DZFtTWRrflj/oY7qi3zbJswvE1aWv/d+h/A8BEWnAWA==",
       "dependencies": [
-        "@ai-sdk/provider",
+        "@ai-sdk/provider@3.0.19",
         "@standard-schema/spec",
         "eventsource-parser",
         "undici",
@@ -139,6 +153,12 @@
     },
     "@ai-sdk/provider@3.0.15": {
       "integrity": "sha512-XeZW1CcDF2GMbH4wejW6xBRI2QCOgnkVYUnxoeDadB1mf85riL2bMUeDoh+6gJ/r4mjNfzUPW8OjLjvwTP0u1Q==",
+      "dependencies": [
+        "json-schema"
+      ]
+    },
+    "@ai-sdk/provider@3.0.19": {
+      "integrity": "sha512-5lWq7zSfRaU5ylDESn3sDQjgGl2AI1vjZKO/6JY3aFW70ct4zcP1kN+ZUYOuTXr28fVsYbyu2YFhddLdIgQFZQ==",
       "dependencies": [
         "json-schema"
       ]
@@ -158,8 +178,8 @@
         "zod"
       ]
     },
-    "@langchain/textsplitters@1.0.1_@langchain+core@1.2.9": {
-      "integrity": "sha512-rheJlB01iVtrOUzttscutRgLybPH9qR79EyzBEbf1u97ljWyuxQfCwIWK+SjoQTM9O8M7GGLLRBSYE26Jmcoww==",
+    "@langchain/textsplitters@1.0.2_@langchain+core@1.2.9": {
+      "integrity": "sha512-UNCmlyFIRlRfVxqpmcRsp1jQrscnIVVqRKrrjFF2wHHq+VGTv+VDkGZLyEVUopJfHIdaiXfOKlSrROQui7VLFA==",
       "dependencies": [
         "@langchain/core",
         "js-tiktoken"
@@ -243,8 +263,8 @@
     "@neon-rs/load@0.0.4": {
       "integrity": "sha512-kTPhdZyTQxB+2wpiRcFWrDcejc4JI6tkPuS7UZCG4l6Zvc5kU/gGQ/ozvHTh1XR5tS+UlfAfGuPajjzQjCiHCw=="
     },
-    "@opentelemetry/api@1.9.1": {
-      "integrity": "sha512-gLyJlPHPZYdAk1JENA9LeHejZe1Ti77/pTeFm/nMXmQH/HFZlcS/O2XJB+L8fkbrNSqhdtlvjBVjxwUYanNH5Q=="
+    "@opentelemetry/api@1.10.0": {
+      "integrity": "sha512-lMkyes8iHrG+mk6WH7X70MdCLI2RS0FwNBY1PyQ8UemaijE2m5mv5A0Niy3HtbYTFrgkUEQjFMXmSAk2hQDuPQ=="
     },
     "@rdfjs/types@2.0.1": {
       "integrity": "sha512-uyAzpugX7KekAXAHq26m3JlUIZJOC0uSBhpnefGV5i15bevDyyejoB7I+9MKeUrzXD8OOUI3+4FeV1wwQr5ihA==",
@@ -385,12 +405,12 @@
         "event-target-shim"
       ]
     },
-    "ai@6.0.271_zod@4.4.3": {
-      "integrity": "sha512-8eS5Lhf5JT/ncw8+puVOa2cH+H6uKnHoORLqm6Ei3elwcoGIROrIh0VWhrKgbYLGpuz2pOTXW54nAJzPssQzAw==",
+    "ai@6.0.333_zod@4.4.3": {
+      "integrity": "sha512-mY+EpkQtTRHHJZ6CaKKJETsYmAEITKKPKmVY+FhJGUjDaLLl7CaF2Qgv8ShGN4eZgSSHbi34yfWx71QvQgKyOQ==",
       "dependencies": [
         "@ai-sdk/gateway",
-        "@ai-sdk/provider",
-        "@ai-sdk/provider-utils@4.0.49_zod@4.4.3",
+        "@ai-sdk/provider@3.0.19",
+        "@ai-sdk/provider-utils@4.0.67_zod@4.4.3",
         "@opentelemetry/api",
         "zod"
       ]
@@ -829,7 +849,7 @@
       "jsr:@std/fs@^1.0.24",
       "jsr:@std/path@^1.1.5",
       "jsr:@wazoo/sparql-engine@~0.4.1",
-      "jsr:@worlds/sdk@0.7",
+      "jsr:@worlds/sdk@~0.9.1",
       "jsr:@worlds/sqlite@0.6",
       "npm:@ai-sdk/google@^3.0.80",
       "npm:@langchain/core@^1.1.48",

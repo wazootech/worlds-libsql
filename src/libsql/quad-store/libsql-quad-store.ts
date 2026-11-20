@@ -10,13 +10,13 @@ import {
   importViaTransaction,
   Transaction,
 } from "@worlds/sdk/quad-store";
+import { planSearchIndexing } from "@worlds/sdk/search-index";
 import type { LibsqlWorldsSdkBaseOptions } from "../libsql-sdk-base-options.ts";
 import type { LibsqlConnectionDriver } from "../libsql-connection-driver.ts";
 import type { LibsqlRdfjsStore } from "../rdfjs-store/mod.ts";
 import type { LibsqlSearchQueryBuilder } from "../search-index/libsql-search-query-builder.ts";
 import type { LibsqlSearchIndexProjector } from "../search-index/mod.ts";
 import { commitPatchToLibsql } from "../commit-patch-to-libsql.ts";
-import { reindexesAfterCommit } from "../search-index/search-index-mode.ts";
 
 /**
  * LibsqlQuadStoreOptions defines the configurations for the LibsqlQuadStore.
@@ -96,7 +96,8 @@ export class LibsqlQuadStore implements QuadStoreInterface {
         const projector = this.options.searchIndexProjector;
         if (
           projector &&
-          reindexesAfterCommit(this.options.searchIndexOnImport, context)
+          planSearchIndexing(this.options.searchIndexOnImport, context)
+            .reindexAfterCommit
         ) {
           await projector.reindexAll();
         }
