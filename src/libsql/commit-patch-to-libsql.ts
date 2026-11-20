@@ -1,8 +1,11 @@
 import type { InStatement } from "@libsql/client";
-import type * as rdfjs from "@rdfjs/types";
 import type { Patch, TransactionContext } from "@worlds/sdk/quad-store";
-import { isReplaceImportCommit } from "@worlds/sdk/quad-store";
-import { filterQuads, hashQuads } from "@worlds/sdk/quad-store";
+import {
+  isReplaceImportCommit,
+  preparePatch,
+  selectNovelQuads,
+} from "@worlds/sdk/quad-store";
+import { planSearchIndexing } from "@worlds/sdk/search-index";
 import type { LibsqlWorldsSdkBaseOptions } from "@/libsql/libsql-sdk-base-options.ts";
 import { buildWipeAllGraphDataStatements } from "./quad-store/libsql-quad-query-builder.ts";
 import {
@@ -14,7 +17,6 @@ import { writeCommitStatements } from "./commit-patch-write.ts";
 import type { LibsqlConnectionDriver } from "./libsql-connection-driver.ts";
 import type { LibsqlSearchQueryBuilder } from "./search-index/libsql-search-query-builder.ts";
 import type { LibsqlSearchIndexProjector } from "./search-index/libsql-search-index-projector.ts";
-import { projectsDuringCommit } from "./search-index/search-index-mode.ts";
 
 export interface CommitPatchToLibsqlOptions extends LibsqlWorldsSdkBaseOptions {
   /** connection is the LibsqlConnectionDriver wrapping the LibSQL transport. */
@@ -53,7 +55,6 @@ export async function commitPatchToLibsql(
 ): Promise<void> {
   const { connection, maxLookupChunkSize, include, exclude } = options;
   const lookupChunkSize = maxLookupChunkSize ?? 800; // default lookup chunk size
-  const matcher = filterQuads({ include, exclude });
   const statements: InStatement[] = [];
   const replacing = isReplaceImportCommit(context);
 
@@ -61,45 +62,26 @@ export async function commitPatchToLibsql(
     statements.push(...buildWipeAllGraphDataStatements());
   }
 
-  const targetedDeletions = patch.deletions?.filter(matcher) ?? [];
-  const targetedInsertions = patch.insertions?.filter(matcher) ?? [];
-
   // 1. Sweeping deletions
-  const deletionQuadIds = new Set<string>();
-  if (targetedDeletions.length) {
-    const computedDeletionQuadIds = await hashQuads(targetedDeletions);
-    for (const quadId of computedDeletionQuadIds) {
-      deletionQuadIds.add(quadId);
-    }
+  const prepared = preparePatch(patch, { include, exclude });
+  if (prepared.deletionIds.length) {
     statements.push(
       ...buildDeletionStatementsChunked(
-        computedDeletionQuadIds,
+        prepared.deletionIds,
         options.searchQueryBuilder,
         lookupChunkSize,
       ),
     );
   }
 
-  // 2. Content-addressed novel insertions
-  const novelInsertions: rdfjs.Quad[] = [];
-  const novelQuadIds: string[] = [];
-
-  if (targetedInsertions.length) {
-    const proposedQuadIds = await hashQuads(targetedInsertions);
-    // A replace import wipes everything in this same batch, so nothing existing counts as cached.
-    const existingIds = replacing
-      ? new Set<string>()
-      : await queryCachePresence(connection, proposedQuadIds, lookupChunkSize);
-
-    // Deduplication filter: only facts that are not yet persistent (or are deleted and re-added here)
-    for (let i = 0; i < targetedInsertions.length; i++) {
-      const id = proposedQuadIds[i];
-      if (!existingIds.has(id) || deletionQuadIds.has(id)) {
-        novelInsertions.push(targetedInsertions[i]);
-        novelQuadIds.push(id);
-      }
-    }
-  }
+  // 2. Content-addressed novel insertions: only facts that are not yet
+  // persistent (or are deleted and re-added here). A replace import wipes
+  // everything in this same batch, so nothing existing counts as cached.
+  const { novelInsertions, novelQuadIds } = await selectNovelQuads(prepared, {
+    replacing,
+    lookupExisting: (ids) =>
+      queryCachePresence(connection, ids, lookupChunkSize),
+  });
 
   if (novelQuadIds.length > 0) {
     // Relational clean slate for new items, then fact decompositions.
@@ -115,7 +97,9 @@ export async function commitPatchToLibsql(
     // 3. Search chunks: chunk and embed now (may call an external service), write below.
     const projector = options.searchIndexProjector;
     if (
-      projector && projectsDuringCommit(options.searchIndexOnImport, context)
+      projector &&
+      planSearchIndexing(options.searchIndexOnImport, context)
+        .projectDuringCommit
     ) {
       statements.push(
         ...await projector.buildNovelQuadStatements(
