@@ -1,12 +1,6 @@
-import type { InStatement } from "@libsql/client";
-import type * as rdfjs from "@rdfjs/types";
 import type { SqlProjectionOptions } from "@worlds/sqlite/sql-core";
-import {
-  buildSearchChunkStatements,
-  libsqlProjectionOptions,
-} from "./build-search-chunk-statements.ts";
+import { libsqlProjectionOptions } from "./build-search-chunk-statements.ts";
 import type { ProjectSearchChunksOptions } from "./project-search-chunks.ts";
-import { projectSearchChunks } from "./project-search-chunks.ts";
 import { rebuildLibsqlSearchIndexFromQuads } from "./rebuild-libsql-search-index-from-quads.ts";
 
 export interface LibsqlSearchIndexProjectorOptions
@@ -27,42 +21,6 @@ export class LibsqlSearchIndexProjector {
   /** projectionOptions is the chunking and embedding configuration the shared SQL commit core runs with. */
   public get projectionOptions(): SqlProjectionOptions {
     return libsqlProjectionOptions(this.options);
-  }
-
-  /**
-   * buildNovelQuadStatements chunks and embeds new facts and returns the FTS/vector
-   * chunk INSERT statements without executing them. LibsqlQuadStore writes them in
-   * the same atomic batch as the quad rows, so a failure here (for example in the
-   * embedding service) happens before anything is written.
-   */
-  public async buildNovelQuadStatements(
-    novelInsertions: rdfjs.Quad[],
-    novelQuadIds: string[],
-  ): Promise<InStatement[]> {
-    if (novelQuadIds.length === 0) return [];
-    return await buildSearchChunkStatements(
-      novelInsertions,
-      novelQuadIds,
-      this.options,
-    );
-  }
-
-  /**
-   * projectNovelQuads projects new facts and writes their chunk rows in its own
-   * batch. It is not atomic with the quad write; LibsqlQuadStore does not use it
-   * and calls buildNovelQuadStatements instead.
-   */
-  public async projectNovelQuads(
-    novelInsertions: rdfjs.Quad[],
-    novelQuadIds: string[],
-  ): Promise<void> {
-    if (novelQuadIds.length > 0) {
-      await projectSearchChunks(
-        novelInsertions,
-        novelQuadIds,
-        this.options,
-      );
-    }
   }
 
   /**
