@@ -104,7 +104,7 @@ Deno.test("fallback: if cleanup also fails, both errors surface and the partial 
   assert(error instanceof AggregateError);
   assertEquals(error.errors.map((e: Error) => e.message), [
     "failed to execute sync batch: TURSO_FAIL_2",
-    "TURSO_FAIL_3",
+    "failed to execute sync batch: TURSO_FAIL_3",
   ]);
   assertEquals(
     await count(client, "quads") > 1,

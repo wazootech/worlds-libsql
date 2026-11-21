@@ -3,6 +3,7 @@ import type { Client } from "@libsql/client";
 import { DataFactory } from "n3";
 import { LibsqlQuadStore } from "@/libsql/quad-store/mod.ts";
 import { LibsqlRdfjsStore } from "@/libsql/rdfjs-store/mod.ts";
+import { LibsqlSearchQueryBuilder } from "@/libsql/search-index/libsql-search-query-builder.ts";
 import type { LibsqlConnectionDriver } from "@/libsql/libsql-connection-driver.ts";
 import { LibsqlSearchIndexProjector } from "@/libsql/search-index/libsql-search-index-projector.ts";
 import type { EmbeddingService } from "@worlds/sdk/search-index/embedding-service";
@@ -16,12 +17,10 @@ import {
 
 const { quad, namedNode, literal } = DataFactory;
 
-/** BrokenChunkProjector emits a chunk statement the database rejects. */
-export class BrokenChunkProjector extends LibsqlSearchIndexProjector {
-  public override buildNovelQuadStatements(): Promise<never[]> {
-    return Promise.resolve(
-      ["INSERT INTO no_such_table VALUES (1)"] as never[],
-    );
+/** BrokenChunkQueryBuilder emits a chunk INSERT the database rejects. */
+export class BrokenChunkQueryBuilder extends LibsqlSearchQueryBuilder {
+  public override buildInsertChunk(): { sql: string; args: [] } {
+    return { sql: "INSERT INTO no_such_table VALUES (1)", args: [] };
   }
 }
 
@@ -36,6 +35,8 @@ export interface OpenStoreOptions {
   embeddingService?: EmbeddingService;
   mode?: "incremental" | "deferred" | "disabled";
   projector?: typeof LibsqlSearchIndexProjector;
+  /** searchQueryBuilder overrides the builder the commit uses for chunk INSERTs. */
+  searchQueryBuilder?: LibsqlSearchQueryBuilder;
   maxAtomicStatements?: number;
   maxWriteBatchSize?: number;
 }
@@ -48,7 +49,8 @@ export function openStore(
   return new LibsqlQuadStore({
     connection,
     store: new LibsqlRdfjsStore({ connection, matchPageSize: 100 }),
-    searchQueryBuilder: testLibsqlSearchQueryBuilder,
+    searchQueryBuilder: options.searchQueryBuilder ??
+      testLibsqlSearchQueryBuilder,
     searchIndexProjector: new Projector({
       connection,
       textSplitter: sharedTextSplitter,

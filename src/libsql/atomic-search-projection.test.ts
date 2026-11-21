@@ -1,7 +1,7 @@
 import { assertEquals, assertRejects } from "@std/assert";
 import type { EmbeddingService } from "@worlds/sdk/search-index/embedding-service";
 import {
-  BrokenChunkProjector,
+  BrokenChunkQueryBuilder,
   count,
   fact,
   openDatabase,
@@ -46,8 +46,9 @@ Deno.test("embedding failure writes nothing and keeps existing data", async () =
 
 Deno.test("a failing chunk statement rolls the quad rows back too", async () => {
   const { client, connection } = await openDatabase();
-  const tx = openStore(connection, { projector: BrokenChunkProjector })
-    .createTransaction();
+  const tx = openStore(connection, {
+    searchQueryBuilder: new BrokenChunkQueryBuilder(32),
+  }).createTransaction();
   tx.addQuads([fact("1", "alpha text")]);
   await assertRejects(() => tx.commit(), Error, "failed to execute sync batch");
 
@@ -61,7 +62,9 @@ Deno.test("a failed replace import keeps the existing graph", async () => {
   seed.addQuads([fact("old", "old graph data")]);
   await seed.commit();
 
-  const broken = openStore(connection, { projector: BrokenChunkProjector });
+  const broken = openStore(connection, {
+    searchQueryBuilder: new BrokenChunkQueryBuilder(32),
+  });
   await assertRejects(() =>
     broken.import({
       mode: "replace",
@@ -112,4 +115,19 @@ Deno.test("disabled mode writes quads without chunks", async () => {
 
   assertEquals(await count(client, "quads"), 1);
   assertEquals(await count(client, "chunks"), 0);
+});
+
+Deno.test("deferred rebuild pages through every stored quad", async () => {
+  const { client, connection } = await openDatabase();
+  const quads = Array.from(
+    { length: 1250 },
+    (_, index) => fact(String(index), `paged text ${index}`),
+  );
+
+  await openStore(connection, { mode: "deferred" }).import({
+    source: { kind: "quads", quads },
+  });
+
+  assertEquals(await count(client, "quads"), 1250);
+  assertEquals(await count(client, "chunks"), 1250, "all pages are indexed");
 });
