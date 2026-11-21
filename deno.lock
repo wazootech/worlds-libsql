@@ -12,9 +12,8 @@
     "jsr:@wazoo/sparql-engine@0.5": "0.5.0",
     "jsr:@wazoo/sparql-engine@~0.4.1": "0.4.4",
     "jsr:@worlds/client@0.1": "0.1.0",
-    "jsr:@worlds/sdk@0.6": "0.6.1",
     "jsr:@worlds/sdk@~0.9.1": "0.9.1",
-    "jsr:@worlds/sqlite@0.6": "0.6.0",
+    "jsr:@worlds/sqlite@~0.7.4": "0.7.4",
     "npm:@ai-sdk/google@^3.0.80": "3.0.111_zod@4.4.3",
     "npm:@langchain/core@^1.1.48": "1.2.9",
     "npm:@langchain/textsplitters@^1.0.1": "1.0.2_@langchain+core@1.2.9",
@@ -24,7 +23,7 @@
     "npm:@tensorflow/tfjs@^4.22.0": "4.22.0_seedrandom@3.0.5",
     "npm:@types/n3@1.26.1": "1.26.1",
     "npm:ai@^6.0.195": "6.0.333_zod@4.4.3",
-    "npm:n3@^2.0.3": "2.6.4",
+    "npm:n3@^2.0.3": "2.13.12",
     "npm:rdf-canonize@5": "5.0.0",
     "npm:sqlite-vec@~0.1.9": "0.1.9",
     "npm:zod@^4.4.3": "4.4.3"
@@ -79,14 +78,6 @@
     "@worlds/client@0.1.0": {
       "integrity": "0f55a9cdeb6316417233129e9fa000c92d79739b7317a8e1a33704cf2bb2b458"
     },
-    "@worlds/sdk@0.6.1": {
-      "integrity": "12a1ba2d69322b13e1b271c00e9c7873cd4d5aca8b08b681f40fa004808067d6",
-      "dependencies": [
-        "jsr:@std/encoding",
-        "jsr:@wazoo/sparql-engine@~0.4.1",
-        "npm:@rdfjs/types"
-      ]
-    },
     "@worlds/sdk@0.9.1": {
       "integrity": "533a1787a2aaebf6746ae12bbb49840c67f5db86f1c80b32f5c3447bb47470ba",
       "dependencies": [
@@ -102,11 +93,11 @@
         "npm:n3"
       ]
     },
-    "@worlds/sqlite@0.6.0": {
-      "integrity": "3b5210b0b9e1c4926f7caa6f28e1b492a680228c61d3da36d4af2ae3508abf95",
+    "@worlds/sqlite@0.7.4": {
+      "integrity": "95ccb544ec21468ac552c2a391e0993909596906a2cbb1afd486a13a40587cfe",
       "dependencies": [
-        "jsr:@wazoo/sparql-engine@~0.4.1",
-        "jsr:@worlds/sdk@0.6",
+        "jsr:@wazoo/sparql-engine@0.5",
+        "jsr:@worlds/sdk",
         "npm:@langchain/textsplitters",
         "npm:@rdfjs/types",
         "npm:sqlite-vec"
@@ -659,8 +650,8 @@
       "integrity": "sha512-71ippSywq5Yb7/tVYyGbkBggbU8H3u5Rz56fH60jGFgr8uHwxs+aSKeqmluIVzM0m0kB7xQjKS6qPfd0b2ZoqQ==",
       "bin": true
     },
-    "n3@2.6.4": {
-      "integrity": "sha512-CsZsQz2x16SkRbAp9eTg9d26fmq30B2ewW7lYDfRFAOjVoE+PwT+eBlUZQqJlgpCe97xSS1X2CZ8hmomIjnTHg==",
+    "n3@2.13.12": {
+      "integrity": "sha512-z944NsyJi58WXcYevtNkUL2JhVr0KP6nvED9AgymQq5V35TDaNn1N8kO+OWJk/kj4PR0L/ilWB3d7/bWceg1CQ==",
       "dependencies": [
         "buffer",
         "readable-stream"
@@ -700,8 +691,8 @@
         "setimmediate"
       ]
     },
-    "readable-stream@4.7.0": {
-      "integrity": "sha512-oIGGmcpTLwPga8Bn6/Z75SVaH1z5dUut2ibSyAMVhmUggWpmDn2dapB0n7f8nwaSiRtepAsfJyfXIO5DCVAODg==",
+    "readable-stream@4.8.0": {
+      "integrity": "sha512-2jhTTU3Eilp/2DMT71gbcoqC35eQHasMJH0RHkYxwlxIv3+FR6Y5xAFZIwEGLxKkjZYEFlsiMNIdwUqjK2lLHQ==",
       "dependencies": [
         "abort-controller",
         "buffer",
@@ -850,7 +841,7 @@
       "jsr:@std/path@^1.1.5",
       "jsr:@wazoo/sparql-engine@~0.4.1",
       "jsr:@worlds/sdk@~0.9.1",
-      "jsr:@worlds/sqlite@0.6",
+      "jsr:@worlds/sqlite@~0.7.4",
       "npm:@ai-sdk/google@^3.0.80",
       "npm:@langchain/core@^1.1.48",
       "npm:@langchain/textsplitters@^1.0.1",

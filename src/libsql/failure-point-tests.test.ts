@@ -6,7 +6,7 @@ import { commitPatchToLibsql } from "@/libsql/commit-patch-to-libsql.ts";
 import { LibsqlQuadStore } from "@/libsql/quad-store/mod.ts";
 import { LibsqlRdfjsStore } from "@/libsql/rdfjs-store/mod.ts";
 import { LibsqlSearchIndexProjector } from "@/libsql/search-index/libsql-search-index-projector.ts";
-import { FakeEmbeddingService } from "@worlds/sdk/search-index/embedding-service";
+import type { EmbeddingService } from "@worlds/sdk/search-index/embedding-service";
 import {
   createTestLibsqlConnectionDriver,
   setupLibsqlSchemaForTest,
@@ -54,21 +54,14 @@ Deno.test(
     const connection = createTestLibsqlConnectionDriver(client);
     await setupLibsqlSchemaForTest(connection);
 
-    const searchIndexProjector: LibsqlSearchIndexProjector =
-      new (class FailingProjector extends LibsqlSearchIndexProjector {
-        public constructor() {
-          super({
-            connection,
-            textSplitter: sharedTextSplitter,
-            searchQueryBuilder: testLibsqlSearchQueryBuilder,
-            embeddingService: new FakeEmbeddingService(),
-          });
-        }
-
-        public override buildNovelQuadStatements(): Promise<never> {
-          throw new Error("Simulated search projection failure");
-        }
-      })();
+    const searchIndexProjector = new LibsqlSearchIndexProjector({
+      connection,
+      textSplitter: sharedTextSplitter,
+      searchQueryBuilder: testLibsqlSearchQueryBuilder,
+      embeddingService: {
+        embed: () => Promise.reject(new Error("Simulated projection failure")),
+      } as unknown as EmbeddingService,
+    });
 
     const store = new LibsqlRdfjsStore({ connection, matchPageSize: 100 });
     const quadStore = new LibsqlQuadStore({

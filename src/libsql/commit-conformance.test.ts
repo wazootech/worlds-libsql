@@ -8,7 +8,6 @@ import type {
   CommitConformanceSubject,
 } from "@worlds/sdk/testing";
 import { LibsqlRdfjsStore } from "@/libsql/rdfjs-store/mod.ts";
-import { LibsqlSearchIndexProjector } from "@/libsql/search-index/libsql-search-index-projector.ts";
 import {
   openDatabase,
   openStore,
@@ -33,15 +32,22 @@ async function createSubject(
   let rebuilds = 0;
   let failArmed = false;
 
-  class CountingProjector extends LibsqlSearchIndexProjector {
-    public override async reindexAll(): Promise<void> {
-      rebuilds++;
-      await super.reindexAll();
-    }
-  }
-
   const realBatch = client.batch.bind(client);
   client.batch = ((...args: Parameters<typeof client.batch>) => {
+    // A full rebuild starts with a batch that clears the chunk table and does
+    // not touch quads (a replace-import wipe clears both).
+    const sql = args[0].map((statement) =>
+      typeof statement === "string"
+        ? statement
+        : Array.isArray(statement)
+        ? statement[0]
+        : statement.sql
+    );
+    if (
+      sql.includes("DELETE FROM chunks") && !sql.includes("DELETE FROM quads")
+    ) {
+      rebuilds++;
+    }
     if (failArmed) {
       failArmed = false;
       throw new Error("injected write failure");
@@ -52,7 +58,6 @@ async function createSubject(
   const store = openStore(connection, {
     embeddingService,
     mode: searchIndexOnImport,
-    projector: CountingProjector,
   });
   const reader = new LibsqlRdfjsStore({ connection, matchPageSize: 100 });
 

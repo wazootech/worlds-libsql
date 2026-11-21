@@ -10,7 +10,6 @@ import {
   importViaTransaction,
   Transaction,
 } from "@worlds/sdk/quad-store";
-import { planSearchIndexing } from "@worlds/sdk/search-index";
 import type { LibsqlWorldsSdkBaseOptions } from "../libsql-sdk-base-options.ts";
 import type { LibsqlConnectionDriver } from "../libsql-connection-driver.ts";
 import type { LibsqlRdfjsStore } from "../rdfjs-store/mod.ts";
@@ -85,23 +84,13 @@ export class LibsqlQuadStore implements QuadStoreInterface {
    * the novel quads deleted again if a later chunk fails.
    *
    * With searchIndexOnImport "deferred", an import writes only quads and then
-   * rebuilds the whole index in a separate pass; if that pass fails, the quads are
+   * rebuilds the whole index in a separate pass (the shared core's rebuild); if that pass fails, the quads are
    * kept and the caller can run reindex() again.
    */
   public createTransaction(): Transaction {
     return new Transaction({
-      commit: async (patch, context) => {
-        await commitPatchToLibsql(patch, this.options, context);
-
-        const projector = this.options.searchIndexProjector;
-        if (
-          projector &&
-          planSearchIndexing(this.options.searchIndexOnImport, context)
-            .reindexAfterCommit
-        ) {
-          await projector.reindexAll();
-        }
-      },
+      commit: (patch, context) =>
+        commitPatchToLibsql(patch, this.options, context),
     });
   }
 }

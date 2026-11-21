@@ -1,6 +1,10 @@
 import type { InStatement } from "@libsql/client";
 import type * as rdfjs from "@rdfjs/types";
-import { buildSearchChunkStatements } from "./build-search-chunk-statements.ts";
+import type { SqlProjectionOptions } from "@worlds/sqlite/sql-core";
+import {
+  buildSearchChunkStatements,
+  libsqlProjectionOptions,
+} from "./build-search-chunk-statements.ts";
 import type { ProjectSearchChunksOptions } from "./project-search-chunks.ts";
 import { projectSearchChunks } from "./project-search-chunks.ts";
 import { rebuildLibsqlSearchIndexFromQuads } from "./rebuild-libsql-search-index-from-quads.ts";
@@ -19,6 +23,11 @@ export class LibsqlSearchIndexProjector {
   public constructor(
     private readonly options: LibsqlSearchIndexProjectorOptions,
   ) {}
+
+  /** projectionOptions is the chunking and embedding configuration the shared SQL commit core runs with. */
+  public get projectionOptions(): SqlProjectionOptions {
+    return libsqlProjectionOptions(this.options);
+  }
 
   /**
    * buildNovelQuadStatements chunks and embeds new facts and returns the FTS/vector
