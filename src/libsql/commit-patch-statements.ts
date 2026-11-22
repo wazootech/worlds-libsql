@@ -39,6 +39,26 @@ export function buildDeletionStatementsChunked(
 }
 
 /**
+ * buildChunkDeletionStatementsChunked removes only the chunk rows of the quads
+ * with these ids, in statements of at most `chunkSize` ids; the quad rows stay.
+ */
+export function buildChunkDeletionStatementsChunked(
+  quadIds: string[],
+  queryBuilder: LibsqlSearchQueryBuilder,
+  chunkSize: number,
+): InStatement[] {
+  const statements: InStatement[] = [];
+  for (let index = 0; index < quadIds.length; index += chunkSize) {
+    statements.push(
+      queryBuilder.buildDeleteByQuadIds(
+        quadIds.slice(index, index + chunkSize),
+      ),
+    );
+  }
+  return statements;
+}
+
+/**
  * queryCachePresence polls SQLite to check which Quad IDs have already been fully vectorized and indexed.
  */
 export async function queryCachePresence(

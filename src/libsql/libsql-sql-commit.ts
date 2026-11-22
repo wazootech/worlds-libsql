@@ -7,6 +7,7 @@ import {
 import { filterQuads } from "@worlds/sdk/quad-store";
 import type { QuadFilter } from "@worlds/sdk/quad-store";
 import {
+  buildChunkDeletionStatementsChunked,
   buildDeletionStatementsChunked,
   buildRelationalStatements,
   queryCachePresence,
@@ -95,6 +96,12 @@ export function createLibsqlDialect(
     keyOf: (_quad, hash) => hash,
     buildWipe: buildWipeAllGraphDataStatements,
     buildClearChunks: () => [{ sql: "DELETE FROM chunks", args: [] }],
+    buildDeleteChunks: (hashes) =>
+      buildChunkDeletionStatementsChunked(
+        hashes,
+        searchQueryBuilder,
+        maxLookupChunkSize,
+      ),
     buildDeletions: (keys) => deletions(keys),
     buildInserts: (quads, _keys, hashes) =>
       buildRelationalStatements(quads, hashes),
