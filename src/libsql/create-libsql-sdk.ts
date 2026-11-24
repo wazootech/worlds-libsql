@@ -1,9 +1,9 @@
 import type { Client as LibsqlClient } from "@libsql/client";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
-import type * as rdfjs from "@rdfjs/types";
 import { WorldsSdk } from "@worlds/sdk";
 import type { WorldsSdkInterface } from "@worlds/sdk";
 import { WazooSparqlEngine } from "@wazoo/sparql-engine";
+import type { WazooSparqlEngineOptions } from "@wazoo/sparql-engine";
 import {
   LibsqlSearchIndex,
   LibsqlSearchIndexProjector,
@@ -73,7 +73,9 @@ export async function createLibsqlWorldsSdk(
   });
 
   const sparqlEngine = new WazooSparqlEngine({
-    store: libsqlRdfjsStore as unknown as rdfjs.Store,
+    // The engine wants addQuad/removeQuad on its store, but every update here
+    // goes through createTransaction below, so the read-only store is enough.
+    store: libsqlRdfjsStore as unknown as WazooSparqlEngineOptions["store"],
     createTransaction: () => quadStore.createTransaction(),
   });
 
