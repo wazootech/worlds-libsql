@@ -37,7 +37,8 @@ deno task bench
 Or directly:
 
 ```bash
-for f in hybrid-search idempotency-guard index-maintenance synchronization \n  sparql-perf-libsql; do deno run --allow-all benchmarks/$f.bench.ts; done
+for f in hybrid-search idempotency-guard index-maintenance synchronization \
+  sparql-perf-libsql; do deno run --allow-all benchmarks/$f.bench.ts; done
 ```
 
 ### SPARQL quad index performance
