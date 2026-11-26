@@ -21,7 +21,7 @@ const databaseClient = createClient({ url: ":memory:" });
 const connection = createTestLibsqlConnectionDriver(databaseClient);
 await setupLibsqlSchemaForTest(connection);
 
-const vectorArray = new Array(32).fill(0);
+const vectorArray = Array.from({ length: 32 }, () => 0);
 vectorArray[0] = 1.0;
 const vectorJsonString = JSON.stringify(vectorArray);
 

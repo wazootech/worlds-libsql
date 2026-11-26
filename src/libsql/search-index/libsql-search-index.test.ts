@@ -17,7 +17,7 @@ test("LibsqlSearchIndex - Tracer Bullet: performs basic hybrid search and maps r
   const connection = createTestLibsqlConnectionDriver(client);
   await setupLibsqlSchemaForTest(connection);
 
-  const paddedVec = new Array(32).fill(0);
+  const paddedVec = Array.from({ length: 32 }, () => 0);
   paddedVec[0] = 1.0;
   const vecStr = JSON.stringify(paddedVec);
 
@@ -75,7 +75,7 @@ test("LibsqlSearchIndex - Scope Inclusion: limits matches only to included subje
   const connection = createTestLibsqlConnectionDriver(client);
   await setupLibsqlSchemaForTest(connection);
 
-  const data = new Array(32).fill(0);
+  const data = Array.from({ length: 32 }, () => 0);
   data[0] = 1.0;
   const vecStr = JSON.stringify(data);
 
@@ -139,7 +139,7 @@ test("LibsqlSearchIndex - Scope Exclusion: suppresses explicitly excluded predic
   const connection = createTestLibsqlConnectionDriver(client);
   await setupLibsqlSchemaForTest(connection);
 
-  const data = new Array(32).fill(0);
+  const data = Array.from({ length: 32 }, () => 0);
   data[0] = 1.0;
   const vecStr = JSON.stringify(data);
 
@@ -372,7 +372,7 @@ test("LibsqlSearchIndex - respects custom result limit option", async () => {
   const connection = createTestLibsqlConnectionDriver(client);
   await setupLibsqlSchemaForTest(connection);
 
-  const vecStr = JSON.stringify(new Array(32).fill(0));
+  const vecStr = JSON.stringify(Array.from({ length: 32 }, () => 0));
 
   for (let index = 0; index < 5; index++) {
     await client.execute({
