@@ -161,30 +161,30 @@ dialect (native `vector32` columns, in-SQL RRF fusion over
 table) stays local to this repo.
 
 ```bash
-deno task ci
+bun install
+bun run ci
 ```
 
 Dry-run a JSR publish locally:
 
 ```bash
-deno task publish:dry
+bun run publish:dry
 ```
 
 ## Publishing to JSR
 
 Every push to `main` runs the [Publish workflow](.github/workflows/publish.yml),
-which publishes only when `deno.json`'s `version` is not yet on JSR:
+which publishes only when `jsr.json`'s `version` is not yet on JSR:
 
 - **Release PR** (bumps `version`): merging it publishes the new version of
   `@worlds/libsql`.
 - **Routine PR** (no bump): the Publish job skips green with a notice. That is
   expected, not a failure.
 
-To release, bump `version` in `deno.json` (minor for additive public API, patch
-for fixes) in the PR that should ship. If the package ever imports a pinned
-`jsr:@worlds/libsql@<version>` of itself, commit that entry to `deno.lock`;
-otherwise a cold CI run rewrites the lockfile and `deno publish` aborts on the
-dirty tree.
+To release, bump `version` in `jsr.json` (minor for additive public API, patch
+for fixes) in the PR that should ship.
+The `jsr` CLI regenerates a `deno.lock` while it checks types; it is
+git-ignored, so the tree stays clean.
 
 One-time setup on [jsr.io/@worlds/libsql](https://jsr.io/@worlds/libsql):
 
@@ -194,4 +194,4 @@ One-time setup on [jsr.io/@worlds/libsql](https://jsr.io/@worlds/libsql):
    JSR token secret is required when OIDC is configured.
 3. Confirm your GitHub account can publish to the `@worlds` org.
 
-After setup, merging to `main` runs CI, a publish dry-run, and `deno publish`.
+After setup, merging to `main` runs CI, a publish dry-run, and `bunx jsr publish`.

@@ -1,7 +1,7 @@
 # Benchmarks
 
 Performance benchmarks for `@worlds/libsql`. **Local only** — there is no CI
-regression gate; compare results manually on the same OS and runtime version.
+regression gate; compare results manually on the same OS and Bun version.
 
 | Resource                                                                    | Purpose                                                        |
 | :-------------------------------------------------------------------------- | :------------------------------------------------------------- |
@@ -24,21 +24,21 @@ a substitute for re-running on your machine.
 
 - `*.bench.ts` — runnable benchmarks (each registers its benches with
   [`shared/bench.ts`](shared/bench.ts) and ends with `await runBenches()`; run
-  one with `deno run --allow-all` or `bun`).
+  one with `bun benchmarks/<name>.bench.ts`).
 - [`shared/`](shared/) — helpers imported by benches (`synthetic-data.ts`,
   `sparql-perf-shared.ts`).
 
 ## Run all benchmarks
 
 ```bash
-deno task bench
+bun run bench
 ```
 
 Or directly:
 
 ```bash
 for f in hybrid-search idempotency-guard index-maintenance synchronization \
-  sparql-perf-libsql; do deno run --allow-all benchmarks/$f.bench.ts; done
+  sparql-perf-libsql; do bun benchmarks/$f.bench.ts; done
 ```
 
 ### SPARQL quad index performance
@@ -46,9 +46,9 @@ for f in hybrid-search idempotency-guard index-maintenance synchronization \
 The LibSQL bench is the production-default quad index execute harness.
 
 ```bash
-deno run --allow-all benchmarks/sparql-perf-libsql.bench.ts
+bun benchmarks/sparql-perf-libsql.bench.ts
 # or
-deno task bench:sparql-perf-libsql
+bun run bench:sparql-perf-libsql
 ```
 
 **Default query shape is selective only** (subject-bound
@@ -58,13 +58,13 @@ opt-in — it is slow and not the production hot path:
 ```bash
 # .env or shell
 BENCH_HEXASTORE_PERF_FULL_SCAN=1
-deno task bench:sparql-perf-libsql:full-scan
+bun run bench:sparql-perf-libsql:full-scan
 ```
 
 Large benches use the same env via `:full-scan` tasks:
 
 ```bash
-deno task bench:sparql-perf-large-libsql:full-scan
+bun run bench:sparql-perf-large-libsql:full-scan
 ```
 
 **Large (100k–1M):** separate libsql large bench
@@ -83,18 +83,13 @@ once after bulk load.
 
 ### SPARQL quad index perf at 100k–1M (opt-in, local only)
 
-Not part of `deno task bench` — preload can take a long time and needs ample RAM
+Not part of `bun run bench` — preload can take a long time and needs ample RAM
 (16 GB+ for 1M preload).
 
 ```bash
-deno task bench:sparql-perf-large-libsql
+bun run bench:sparql-perf-large-libsql
 ```
 
-Or with a larger V8 heap if preload OOMs:
-
-```bash
-deno run --allow-all --v8-flags=--max-old-space-size=8192 benchmarks/sparql-perf-large-libsql.bench.ts
-```
 
 Module load logs `console.time` lines per scale. Only `sparqlEngine.execute()`
 is timed by the mitata harness (`shared/bench.ts`).
@@ -116,7 +111,7 @@ The harness still measures `execute()` only.
 ```bash
 # shell or .env
 BENCH_REUSE_DB=1
-deno task bench:sparql-perf-large-libsql:reuse
+bun run bench:sparql-perf-large-libsql:reuse
 ```
 
 Published baselines in the table below use default `:memory:` unless labeled
@@ -134,16 +129,11 @@ path is timed (the harness runs on mitata; it replaced `Deno.bench`, so numbers
 below from `Deno.bench` are not directly comparable). Write-pressure benches
 still create a fresh database per iteration and use `warmup: 5`, `n: 50`.
 
-- **avg** is the primary signal; compare like-for-like OS and Deno versions
+- **avg** is the primary signal; compare like-for-like OS and Bun versions
   only.
 - Large **p99** gaps vs **avg** on older runs usually meant per-iteration import
   and GC between timed slices, not multi-second SPARQL alone. After preload,
   quad index perf p99 should stay within a fewx of avg.
-- Optional GC trace (local only):
-
-  ```bash
-  deno run --allow-all --v8-flags=--trace-gc benchmarks/sparql-perf-libsql.bench.ts
-  ```
 
 **Production (millions of quads):** default to
 [`createLibsqlWorldsSdk`](../src/libsql/create-libsql-sdk.ts) for hybrid search
@@ -174,12 +164,12 @@ Captured on **Deno 2.8.0 (Windows x86_64)** with module-level preload.
 ## Regression policy
 
 - Investigate when a keyed benchmark regresses by **more than ~15%** average vs
-  the post-preload table on the same OS and Deno version.
+  the post-preload table on the same OS and Bun version.
 - Open a **new issue** with pasted before/after bench output.
 - Link
   [discussion #69](https://github.com/wazootech/worlds-sdk-ts/discussions/69)
   when SPARQL quad index perf numbers change.
 
 ```bash
-deno task bench
+bun run bench
 ```
