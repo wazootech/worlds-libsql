@@ -12,3 +12,4 @@ src/tfjs-universal-sentence-encoder/models/
 docs/api.json
 docs.json
 transcript.md
+deno.lock
