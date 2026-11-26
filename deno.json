@@ -2,6 +2,9 @@
   "name": "@worlds/libsql",
   "version": "0.7.2",
   "nodeModulesDir": "auto",
+  "publish": {
+    "exclude": ["bun.lock", "bunfig.toml", "package.json", "tsconfig.json"]
+  },
   "exports": {
     ".": "./src/mod.ts",
     "./quad-store": "./src/libsql/quad-store/mod.ts",
