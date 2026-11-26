@@ -1,7 +1,7 @@
 # Benchmarks
 
 Performance benchmarks for `@worlds/libsql`. **Local only** — there is no CI
-regression gate; compare results manually on the same OS and Deno version.
+regression gate; compare results manually on the same OS and runtime version.
 
 | Resource                                                                    | Purpose                                                        |
 | :-------------------------------------------------------------------------- | :------------------------------------------------------------- |
@@ -14,7 +14,7 @@ Do not comment on closed perf threads
 [#3](https://github.com/wazootech/worlds-sdk-ts/issues/3),
 [#8](https://github.com/wazootech/worlds-sdk-ts/issues/8),
 [#11](https://github.com/wazootech/worlds-sdk-ts/issues/11)). File a new issue
-with before/after `deno bench` output instead.
+with before/after bench output instead.
 
 **JSR:** [`@worlds/libsql`](https://jsr.io/@worlds/libsql) is published on JSR.
 Tables below reflect **main** branch methodology (module preload); they are not
@@ -22,8 +22,9 @@ a substitute for re-running on your machine.
 
 ## Layout
 
-- `*.bench.ts` — runnable benchmarks (`deno bench` discovers these at the repo
-  root of `benchmarks/`, not under `shared/`).
+- `*.bench.ts` — runnable benchmarks (each registers its benches with
+  [`shared/bench.ts`](shared/bench.ts) and ends with `await runBenches()`; run
+  one with `deno run --allow-all` or `bun`).
 - [`shared/`](shared/) — helpers imported by benches (`synthetic-data.ts`,
   `sparql-perf-shared.ts`).
 
@@ -36,7 +37,7 @@ deno task bench
 Or directly:
 
 ```bash
-deno bench --allow-all benchmarks/
+for f in hybrid-search idempotency-guard index-maintenance synchronization \n  sparql-perf-libsql; do deno run --allow-all benchmarks/$f.bench.ts; done
 ```
 
 ### SPARQL quad index performance
@@ -44,7 +45,7 @@ deno bench --allow-all benchmarks/
 The LibSQL bench is the production-default quad index execute harness.
 
 ```bash
-deno bench --allow-all benchmarks/sparql-perf-libsql.bench.ts
+deno run --allow-all benchmarks/sparql-perf-libsql.bench.ts
 # or
 deno task bench:sparql-perf-libsql
 ```
@@ -91,11 +92,11 @@ deno task bench:sparql-perf-large-libsql
 Or with a larger V8 heap if preload OOMs:
 
 ```bash
-deno bench --allow-all --v8-flags=--max-old-space-size=8192 benchmarks/sparql-perf-large-libsql.bench.ts
+deno run --allow-all --v8-flags=--max-old-space-size=8192 benchmarks/sparql-perf-large-libsql.bench.ts
 ```
 
 Module load logs `console.time` lines per scale. Only `sparqlEngine.execute()`
-is timed inside `Deno.bench`.
+is timed by the mitata harness (`shared/bench.ts`).
 
 For full import + search preload timing (not the quad index perf execute table),
 use `searchIndexOnImport: "deferred"` on a dedicated bulk-load client (quads
@@ -109,7 +110,7 @@ Opt-in file cache for **large libsqlStore** preload (`BENCH_REUSE_DB=1`). The
 first run imports into `benchmarks/.cache/perf-large/` (`libsqlStore-{n}.db`);
 later runs open cached storage and skip import when the manifest checksum
 matches (corpus version, backend schema version, quad count, quads-only import).
-`Deno.bench` still measures `execute()` only.
+The harness still measures `execute()` only.
 
 ```bash
 # shell or .env
@@ -128,8 +129,9 @@ cache). Invalidate cache: delete `benchmarks/.cache/perf-large/` or bump
 ## Measurement notes
 
 Benchmarks preload datasets and SPARQL engines at **module load**; only the hot
-path runs inside `benchContext.start()` / `end()`. Write-pressure benches still
-create a fresh database per iteration and use `warmup: 5`, `n: 50`.
+path is timed (the harness runs on mitata; it replaced `Deno.bench`, so numbers
+below from `Deno.bench` are not directly comparable). Write-pressure benches
+still create a fresh database per iteration and use `warmup: 5`, `n: 50`.
 
 - **avg** is the primary signal; compare like-for-like OS and Deno versions
   only.
@@ -139,7 +141,7 @@ create a fresh database per iteration and use `warmup: 5`, `n: 50`.
 - Optional GC trace (local only):
 
   ```bash
-  deno bench --allow-all --v8-flags=--trace-gc benchmarks/sparql-perf-libsql.bench.ts
+  deno run --allow-all --v8-flags=--trace-gc benchmarks/sparql-perf-libsql.bench.ts
   ```
 
 **Production (millions of quads):** default to
@@ -172,7 +174,7 @@ Captured on **Deno 2.8.0 (Windows x86_64)** with module-level preload.
 
 - Investigate when a keyed benchmark regresses by **more than ~15%** average vs
   the post-preload table on the same OS and Deno version.
-- Open a **new issue** with pasted before/after `deno bench` output.
+- Open a **new issue** with pasted before/after bench output.
 - Link
   [discussion #69](https://github.com/wazootech/worlds-sdk-ts/discussions/69)
   when SPARQL quad index perf numbers change.

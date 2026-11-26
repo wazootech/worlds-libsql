@@ -1,3 +1,4 @@
+import { bench, runBenches } from "./shared/bench.ts";
 import { createClient } from "@libsql/client";
 import { DataFactory } from "n3";
 import { createLibsqlWorldsSdk } from "@/libsql/mod.ts";
@@ -33,28 +34,25 @@ await client.import({
   source: { kind: "quads", quads: payload100 },
 });
 
-Deno.bench({
+bench({
   name: "Idempotency: Novel Insert (New Quads Ingested)",
   group: "Idempotency Guard Performance",
-  async fn(benchContext) {
-    const freshPayload = generateFreshPayload(100);
-
-    benchContext.start();
-    await client.import({
-      source: { kind: "quads", quads: freshPayload },
-    });
-    benchContext.end();
-  },
+}, async () => {
+  // Building the 100 fresh quads is inside the timed body (Deno.bench timed
+  // only the import); it is microseconds next to the import.
+  const freshPayload = generateFreshPayload(100);
+  await client.import({
+    source: { kind: "quads", quads: freshPayload },
+  });
 });
 
-Deno.bench({
+bench({
   name: "Idempotency: Redundant Insert (Duplicate Quads Suppressed)",
   group: "Idempotency Guard Performance",
-  async fn(benchContext) {
-    benchContext.start();
-    await client.import({
-      source: { kind: "quads", quads: payload100 },
-    });
-    benchContext.end();
-  },
+}, async () => {
+  await client.import({
+    source: { kind: "quads", quads: payload100 },
+  });
 });
+
+await runBenches();

@@ -1,3 +1,4 @@
+import { bench, runBenches } from "./shared/bench.ts";
 import { createClient } from "@libsql/client";
 import { LibsqlSearchIndex } from "@/libsql/search-index/libsql-search-index.ts";
 import { FakeEmbeddingService } from "@worlds/sdk/search-index/embedding-service";
@@ -57,32 +58,25 @@ const fallbackSearchIndex = new LibsqlSearchIndex({
   searchQueryBuilder: testLibsqlSearchQueryBuilder,
 });
 
-Deno.bench({
+bench({
   name: "Search: FTS5 Keyword-Only Search (Vectorless Mode)",
   group: "Hybrid Search Performance",
-  async fn(benchContext) {
-    benchContext.start();
-    await ftsSearchIndex.search({ query: "unique keywords" });
-    benchContext.end();
-  },
+}, async () => {
+  await ftsSearchIndex.search({ query: "unique keywords" });
 });
 
-Deno.bench({
+bench({
   name: "Search: Hybrid RRF Fusion Search (Vector + FTS5)",
   group: "Hybrid Search Performance",
-  async fn(benchContext) {
-    benchContext.start();
-    await hybridSearchIndex.search({ query: "unique keywords" });
-    benchContext.end();
-  },
+}, async () => {
+  await hybridSearchIndex.search({ query: "unique keywords" });
 });
 
-Deno.bench({
+bench({
   name: "Search: Graceful Degradation (Fallback to FTS5 on Error)",
   group: "Hybrid Search Performance",
-  async fn(benchContext) {
-    benchContext.start();
-    await fallbackSearchIndex.search({ query: "unique keywords" });
-    benchContext.end();
-  },
+}, async () => {
+  await fallbackSearchIndex.search({ query: "unique keywords" });
 });
+
+await runBenches();

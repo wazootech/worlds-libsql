@@ -8,7 +8,7 @@ Captured **2026-05-27** on **Windows x86_64**, **Deno 2.8.0**. Standard scales
 - **Preload** (untimed): `console.time` at module load — generate synthetic
   quads, import into backend (`searchIndexOnImport: "disabled"`), wire the
   default `WazooSparqlEngine`.
-- **Execute** (timed): `Deno.bench` calls `sparqlEngine.execute()` only,
+- **Execute** (timed): the bench harness calls `sparqlEngine.execute()` only,
   post-preload.
 - **Query shape**: **selective** — `SELECT ?p ?o WHERE { <urn:entity:0> ?p ?o }`
   (subject-bound; production hot path).
