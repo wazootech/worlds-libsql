@@ -9,31 +9,22 @@ on:
       - main
 
 jobs:
+  # Format, lint, type check, manifest check and tests all run on Bun
+  # (bun run ci). Bun floats on 1.x on purpose so a Bun regression surfaces
+  # early. The publish dry run goes through the jsr CLI (a devDependency that
+  # bundles its own publisher), so no Deno is installed anywhere in CI. The
+  # tests run against local libsql databases (:memory: and files), never a real
+  # Turso server.
   ci:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
-      - uses: denoland/setup-deno@v2
-        with:
-          cache: true
-          # Deno 2.9.6 includes NAPI teardown fixes (#36556, #36551, #36559)
-          # that resolve the exit-139 segfault with @libsql/client on Ubuntu.
-          # See: https://github.com/denoland/deno/releases/tag/v2.9.6
-          deno-version: 2.9.6
-      - name: Install dependencies
-        run: deno ci
-      - name: Run CI checks
-        run: deno task ci
-  # The tests are runtime-neutral (node:test, node:assert): the same suite runs
-  # on Bun here and on Deno above. Bun floats on 1.x on purpose so a Bun
-  # regression surfaces early. Part of the Deno to Bun move
-  # (wazootech/workspace#50); the Deno job stays until the cutover PR.
-  bun:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
         with:
           bun-version: "1.x"
-      - run: bun install --frozen-lockfile --ignore-scripts
-      - run: bun run test:bun
+      - name: Install dependencies
+        run: bun install --frozen-lockfile --ignore-scripts
+      - name: Run CI checks
+        run: bun run ci
+      - name: Publish dry run (smoke)
+        run: bun run publish:dry
