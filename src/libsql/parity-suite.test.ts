@@ -16,7 +16,8 @@
  * Search ordering is compared set-wise (strictSearchOrder: false): bm25
  * ranking vs scan order is an engine detail, not a parity contract.
  */
-import { assertEquals } from "@std/assert";
+import assert from "node:assert/strict";
+import { test } from "node:test";
 import { createClient } from "@libsql/client";
 import { createLibsqlWorldsSdk } from "@/libsql/mod.ts";
 import { createMemoryWorldsSdk } from "@worlds/sdk/memory";
@@ -29,7 +30,7 @@ function createLibsqlWorldsSdkForParity() {
   return createLibsqlWorldsSdk({ client });
 }
 
-Deno.test(
+test(
   "parity suite - libsql agrees with the in-memory reference on the corpus",
   async () => {
     const fixtures = parityCorpus.fixtures.filter(
@@ -43,12 +44,12 @@ Deno.test(
       strictSearchOrder: false,
     });
 
-    assertEquals(
+    assert.deepStrictEqual(
       report.results.length,
       fixtures.length + parityCorpus.replaceCases.length,
       "every non-exempted corpus fixture and replace case runs on both",
     );
-    assertEquals(
+    assert.deepStrictEqual(
       report.ok,
       true,
       report.results

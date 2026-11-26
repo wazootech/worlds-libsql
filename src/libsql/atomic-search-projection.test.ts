@@ -1,4 +1,5 @@
-import { assertEquals, assertRejects } from "@std/assert";
+import assert from "node:assert/strict";
+import { test } from "node:test";
 import type { EmbeddingService } from "@worlds/sdk/search-index/embedding-service";
 import {
   BrokenChunkQueryBuilder,
@@ -8,8 +9,9 @@ import {
   openStore,
   recordBatches,
 } from "@/libsql/libsql-commit-test-helpers.ts";
+import { rejected } from "@/libsql/libsql-test-fixtures.ts";
 
-Deno.test("commit writes quads and chunks in one atomic batch", async () => {
+test("commit writes quads and chunks in one atomic batch", async () => {
   const { client, connection } = await openDatabase();
   const batches = recordBatches(client);
 
@@ -17,16 +19,16 @@ Deno.test("commit writes quads and chunks in one atomic batch", async () => {
   tx.addQuads([fact("1", "alpha text"), fact("2", "beta text")]);
   await tx.commit();
 
-  assertEquals(await count(client, "quads"), 2);
-  assertEquals(await count(client, "chunks"), 2);
-  assertEquals(
+  assert.deepStrictEqual(await count(client, "quads"), 2);
+  assert.deepStrictEqual(await count(client, "chunks"), 2);
+  assert.deepStrictEqual(
     batches.length,
     1,
     "quads and chunks must share one write batch",
   );
 });
 
-Deno.test("embedding failure writes nothing and keeps existing data", async () => {
+test("embedding failure writes nothing and keeps existing data", async () => {
   const { client, connection } = await openDatabase();
   const seed = openStore(connection).createTransaction();
   seed.addQuads([fact("seed", "already stored")]);
@@ -38,25 +40,33 @@ Deno.test("embedding failure writes nothing and keeps existing data", async () =
     } as unknown as EmbeddingService,
   }).createTransaction();
   failing.addQuads([fact("new", "will not be written")]);
-  await assertRejects(() => failing.commit(), Error, "failed to vectorize");
+  await rejected(() => failing.commit(), Error, "failed to vectorize");
 
-  assertEquals(await count(client, "quads"), 1, "only the seeded quad");
-  assertEquals(await count(client, "chunks"), 1);
+  assert.deepStrictEqual(
+    await count(client, "quads"),
+    1,
+    "only the seeded quad",
+  );
+  assert.deepStrictEqual(await count(client, "chunks"), 1);
 });
 
-Deno.test("a failing chunk statement rolls the quad rows back too", async () => {
+test("a failing chunk statement rolls the quad rows back too", async () => {
   const { client, connection } = await openDatabase();
   const tx = openStore(connection, {
     searchQueryBuilder: new BrokenChunkQueryBuilder(32),
   }).createTransaction();
   tx.addQuads([fact("1", "alpha text")]);
-  await assertRejects(() => tx.commit(), Error, "failed to execute sync batch");
+  await rejected(() => tx.commit(), Error, "failed to execute sync batch");
 
-  assertEquals(await count(client, "quads"), 0, "quads roll back with chunks");
-  assertEquals(await count(client, "chunks"), 0);
+  assert.deepStrictEqual(
+    await count(client, "quads"),
+    0,
+    "quads roll back with chunks",
+  );
+  assert.deepStrictEqual(await count(client, "chunks"), 0);
 });
 
-Deno.test("a failed replace import keeps the existing graph", async () => {
+test("a failed replace import keeps the existing graph", async () => {
   const { client, connection } = await openDatabase();
   const seed = openStore(connection).createTransaction();
   seed.addQuads([fact("old", "old graph data")]);
@@ -65,18 +75,22 @@ Deno.test("a failed replace import keeps the existing graph", async () => {
   const broken = openStore(connection, {
     searchQueryBuilder: new BrokenChunkQueryBuilder(32),
   });
-  await assertRejects(() =>
+  await rejected(() =>
     broken.import({
       mode: "replace",
       source: { kind: "quads", quads: [fact("new", "replacement data")] },
     })
   );
 
-  assertEquals(await count(client, "quads"), 1, "wipe must roll back");
-  assertEquals(await count(client, "chunks"), 1);
+  assert.deepStrictEqual(
+    await count(client, "quads"),
+    1,
+    "wipe must roll back",
+  );
+  assert.deepStrictEqual(await count(client, "chunks"), 1);
 });
 
-Deno.test("replace import swaps the graph in one batch", async () => {
+test("replace import swaps the graph in one batch", async () => {
   const { client, connection } = await openDatabase();
   const seed = openStore(connection).createTransaction();
   seed.addQuads([fact("old", "old graph data")]);
@@ -89,12 +103,12 @@ Deno.test("replace import swaps the graph in one batch", async () => {
   });
 
   const subjects = await client.execute("SELECT s FROM quads");
-  assertEquals(subjects.rows.map((row) => row.s), ["urn:s:new"]);
-  assertEquals(await count(client, "chunks"), 1);
-  assertEquals(batches.length, 1);
+  assert.deepStrictEqual(subjects.rows.map((row) => row.s), ["urn:s:new"]);
+  assert.deepStrictEqual(await count(client, "chunks"), 1);
+  assert.deepStrictEqual(batches.length, 1);
 });
 
-Deno.test("deferred import writes quads first, then rebuilds chunks", async () => {
+test("deferred import writes quads first, then rebuilds chunks", async () => {
   const { client, connection } = await openDatabase();
   const batches = recordBatches(client);
 
@@ -102,22 +116,30 @@ Deno.test("deferred import writes quads first, then rebuilds chunks", async () =
     source: { kind: "quads", quads: [fact("1", "deferred text")] },
   });
 
-  assertEquals(await count(client, "quads"), 1);
-  assertEquals(await count(client, "chunks"), 1, "rebuilt after the import");
-  assertEquals(batches.length >= 2, true, "quad batch, then rebuild batch(es)");
+  assert.deepStrictEqual(await count(client, "quads"), 1);
+  assert.deepStrictEqual(
+    await count(client, "chunks"),
+    1,
+    "rebuilt after the import",
+  );
+  assert.deepStrictEqual(
+    batches.length >= 2,
+    true,
+    "quad batch, then rebuild batch(es)",
+  );
 });
 
-Deno.test("disabled mode writes quads without chunks", async () => {
+test("disabled mode writes quads without chunks", async () => {
   const { client, connection } = await openDatabase();
   const tx = openStore(connection, { mode: "disabled" }).createTransaction();
   tx.addQuads([fact("1", "alpha text")]);
   await tx.commit();
 
-  assertEquals(await count(client, "quads"), 1);
-  assertEquals(await count(client, "chunks"), 0);
+  assert.deepStrictEqual(await count(client, "quads"), 1);
+  assert.deepStrictEqual(await count(client, "chunks"), 0);
 });
 
-Deno.test("deferred rebuild pages through every stored quad", async () => {
+test("deferred rebuild pages through every stored quad", async () => {
   const { client, connection } = await openDatabase();
   const quads = Array.from(
     { length: 1250 },
@@ -128,6 +150,10 @@ Deno.test("deferred rebuild pages through every stored quad", async () => {
     source: { kind: "quads", quads },
   });
 
-  assertEquals(await count(client, "quads"), 1250);
-  assertEquals(await count(client, "chunks"), 1250, "all pages are indexed");
+  assert.deepStrictEqual(await count(client, "quads"), 1250);
+  assert.deepStrictEqual(
+    await count(client, "chunks"),
+    1250,
+    "all pages are indexed",
+  );
 });

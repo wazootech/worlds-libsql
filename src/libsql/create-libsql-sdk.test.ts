@@ -1,11 +1,12 @@
-import { assertEquals, assertExists } from "@std/assert";
+import assert from "node:assert/strict";
+import { test } from "node:test";
 import { createClient } from "@libsql/client";
 import { createLibsqlWorldsSdk } from "./create-libsql-sdk.ts";
 import { DataFactory } from "n3";
 
 const { quad, namedNode, literal } = DataFactory;
 
-Deno.test(
+test(
   "createLibsqlWorldsSdk - serves SPARQL on LibsqlRdfjsStore",
   async () => {
     const databaseClient = createClient({ url: ":memory:" });
@@ -13,7 +14,7 @@ Deno.test(
       client: databaseClient,
     });
 
-    assertExists(client);
+    assert.ok(client);
     await client.import({
       source: {
         kind: "quads",
@@ -31,13 +32,13 @@ Deno.test(
       query: "SELECT ?o WHERE { <urn:entity:hex> <urn:label> ?o }",
     });
 
-    assertEquals(sparqlResponse.kind, "select");
+    assert.deepStrictEqual(sparqlResponse.kind, "select");
 
     databaseClient.close();
   },
 );
 
-Deno.test(
+test(
   "createLibsqlWorldsSdk - default WazooSparqlEngine serves SPARQL without queryEngine",
   async () => {
     const databaseClient = createClient({ url: ":memory:" });
@@ -47,7 +48,7 @@ Deno.test(
       // (decision worlds-client-ts#152 / worlds-libsql#12).
     });
 
-    assertExists(client);
+    assert.ok(client);
     await client.import({
       source: {
         kind: "quads",
@@ -64,10 +65,10 @@ Deno.test(
     const selectResponse = await client.sparql({
       query: "SELECT ?o WHERE { <urn:entity:default> <urn:label> ?o }",
     });
-    assertEquals(selectResponse.kind, "select");
+    assert.deepStrictEqual(selectResponse.kind, "select");
     if (selectResponse.kind === "select") {
-      assertEquals(selectResponse.data.results.bindings.length, 1);
-      assertEquals(
+      assert.deepStrictEqual(selectResponse.data.results.bindings.length, 1);
+      assert.deepStrictEqual(
         selectResponse.data.results.bindings[0].o?.value,
         "default engine",
       );
@@ -78,14 +79,14 @@ Deno.test(
       query:
         `INSERT DATA { <urn:e2e:default> <urn:e2e:predicate> "roundtrip-via-default" }`,
     });
-    assertEquals(insertResponse.kind, "void");
+    assert.deepStrictEqual(insertResponse.kind, "void");
 
     const selectAfterInsert = await client.sparql({
       query: "SELECT ?o WHERE { <urn:e2e:default> <urn:e2e:predicate> ?o }",
     });
-    assertEquals(selectAfterInsert.kind, "select");
+    assert.deepStrictEqual(selectAfterInsert.kind, "select");
     if (selectAfterInsert.kind === "select") {
-      assertEquals(
+      assert.deepStrictEqual(
         selectAfterInsert.data.results.bindings[0].o?.value,
         "roundtrip-via-default",
       );
@@ -95,7 +96,7 @@ Deno.test(
   },
 );
 
-Deno.test(
+test(
   "createLibsqlWorldsSdk - SPARQL INSERT DATA followed by SELECT round-trips through transaction commit",
   async () => {
     const databaseClient = createClient({ url: ":memory:" });
@@ -103,21 +104,21 @@ Deno.test(
       client: databaseClient,
     });
 
-    assertExists(client);
+    assert.ok(client);
 
     const insertResponse = await client.sparql({
       query:
         `INSERT DATA { <urn:e2e:subject> <urn:e2e:predicate> "roundtrip-value" }`,
     });
-    assertEquals(insertResponse.kind, "void");
+    assert.deepStrictEqual(insertResponse.kind, "void");
 
     const selectResponse = await client.sparql({
       query: "SELECT ?o WHERE { <urn:e2e:subject> <urn:e2e:predicate> ?o }",
     });
-    assertEquals(selectResponse.kind, "select");
+    assert.deepStrictEqual(selectResponse.kind, "select");
     if (selectResponse.kind === "select") {
-      assertEquals(selectResponse.data.results.bindings.length, 1);
-      assertEquals(
+      assert.deepStrictEqual(selectResponse.data.results.bindings.length, 1);
+      assert.deepStrictEqual(
         selectResponse.data.results.bindings[0].o?.value,
         "roundtrip-value",
       );

@@ -1,4 +1,5 @@
-import { assertEquals, assertExists } from "@std/assert";
+import assert from "node:assert/strict";
+import { test } from "node:test";
 import { createClient } from "@libsql/client";
 import { DataFactory } from "n3";
 import { FakeEmbeddingService } from "@worlds/sdk/search-index/embedding-service";
@@ -51,7 +52,7 @@ const AURELIA = "http://example.org/Aurelia";
 const HAS_CAPITAL = "http://example.org/hasCapital";
 const RDFS_LABEL = "http://www.w3.org/2000/01/rdf-schema#label";
 
-Deno.test(
+test(
   "rebuildLibsqlSearchIndexFromQuads - fts_value is object text only; subject IRIs are not searchable",
   async () => {
     const client = createClient({ url: ":memory:" });
@@ -83,8 +84,8 @@ Deno.test(
     const chunkRows = await client.execute(
       "SELECT value, fts_value FROM chunks",
     );
-    assertEquals(chunkRows.rows[0].value, "Lume");
-    assertEquals(
+    assert.deepStrictEqual(chunkRows.rows[0].value, "Lume");
+    assert.deepStrictEqual(
       String(chunkRows.rows[0].fts_value),
       "Lume",
       "fts_value must index the object text only",
@@ -96,20 +97,20 @@ Deno.test(
     });
 
     const subjectHit = await searchIndex.search({ query: "Aurelia" });
-    assertEquals(
+    assert.deepStrictEqual(
       subjectHit.results?.length,
       0,
       "subject IRI must never match keyword search",
     );
 
     const valueHit = await searchIndex.search({ query: "Lume" });
-    assertEquals(valueHit.results?.length, 1);
-    assertEquals(valueHit.results?.[0].subject, AURELIA);
-    assertEquals(valueHit.results?.[0].text, "Lume");
+    assert.deepStrictEqual(valueHit.results?.length, 1);
+    assert.deepStrictEqual(valueHit.results?.[0].subject, AURELIA);
+    assert.deepStrictEqual(valueHit.results?.[0].text, "Lume");
   },
 );
 
-Deno.test(
+test(
   "rebuildLibsqlSearchIndexFromQuads - label quads match by their own text, not as aliases for sibling facts",
   async () => {
     const client = createClient({ url: ":memory:" });
@@ -149,21 +150,21 @@ Deno.test(
     });
 
     const labelHit = await searchIndex.search({ query: "Kingdom" });
-    assertEquals(labelHit.results?.length, 1);
-    assertEquals(labelHit.results?.[0].predicate, RDFS_LABEL);
-    assertEquals(
+    assert.deepStrictEqual(labelHit.results?.length, 1);
+    assert.deepStrictEqual(labelHit.results?.[0].predicate, RDFS_LABEL);
+    assert.deepStrictEqual(
       labelHit.results?.some((result) => result.predicate === HAS_CAPITAL),
       false,
       "label text must not fan out to sibling fact chunks",
     );
 
     const capitalHit = await searchIndex.search({ query: "Lume" });
-    assertEquals(capitalHit.results?.length, 1);
-    assertEquals(capitalHit.results?.[0].predicate, HAS_CAPITAL);
+    assert.deepStrictEqual(capitalHit.results?.length, 1);
+    assert.deepStrictEqual(capitalHit.results?.[0].predicate, HAS_CAPITAL);
   },
 );
 
-Deno.test(
+test(
   "rebuildLibsqlSearchIndexFromQuads - rebuild refreshes fts_value after schema-style reindex",
   async () => {
     const client = createClient({ url: ":memory:" });
@@ -206,21 +207,21 @@ Deno.test(
       searchQueryBuilder: testLibsqlSearchQueryBuilder,
     });
 
-    assertEquals(rebuildResult.processedQuadCount, 1);
-    assertEquals(rebuildResult.chunkRowCount, 1);
+    assert.deepStrictEqual(rebuildResult.processedQuadCount, 1);
+    assert.deepStrictEqual(rebuildResult.chunkRowCount, 1);
 
     const chunkRows = await client.execute(
       "SELECT value, fts_value FROM chunks",
     );
-    assertEquals(chunkRows.rows[0].value, "Lume");
-    assertEquals(String(chunkRows.rows[0].fts_value), "Lume");
+    assert.deepStrictEqual(chunkRows.rows[0].value, "Lume");
+    assert.deepStrictEqual(String(chunkRows.rows[0].fts_value), "Lume");
 
     const searchIndex = new LibsqlSearchIndex({
       connection,
       searchQueryBuilder: testLibsqlSearchQueryBuilder,
     });
     const subjectHit = await searchIndex.search({ query: "Aurelia" });
-    assertEquals(
+    assert.deepStrictEqual(
       subjectHit.results?.length,
       0,
       "rebuild must not restore subject-surface matching",
@@ -228,7 +229,7 @@ Deno.test(
   },
 );
 
-Deno.test(
+test(
   "rebuildLibsqlSearchIndexFromQuads - subject IRI does not leak into keyword search (parity #22 corpus case)",
   async () => {
     const client = createClient({ url: ":memory:" });
@@ -265,15 +266,15 @@ Deno.test(
     });
 
     const subjectHit = await searchIndex.search({ query: "alice" });
-    assertExists(subjectHit.results);
-    assertEquals(
+    assert.ok(subjectHit.results);
+    assert.deepStrictEqual(
       subjectHit.results.length,
       0,
       '"alice" must not match via the subject IRI urn:alice',
     );
 
     const valueHit = await searchIndex.search({ query: "sailing" });
-    assertEquals(valueHit.results?.length, 1);
-    assertEquals(valueHit.results?.[0].subject, "urn:alice");
+    assert.deepStrictEqual(valueHit.results?.length, 1);
+    assert.deepStrictEqual(valueHit.results?.[0].subject, "urn:alice");
   },
 );

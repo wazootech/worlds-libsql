@@ -1,4 +1,5 @@
-import { assertEquals, assertExists } from "@std/assert";
+import assert from "node:assert/strict";
+import { test } from "node:test";
 import { createClient } from "@libsql/client";
 import { LibsqlSearchIndex } from "./libsql-search-index.ts";
 import { FakeEmbeddingService } from "@worlds/sdk/search-index/embedding-service";
@@ -11,7 +12,7 @@ import {
 
 // --- Tests ---
 
-Deno.test("LibsqlSearchIndex - Tracer Bullet: performs basic hybrid search and maps results", async () => {
+test("LibsqlSearchIndex - Tracer Bullet: performs basic hybrid search and maps results", async () => {
   const client = createClient({ url: ":memory:" });
   const connection = createTestLibsqlConnectionDriver(client);
   await setupLibsqlSchemaForTest(connection);
@@ -60,16 +61,16 @@ Deno.test("LibsqlSearchIndex - Tracer Bullet: performs basic hybrid search and m
 
   const response = await searchIndex.search({ query: "Alice" });
 
-  assertExists(response.results);
+  assert.ok(response.results);
   const first = response.results[0];
-  assertExists(first, "Expected at least one result.");
-  assertEquals(first.subject, "urn:alice");
-  assertEquals(first.predicate, "urn:name");
-  assertEquals(first.text, "Alice is the explorer");
-  assertEquals(typeof first.score, "number");
+  assert.ok(first, "Expected at least one result.");
+  assert.deepStrictEqual(first.subject, "urn:alice");
+  assert.deepStrictEqual(first.predicate, "urn:name");
+  assert.deepStrictEqual(first.text, "Alice is the explorer");
+  assert.deepStrictEqual(typeof first.score, "number");
 });
 
-Deno.test("LibsqlSearchIndex - Scope Inclusion: limits matches only to included subjects", async () => {
+test("LibsqlSearchIndex - Scope Inclusion: limits matches only to included subjects", async () => {
   const client = createClient({ url: ":memory:" });
   const connection = createTestLibsqlConnectionDriver(client);
   await setupLibsqlSchemaForTest(connection);
@@ -112,7 +113,7 @@ Deno.test("LibsqlSearchIndex - Scope Inclusion: limits matches only to included 
   });
 
   const base = await searchIndex.search({ query: "coding" });
-  assertEquals(
+  assert.deepStrictEqual(
     base.results?.length,
     2,
     "Baseline should find both coding references",
@@ -125,15 +126,15 @@ Deno.test("LibsqlSearchIndex - Scope Inclusion: limits matches only to included 
     },
   });
 
-  assertEquals(
+  assert.deepStrictEqual(
     filtered.results?.length,
     1,
     "Should return exactly one filtered match",
   );
-  assertEquals(filtered.results?.[0].subject, "urn:person:2");
+  assert.deepStrictEqual(filtered.results?.[0].subject, "urn:person:2");
 });
 
-Deno.test("LibsqlSearchIndex - Scope Exclusion: suppresses explicitly excluded predicates", async () => {
+test("LibsqlSearchIndex - Scope Exclusion: suppresses explicitly excluded predicates", async () => {
   const client = createClient({ url: ":memory:" });
   const connection = createTestLibsqlConnectionDriver(client);
   await setupLibsqlSchemaForTest(connection);
@@ -182,15 +183,15 @@ Deno.test("LibsqlSearchIndex - Scope Exclusion: suppresses explicitly excluded p
     },
   });
 
-  assertEquals(
+  assert.deepStrictEqual(
     response.results?.length,
     1,
     "Only non-excluded predicate should remain",
   );
-  assertEquals(response.results?.[0].predicate, "urn:allowed");
+  assert.deepStrictEqual(response.results?.[0].predicate, "urn:allowed");
 });
 
-Deno.test("LibsqlSearchIndex - Vectorless Mode: gracefully degrades to keyword-only search when embeddingService is omitted", async () => {
+test("LibsqlSearchIndex - Vectorless Mode: gracefully degrades to keyword-only search when embeddingService is omitted", async () => {
   const client = createClient({ url: ":memory:" });
   const connection = createTestLibsqlConnectionDriver(client);
   await setupLibsqlSchemaForTest(connection);
@@ -229,20 +230,20 @@ Deno.test("LibsqlSearchIndex - Vectorless Mode: gracefully degrades to keyword-o
 
   const response = await searchIndex.search({ query: "search term" });
 
-  assertExists(response.results);
-  assertEquals(
+  assert.ok(response.results);
+  assert.deepStrictEqual(
     response.results.length,
     1,
     "Should successfully locate exactly one record using raw FTS5",
   );
-  assertEquals(response.results[0].subject, "urn:target");
-  assertEquals(
+  assert.deepStrictEqual(response.results[0].subject, "urn:target");
+  assert.deepStrictEqual(
     response.results[0].text,
     "Specific search term inside target document",
   );
 });
 
-Deno.test("LibsqlSearchIndex - Stability: executes search safely when query contains special FTS5 syntax characters without throwing crashes", async () => {
+test("LibsqlSearchIndex - Stability: executes search safely when query contains special FTS5 syntax characters without throwing crashes", async () => {
   const client = createClient({ url: ":memory:" });
   const connection = createTestLibsqlConnectionDriver(client);
   await setupLibsqlSchemaForTest(connection);
@@ -280,7 +281,7 @@ Deno.test("LibsqlSearchIndex - Stability: executes search safely when query cont
     const response = await searchIndex.search({ query });
 
     // Assert that it gracefully completes search without raising SQL exceptions
-    assertExists(response.results, `Failed on query: ${query}`);
+    assert.ok(response.results, `Failed on query: ${query}`);
   }
 });
 
@@ -298,7 +299,7 @@ class WrongDimensionEmbeddingService implements EmbeddingService {
   }
 }
 
-Deno.test(
+test(
   "LibsqlSearchIndex - degrades to keyword-only search when embeddingService throws",
   async () => {
     const client = createClient({ url: ":memory:" });
@@ -326,12 +327,12 @@ Deno.test(
 
     const response = await searchIndex.search({ query: "fallback keyword" });
 
-    assertEquals(response.results?.length, 1);
-    assertEquals(response.results?.[0].subject, "urn:fallback");
+    assert.deepStrictEqual(response.results?.length, 1);
+    assert.deepStrictEqual(response.results?.[0].subject, "urn:fallback");
   },
 );
 
-Deno.test(
+test(
   "LibsqlSearchIndex - degrades when embedding dimensions do not match schema",
   async () => {
     const client = createClient({ url: ":memory:" });
@@ -361,12 +362,12 @@ Deno.test(
       query: "dimension mismatch",
     });
 
-    assertEquals(response.results?.length, 1);
-    assertEquals(response.results?.[0].subject, "urn:dim");
+    assert.deepStrictEqual(response.results?.length, 1);
+    assert.deepStrictEqual(response.results?.[0].subject, "urn:dim");
   },
 );
 
-Deno.test("LibsqlSearchIndex - respects custom result limit option", async () => {
+test("LibsqlSearchIndex - respects custom result limit option", async () => {
   const client = createClient({ url: ":memory:" });
   const connection = createTestLibsqlConnectionDriver(client);
   await setupLibsqlSchemaForTest(connection);
@@ -398,15 +399,15 @@ Deno.test("LibsqlSearchIndex - respects custom result limit option", async () =>
 
   const response = await searchIndex.search({ query: "limit keyword" });
 
-  assertExists(response.results);
-  assertEquals(
+  assert.ok(response.results);
+  assert.deepStrictEqual(
     response.results.length,
     2,
     "Custom limit should cap the number of returned rows",
   );
 });
 
-Deno.test("LibsqlSearchIndex - non-ASCII queries do not crash and match via unicode61 (parity #21)", async () => {
+test("LibsqlSearchIndex - non-ASCII queries do not crash and match via unicode61 (parity #21)", async () => {
   const client = createClient({ url: ":memory:" });
   const connection = createTestLibsqlConnectionDriver(client);
   await setupLibsqlSchemaForTest(connection);
@@ -433,11 +434,14 @@ Deno.test("LibsqlSearchIndex - non-ASCII queries do not crash and match via unic
     query: "\u0645\u0631\u062d\u0628\u0627",
   });
 
-  assertExists(response.results);
-  assertEquals(
+  assert.ok(response.results);
+  assert.deepStrictEqual(
     response.results.length,
     1,
     "Arabic query must match the Arabic chunk without crashing FTS5",
   );
-  assertEquals(response.results[0].text, "\u0645\u0631\u062d\u0628\u0627");
+  assert.deepStrictEqual(
+    response.results[0].text,
+    "\u0645\u0631\u062d\u0628\u0627",
+  );
 });

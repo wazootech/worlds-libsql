@@ -1,11 +1,15 @@
-import { assertEquals, assertRejects } from "@std/assert";
+import assert from "node:assert/strict";
+import { test } from "node:test";
 import { createClient } from "@libsql/client";
 import { DataFactory } from "n3";
 import type * as rdfjs from "@rdfjs/types";
 import { collectQuadsFromStream } from "@worlds/sdk/quad-store";
 import { LibsqlConnectionDriver } from "@/libsql/libsql-connection-driver.ts";
 import { LibsqlRdfjsStore } from "./mod.ts";
-import { testLibsqlSchemaBuilder } from "@/libsql/libsql-test-fixtures.ts";
+import {
+  rejected,
+  testLibsqlSchemaBuilder,
+} from "@/libsql/libsql-test-fixtures.ts";
 
 const { namedNode, literal, blankNode } = DataFactory;
 
@@ -66,7 +70,7 @@ async function seedQuad(
 // Phase 1: match() read tests
 // ──────────────────────────────────────────────────
 
-Deno.test("LibsqlRdfjsStore.match - empty store returns empty stream", async () => {
+test("LibsqlRdfjsStore.match - empty store returns empty stream", async () => {
   const db = createClient({ url: ":memory:" });
   await setupSchema(db);
   const store = createTestLibsqlRdfjsStore(db);
@@ -74,10 +78,10 @@ Deno.test("LibsqlRdfjsStore.match - empty store returns empty stream", async () 
   const results = await collectQuadsFromStream(
     store.match(null, null, null, null),
   );
-  assertEquals(results.length, 0);
+  assert.deepStrictEqual(results.length, 0);
 });
 
-Deno.test("LibsqlRdfjsStore.match - all four terms bound returns exact quad", async () => {
+test("LibsqlRdfjsStore.match - all four terms bound returns exact quad", async () => {
   const db = createClient({ url: ":memory:" });
   await setupSchema(db);
   await seedQuad(db, {
@@ -99,15 +103,15 @@ Deno.test("LibsqlRdfjsStore.match - all four terms bound returns exact quad", as
     namedNode("urn:graph1"),
   ));
 
-  assertEquals(results.length, 1);
-  assertEquals(results[0].subject.value, "urn:alice");
-  assertEquals(results[0].subject.termType, "NamedNode");
-  assertEquals(results[0].predicate.value, "urn:knows");
-  assertEquals(results[0].object.value, "urn:bob");
-  assertEquals(results[0].graph.value, "urn:graph1");
+  assert.deepStrictEqual(results.length, 1);
+  assert.deepStrictEqual(results[0].subject.value, "urn:alice");
+  assert.deepStrictEqual(results[0].subject.termType, "NamedNode");
+  assert.deepStrictEqual(results[0].predicate.value, "urn:knows");
+  assert.deepStrictEqual(results[0].object.value, "urn:bob");
+  assert.deepStrictEqual(results[0].graph.value, "urn:graph1");
 });
 
-Deno.test("LibsqlRdfjsStore.match - by subject only returns matching quads", async () => {
+test("LibsqlRdfjsStore.match - by subject only returns matching quads", async () => {
   const db = createClient({ url: ":memory:" });
   await setupSchema(db);
   await seedQuad(db, { id: "h1", s: "urn:a", p: "urn:p1", o: "o1" });
@@ -119,13 +123,13 @@ Deno.test("LibsqlRdfjsStore.match - by subject only returns matching quads", asy
     store.match(namedNode("urn:a"), null, null, null),
   );
 
-  assertEquals(results.length, 2);
+  assert.deepStrictEqual(results.length, 2);
   for (const quad of results) {
-    assertEquals(quad.subject.value, "urn:a");
+    assert.deepStrictEqual(quad.subject.value, "urn:a");
   }
 });
 
-Deno.test("LibsqlRdfjsStore.match - by predicate only uses PSO index", async () => {
+test("LibsqlRdfjsStore.match - by predicate only uses PSO index", async () => {
   const db = createClient({ url: ":memory:" });
   await setupSchema(db);
   await seedQuad(db, { id: "h1", s: "urn:a", p: "urn:target", o: "o1" });
@@ -137,13 +141,13 @@ Deno.test("LibsqlRdfjsStore.match - by predicate only uses PSO index", async () 
     store.match(null, namedNode("urn:target"), null, null),
   );
 
-  assertEquals(results.length, 2);
+  assert.deepStrictEqual(results.length, 2);
   for (const quad of results) {
-    assertEquals(quad.predicate.value, "urn:target");
+    assert.deepStrictEqual(quad.predicate.value, "urn:target");
   }
 });
 
-Deno.test("LibsqlRdfjsStore.match - by graph only uses GPSO index", async () => {
+test("LibsqlRdfjsStore.match - by graph only uses GPSO index", async () => {
   const db = createClient({ url: ":memory:" });
   await setupSchema(db);
   await seedQuad(db, {
@@ -168,11 +172,11 @@ Deno.test("LibsqlRdfjsStore.match - by graph only uses GPSO index", async () => 
     store.match(null, null, null, namedNode("urn:g1")),
   );
 
-  assertEquals(results.length, 1);
-  assertEquals(results[0].graph.value, "urn:g1");
+  assert.deepStrictEqual(results.length, 1);
+  assert.deepStrictEqual(results[0].graph.value, "urn:g1");
 });
 
-Deno.test("LibsqlRdfjsStore.match - by object only uses OPSG index", async () => {
+test("LibsqlRdfjsStore.match - by object only uses OPSG index", async () => {
   const db = createClient({ url: ":memory:" });
   await setupSchema(db);
   await seedQuad(db, {
@@ -195,11 +199,11 @@ Deno.test("LibsqlRdfjsStore.match - by object only uses OPSG index", async () =>
     store.match(null, null, literal("target"), null),
   );
 
-  assertEquals(results.length, 1);
-  assertEquals(results[0].object.value, "target");
+  assert.deepStrictEqual(results.length, 1);
+  assert.deepStrictEqual(results[0].object.value, "target");
 });
 
-Deno.test("LibsqlRdfjsStore.match - disambiguates NamedNode vs BlankNode with same value", async () => {
+test("LibsqlRdfjsStore.match - disambiguates NamedNode vs BlankNode with same value", async () => {
   const db = createClient({ url: ":memory:" });
   await setupSchema(db);
   await seedQuad(db, {
@@ -221,17 +225,17 @@ Deno.test("LibsqlRdfjsStore.match - disambiguates NamedNode vs BlankNode with sa
   const namedResults = await collectQuadsFromStream(
     store.match(namedNode("b1"), null, null, null),
   );
-  assertEquals(namedResults.length, 1);
-  assertEquals(namedResults[0].subject.termType, "NamedNode");
+  assert.deepStrictEqual(namedResults.length, 1);
+  assert.deepStrictEqual(namedResults[0].subject.termType, "NamedNode");
 
   const blankResults = await collectQuadsFromStream(
     store.match(blankNode("b1"), null, null, null),
   );
-  assertEquals(blankResults.length, 1);
-  assertEquals(blankResults[0].subject.termType, "BlankNode");
+  assert.deepStrictEqual(blankResults.length, 1);
+  assert.deepStrictEqual(blankResults[0].subject.termType, "BlankNode");
 });
 
-Deno.test("LibsqlRdfjsStore.match - literal with language tag", async () => {
+test("LibsqlRdfjsStore.match - literal with language tag", async () => {
   const db = createClient({ url: ":memory:" });
   await setupSchema(db);
   await seedQuad(db, {
@@ -249,14 +253,14 @@ Deno.test("LibsqlRdfjsStore.match - literal with language tag", async () => {
     store.match(namedNode("urn:s"), namedNode("urn:p"), null, null),
   );
 
-  assertEquals(results.length, 1);
-  assertEquals(results[0].object.termType, "Literal");
+  assert.deepStrictEqual(results.length, 1);
+  assert.deepStrictEqual(results[0].object.termType, "Literal");
   const lit = results[0].object as rdfjs.Literal;
-  assertEquals(lit.value, "hola");
-  assertEquals(lit.language, "es");
+  assert.deepStrictEqual(lit.value, "hola");
+  assert.deepStrictEqual(lit.language, "es");
 });
 
-Deno.test("LibsqlRdfjsStore.match - literal with datatype", async () => {
+test("LibsqlRdfjsStore.match - literal with datatype", async () => {
   const db = createClient({ url: ":memory:" });
   await setupSchema(db);
   await seedQuad(db, {
@@ -273,13 +277,16 @@ Deno.test("LibsqlRdfjsStore.match - literal with datatype", async () => {
     store.match(namedNode("urn:s"), namedNode("urn:p"), null, null),
   );
 
-  assertEquals(results.length, 1);
+  assert.deepStrictEqual(results.length, 1);
   const lit = results[0].object as rdfjs.Literal;
-  assertEquals(lit.value, "42");
-  assertEquals(lit.datatype.value, "http://www.w3.org/2001/XMLSchema#integer");
+  assert.deepStrictEqual(lit.value, "42");
+  assert.deepStrictEqual(
+    lit.datatype.value,
+    "http://www.w3.org/2001/XMLSchema#integer",
+  );
 });
 
-Deno.test("LibsqlRdfjsStore.match - DefaultGraph round-trip", async () => {
+test("LibsqlRdfjsStore.match - DefaultGraph round-trip", async () => {
   const db = createClient({ url: ":memory:" });
   await setupSchema(db);
   await seedQuad(db, {
@@ -296,11 +303,11 @@ Deno.test("LibsqlRdfjsStore.match - DefaultGraph round-trip", async () => {
     store.match(namedNode("urn:s"), null, null, null),
   );
 
-  assertEquals(results.length, 1);
-  assertEquals(results[0].graph.termType, "DefaultGraph");
+  assert.deepStrictEqual(results.length, 1);
+  assert.deepStrictEqual(results[0].graph.termType, "DefaultGraph");
 });
 
-Deno.test(
+test(
   "LibsqlRdfjsStore.match - literal object binding includes language constraints",
   async () => {
     const db = createClient({ url: ":memory:" });
@@ -332,12 +339,12 @@ Deno.test(
       ),
     );
 
-    assertEquals(results.length, 1);
-    assertEquals((results[0].object as rdfjs.Literal).language, "es");
+    assert.deepStrictEqual(results.length, 1);
+    assert.deepStrictEqual((results[0].object as rdfjs.Literal).language, "es");
   },
 );
 
-Deno.test(
+test(
   "LibsqlRdfjsStore.match - explicit xsd:string datatype uses IS NULL constraint",
   async () => {
     const db = createClient({ url: ":memory:" });
@@ -372,12 +379,12 @@ Deno.test(
       ),
     );
 
-    assertEquals(results.length, 1);
-    assertEquals(results[0].object.value, "plain");
+    assert.deepStrictEqual(results.length, 1);
+    assert.deepStrictEqual(results[0].object.value, "plain");
   },
 );
 
-Deno.test("LibsqlRdfjsStore.match - NamedNode object terms round-trip", async () => {
+test("LibsqlRdfjsStore.match - NamedNode object terms round-trip", async () => {
   const db = createClient({ url: ":memory:" });
   await setupSchema(db);
   await seedQuad(db, {
@@ -395,11 +402,11 @@ Deno.test("LibsqlRdfjsStore.match - NamedNode object terms round-trip", async ()
     store.match(null, null, namedNode("http://example.com/resource"), null),
   );
 
-  assertEquals(results.length, 1);
-  assertEquals(results[0].object.termType, "NamedNode");
+  assert.deepStrictEqual(results.length, 1);
+  assert.deepStrictEqual(results[0].object.termType, "NamedNode");
 });
 
-Deno.test("LibsqlRdfjsStore.match - BlankNode graph terms round-trip", async () => {
+test("LibsqlRdfjsStore.match - BlankNode graph terms round-trip", async () => {
   const db = createClient({ url: ":memory:" });
   await setupSchema(db);
   await seedQuad(db, {
@@ -416,11 +423,11 @@ Deno.test("LibsqlRdfjsStore.match - BlankNode graph terms round-trip", async () 
     store.match(null, null, null, blankNode("genid-graph")),
   );
 
-  assertEquals(results.length, 1);
-  assertEquals(results[0].graph.termType, "BlankNode");
+  assert.deepStrictEqual(results.length, 1);
+  assert.deepStrictEqual(results[0].graph.termType, "BlankNode");
 });
 
-Deno.test(
+test(
   "LibsqlRdfjsStore.match - propagates database errors through the result stream",
   async () => {
     const failingConnection = {
@@ -428,7 +435,7 @@ Deno.test(
     } as unknown as LibsqlConnectionDriver;
     const store = new LibsqlRdfjsStore({ connection: failingConnection });
 
-    await assertRejects(
+    await rejected(
       () => collectQuadsFromStream(store.match(null, null, null, null)),
       Error,
       "database unavailable",
@@ -436,7 +443,7 @@ Deno.test(
   },
 );
 
-Deno.test("LibsqlRdfjsStore.match - multiple named graphs are isolated", async () => {
+test("LibsqlRdfjsStore.match - multiple named graphs are isolated", async () => {
   const db = createClient({ url: ":memory:" });
   await setupSchema(db);
   await seedQuad(db, {
@@ -460,6 +467,6 @@ Deno.test("LibsqlRdfjsStore.match - multiple named graphs are isolated", async (
   const g1Results = await collectQuadsFromStream(
     store.match(null, null, null, namedNode("urn:g1")),
   );
-  assertEquals(g1Results.length, 1);
-  assertEquals(g1Results[0].object.value, "o1");
+  assert.deepStrictEqual(g1Results.length, 1);
+  assert.deepStrictEqual(g1Results[0].object.value, "o1");
 });
