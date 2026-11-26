@@ -21,8 +21,7 @@ import { generateSyntheticQuads } from "./synthetic-data.ts";
 export const selectiveSubjectIri = "urn:entity:0";
 
 /** selectiveSparqlQuery exercises a subject-bound BGP (quad index-friendly). */
-export const selectiveSparqlQuery =
-  `SELECT ?p ?o WHERE { <${selectiveSubjectIri}> ?p ?o }`;
+export const selectiveSparqlQuery = `SELECT ?p ?o WHERE { <${selectiveSubjectIri}> ?p ?o }`;
 
 /** fullScanSparqlQuery exercises an unbound triple pattern with a small result cap. */
 export const fullScanSparqlQuery =
@@ -153,9 +152,8 @@ async function createLibsqlHexastoreSparqlEngine(
     quadCount,
     "libsqlStore",
   );
-  const expectedChecksum = await computeHexastorePerfFixtureChecksum(
-    checksumInputs,
-  );
+  const expectedChecksum =
+    await computeHexastorePerfFixtureChecksum(checksumInputs);
 
   const cacheHit = await tryResolveHexastorePerfCacheHit(
     cachePaths,
@@ -279,8 +277,7 @@ export function registerSparqlHexastorePerfBenchmarks(
         }
         bench(
           {
-            name:
-              `SPARQL Hexastore Perf: ${quadCount} quads | ${queryShape} | ${backend}`,
+            name: `SPARQL Hexastore Perf: ${quadCount} quads | ${queryShape} | ${backend}`,
             group: `SPARQL Hexastore Perf (${quadCount})`,
           },
           () => fixture.client.sparql({ query }),

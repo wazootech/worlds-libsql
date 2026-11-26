@@ -22,9 +22,9 @@ export class LibsqlSchemaBuilder {
       dimensions > LIBSQL_QUERY_BUILDER_MAX_VECTOR_DIMENSIONS
     ) {
       throw new Error(
-        `vectorDimensions must be a finite integer in [1, ${LIBSQL_QUERY_BUILDER_MAX_VECTOR_DIMENSIONS}], received: ${
-          String(vectorDimensions)
-        }`,
+        `vectorDimensions must be a finite integer in [1, ${LIBSQL_QUERY_BUILDER_MAX_VECTOR_DIMENSIONS}], received: ${String(
+          vectorDimensions,
+        )}`,
       );
     }
     this.vectorDimensions = dimensions;

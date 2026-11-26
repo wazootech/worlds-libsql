@@ -71,9 +71,7 @@ export class LibsqlConnectionDriver {
    * transaction runs the given function inside an atomic write transaction
    * (@libsql/client 0.17 exposes interactive transactions, not callbacks).
    */
-  public async transaction<T>(
-    fn: (tx: SqlExecutor) => Promise<T>,
-  ): Promise<T> {
+  public async transaction<T>(fn: (tx: SqlExecutor) => Promise<T>): Promise<T> {
     const tx = await this.client.transaction("write");
     try {
       const result = await fn(tx as unknown as SqlExecutor);

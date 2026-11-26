@@ -29,9 +29,9 @@ export class LibsqlSearchQueryBuilder {
       dimensions > LIBSQL_QUERY_BUILDER_MAX_VECTOR_DIMENSIONS
     ) {
       throw new Error(
-        `vectorDimensions must be a finite integer in [1, ${LIBSQL_QUERY_BUILDER_MAX_VECTOR_DIMENSIONS}], received: ${
-          String(vectorDimensions)
-        }`,
+        `vectorDimensions must be a finite integer in [1, ${LIBSQL_QUERY_BUILDER_MAX_VECTOR_DIMENSIONS}], received: ${String(
+          vectorDimensions,
+        )}`,
       );
     }
     this.vectorDimensions = dimensions;
@@ -60,16 +60,16 @@ export class LibsqlSearchQueryBuilder {
       args.push(insertOptions.vectorJson!);
     }
     return {
-      sql:
-        `INSERT INTO chunks (quad_id, subject, predicate, graph, value, fts_value, vector)
+      sql: `INSERT INTO chunks (quad_id, subject, predicate, graph, value, fts_value, vector)
           VALUES (?, ?, ?, ?, ?, ?, ${vectorExpr})`,
       args,
     };
   }
 
-  public buildDeleteByQuadIds(
-    quadIds: string[],
-  ): { sql: string; args: string[] } {
+  public buildDeleteByQuadIds(quadIds: string[]): {
+    sql: string;
+    args: string[];
+  } {
     const placeholders = generatePlaceholders(quadIds.length);
     return {
       sql: `DELETE FROM chunks WHERE quad_id IN (${placeholders})`,
@@ -92,9 +92,8 @@ export class LibsqlSearchQueryBuilder {
       CHUNKS_TABLE_COLUMNS,
     );
 
-    const whereFilter = whereClauses.length > 0
-      ? `WHERE ${whereClauses.join(" AND ")}`
-      : "";
+    const whereFilter =
+      whereClauses.length > 0 ? `WHERE ${whereClauses.join(" AND ")}` : "";
 
     const hasVector = !!vectorJson;
     const hasQuery = !!request.query && request.query.trim().length > 0;
@@ -230,8 +229,7 @@ export class LibsqlSearchQueryBuilder {
     }
 
     return {
-      sql:
-        "SELECT NULL as subject, NULL as predicate, NULL as graph, NULL as value, 0 as combined_rank WHERE 0 = 1",
+      sql: "SELECT NULL as subject, NULL as predicate, NULL as graph, NULL as value, 0 as combined_rank WHERE 0 = 1",
       args: [],
     };
   }

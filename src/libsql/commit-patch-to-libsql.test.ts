@@ -46,41 +46,37 @@ function createLibsqlPersistHooks(
   };
 }
 
-test(
-  "createLibsqlPersistHooks - bulk quad INSERT persists expected quads row count",
-  async () => {
-    const client = createClient({ url: ":memory:" });
-    const connection = createTestLibsqlConnectionDriver(client);
-    await setupLibsqlSchemaForTest(connection);
+test("createLibsqlPersistHooks - bulk quad INSERT persists expected quads row count", async () => {
+  const client = createClient({ url: ":memory:" });
+  const connection = createTestLibsqlConnectionDriver(client);
+  await setupLibsqlSchemaForTest(connection);
 
-    const bulkQuadCount = 120;
-    const bulkQuads = Array.from({ length: bulkQuadCount }, (_, index) =>
-      quad(
-        namedNode(`urn:subject:${index}`),
-        namedNode("urn:predicate"),
-        literal(`bulk insert ${index}`),
-      ));
+  const bulkQuadCount = 120;
+  const bulkQuads = Array.from({ length: bulkQuadCount }, (_, index) =>
+    quad(
+      namedNode(`urn:subject:${index}`),
+      namedNode("urn:predicate"),
+      literal(`bulk insert ${index}`),
+    ),
+  );
 
-    const persistHooks = createLibsqlPersistHooks({
+  const persistHooks = createLibsqlPersistHooks({
+    connection,
+    searchIndexProjector: new LibsqlSearchIndexProjector({
       connection,
-      searchIndexProjector: new LibsqlSearchIndexProjector({
-        connection,
-        textSplitter: sharedTextSplitter,
-        searchQueryBuilder: testLibsqlSearchQueryBuilder,
-        embeddingService: new FakeEmbeddingService(),
-      }),
+      textSplitter: sharedTextSplitter,
       searchQueryBuilder: testLibsqlSearchQueryBuilder,
-      searchIndexOnImport: "disabled",
-    });
+      embeddingService: new FakeEmbeddingService(),
+    }),
+    searchQueryBuilder: testLibsqlSearchQueryBuilder,
+    searchIndexOnImport: "disabled",
+  });
 
-    await persistHooks.commit({ insertions: bulkQuads, deletions: [] });
+  await persistHooks.commit({ insertions: bulkQuads, deletions: [] });
 
-    const quadRows = await client.execute(
-      "SELECT COUNT(*) as total FROM quads",
-    );
-    assert.deepStrictEqual(Number(quadRows.rows[0].total), bulkQuadCount);
-  },
-);
+  const quadRows = await client.execute("SELECT COUNT(*) as total FROM quads");
+  assert.deepStrictEqual(Number(quadRows.rows[0].total), bulkQuadCount);
+});
 
 test("createLibsqlPersistHooks - isolated writes and removals commit correctly to BOTH chunks and quads", async () => {
   const client = createClient({ url: ":memory:" });
@@ -222,9 +218,7 @@ test("createLibsqlPersistHooks - stores object value as fts_value", async () => 
     deletions: [],
   });
 
-  const chunkRows = await client.execute(
-    "SELECT value, fts_value FROM chunks",
-  );
+  const chunkRows = await client.execute("SELECT value, fts_value FROM chunks");
   assert.deepStrictEqual(chunkRows.rows.length, 1);
   assert.deepStrictEqual(chunkRows.rows[0].value, "Lume");
   assert.deepStrictEqual(
@@ -234,109 +228,99 @@ test("createLibsqlPersistHooks - stores object value as fts_value", async () => 
   );
 });
 
-test(
-  "createLibsqlPersistHooks - bulk insertions beyond SQLITE_MAX_VARIABLE_NUMBER do not fail",
-  async () => {
-    const client = createClient({ url: ":memory:" });
-    const connection = createTestLibsqlConnectionDriver(client);
-    await setupLibsqlSchemaForTest(connection);
+test("createLibsqlPersistHooks - bulk insertions beyond SQLITE_MAX_VARIABLE_NUMBER do not fail", async () => {
+  const client = createClient({ url: ":memory:" });
+  const connection = createTestLibsqlConnectionDriver(client);
+  await setupLibsqlSchemaForTest(connection);
 
-    const bulkQuadCount = 2_500;
-    const bulkQuads = Array.from({ length: bulkQuadCount }, (_, index) =>
+  const bulkQuadCount = 2_500;
+  const bulkQuads = Array.from({ length: bulkQuadCount }, (_, index) =>
+    quad(
+      namedNode(`urn:bulk:entity:${index}`),
+      namedNode("urn:bulk:predicate"),
+      literal(`bulk literal ${index}`),
+    ),
+  );
+
+  const persistHooks = createLibsqlPersistHooks({
+    connection,
+    searchIndexProjector: new LibsqlSearchIndexProjector({
+      connection,
+      textSplitter: sharedTextSplitter,
+      searchQueryBuilder: testLibsqlSearchQueryBuilder,
+      embeddingService: new FakeEmbeddingService(),
+    }),
+    searchQueryBuilder: testLibsqlSearchQueryBuilder,
+    searchIndexOnImport: "disabled", // Skip search chunk building so tests are fast
+  });
+
+  await persistHooks.commit({
+    insertions: bulkQuads,
+    deletions: [],
+  });
+
+  const quadRows = await client.execute("SELECT COUNT(*) as total FROM quads");
+  assert.deepStrictEqual(Number(quadRows.rows[0].total), bulkQuadCount);
+});
+
+test("createLibsqlPersistHooks - large bulk insertions flush staged statements without stack overflow", async () => {
+  const client = createClient({ url: ":memory:" });
+  const connection = createTestLibsqlConnectionDriver(client);
+  await setupLibsqlSchemaForTest(connection);
+
+  const largeBulkQuadCount = 50_000;
+  const largeBulkQuads = Array.from(
+    { length: largeBulkQuadCount },
+    (_, index) =>
       quad(
-        namedNode(`urn:bulk:entity:${index}`),
-        namedNode("urn:bulk:predicate"),
-        literal(`bulk literal ${index}`),
-      ));
+        namedNode(`urn:large-bulk:entity:${index}`),
+        namedNode("urn:large-bulk:predicate"),
+        literal(`large bulk literal ${index}`),
+      ),
+  );
 
-    const persistHooks = createLibsqlPersistHooks({
+  const persistHooks = createLibsqlPersistHooks({
+    connection,
+    searchIndexProjector: new LibsqlSearchIndexProjector({
       connection,
-      searchIndexProjector: new LibsqlSearchIndexProjector({
-        connection,
-        textSplitter: sharedTextSplitter,
-        searchQueryBuilder: testLibsqlSearchQueryBuilder,
-        embeddingService: new FakeEmbeddingService(),
-      }),
+      textSplitter: sharedTextSplitter,
       searchQueryBuilder: testLibsqlSearchQueryBuilder,
-      searchIndexOnImport: "disabled", // Skip search chunk building so tests are fast
-    });
+      embeddingService: new FakeEmbeddingService(),
+    }),
+    searchQueryBuilder: testLibsqlSearchQueryBuilder,
+    searchIndexOnImport: "disabled", // Skip search chunk building for pure bulk quad sync test
+  });
 
-    await persistHooks.commit({
-      insertions: bulkQuads,
-      deletions: [],
-    });
+  await persistHooks.commit({
+    insertions: largeBulkQuads,
+    deletions: [],
+  });
 
-    const quadRows = await client.execute(
-      "SELECT COUNT(*) as total FROM quads",
-    );
-    assert.deepStrictEqual(Number(quadRows.rows[0].total), bulkQuadCount);
-  },
-);
+  const quadRows = await client.execute("SELECT COUNT(*) as total FROM quads");
+  assert.deepStrictEqual(Number(quadRows.rows[0].total), largeBulkQuadCount);
+});
 
-test(
-  "createLibsqlPersistHooks - large bulk insertions flush staged statements without stack overflow",
-  async () => {
-    const client = createClient({ url: ":memory:" });
-    const connection = createTestLibsqlConnectionDriver(client);
-    await setupLibsqlSchemaForTest(connection);
+test("createLibsqlPersistHooks - deferred mode auto-rebuilds at the end of import", async () => {
+  const client = createClient({ url: ":memory:" });
+  const connection = createTestLibsqlConnectionDriver(client);
+  await setupLibsqlSchemaForTest(connection);
 
-    const largeBulkQuadCount = 50_000;
-    const largeBulkQuads = Array.from(
-      { length: largeBulkQuadCount },
-      (_, index) =>
-        quad(
-          namedNode(`urn:large-bulk:entity:${index}`),
-          namedNode("urn:large-bulk:predicate"),
-          literal(`large bulk literal ${index}`),
-        ),
-    );
-
-    const persistHooks = createLibsqlPersistHooks({
+  const options = {
+    connection,
+    searchIndexProjector: new LibsqlSearchIndexProjector({
       connection,
-      searchIndexProjector: new LibsqlSearchIndexProjector({
-        connection,
-        textSplitter: sharedTextSplitter,
-        searchQueryBuilder: testLibsqlSearchQueryBuilder,
-        embeddingService: new FakeEmbeddingService(),
-      }),
+      textSplitter: sharedTextSplitter,
       searchQueryBuilder: testLibsqlSearchQueryBuilder,
-      searchIndexOnImport: "disabled", // Skip search chunk building for pure bulk quad sync test
-    });
+      embeddingService: new FakeEmbeddingService(),
+    }),
+    searchQueryBuilder: testLibsqlSearchQueryBuilder,
+    searchIndexOnImport: "deferred" as const,
+  };
 
-    await persistHooks.commit({
-      insertions: largeBulkQuads,
-      deletions: [],
-    });
+  const persistHooks = createLibsqlPersistHooks(options);
 
-    const quadRows = await client.execute(
-      "SELECT COUNT(*) as total FROM quads",
-    );
-    assert.deepStrictEqual(Number(quadRows.rows[0].total), largeBulkQuadCount);
-  },
-);
-
-test(
-  "createLibsqlPersistHooks - deferred mode auto-rebuilds at the end of import",
-  async () => {
-    const client = createClient({ url: ":memory:" });
-    const connection = createTestLibsqlConnectionDriver(client);
-    await setupLibsqlSchemaForTest(connection);
-
-    const options = {
-      connection,
-      searchIndexProjector: new LibsqlSearchIndexProjector({
-        connection,
-        textSplitter: sharedTextSplitter,
-        searchQueryBuilder: testLibsqlSearchQueryBuilder,
-        embeddingService: new FakeEmbeddingService(),
-      }),
-      searchQueryBuilder: testLibsqlSearchQueryBuilder,
-      searchIndexOnImport: "deferred" as const,
-    };
-
-    const persistHooks = createLibsqlPersistHooks(options);
-
-    await persistHooks.commit({
+  await persistHooks.commit(
+    {
       insertions: [
         quad(
           namedNode("urn:defer:entity:0"),
@@ -345,58 +329,52 @@ test(
         ),
       ],
       deletions: [],
-    }, { importMode: "merge" }); // searchIndexOnImport: deferred automatically rebuilds at the end of import
+    },
+    { importMode: "merge" },
+  ); // searchIndexOnImport: deferred automatically rebuilds at the end of import
 
-    const chunkRows = await client.execute(
-      "SELECT COUNT(*) as total FROM chunks",
-    );
-    assert.deepStrictEqual(Number(chunkRows.rows[0].total), 1);
-  },
-);
+  const chunkRows = await client.execute(
+    "SELECT COUNT(*) as total FROM chunks",
+  );
+  assert.deepStrictEqual(Number(chunkRows.rows[0].total), 1);
+});
 
-test(
-  "createLibsqlPersistHooks - importMode replace wipes prior quads before insert",
-  async () => {
-    const client = createClient({ url: ":memory:" });
-    const connection = createTestLibsqlConnectionDriver(client);
-    await setupLibsqlSchemaForTest(connection);
+test("createLibsqlPersistHooks - importMode replace wipes prior quads before insert", async () => {
+  const client = createClient({ url: ":memory:" });
+  const connection = createTestLibsqlConnectionDriver(client);
+  await setupLibsqlSchemaForTest(connection);
 
-    const persistHooks = createLibsqlPersistHooks({
+  const persistHooks = createLibsqlPersistHooks({
+    connection,
+    searchIndexProjector: new LibsqlSearchIndexProjector({
       connection,
-      searchIndexProjector: new LibsqlSearchIndexProjector({
-        connection,
-        textSplitter: sharedTextSplitter,
-        searchQueryBuilder: testLibsqlSearchQueryBuilder,
-        embeddingService: new FakeEmbeddingService(),
-      }),
+      textSplitter: sharedTextSplitter,
       searchQueryBuilder: testLibsqlSearchQueryBuilder,
-      searchIndexOnImport: "disabled",
-    });
+      embeddingService: new FakeEmbeddingService(),
+    }),
+    searchQueryBuilder: testLibsqlSearchQueryBuilder,
+    searchIndexOnImport: "disabled",
+  });
 
-    const priorQuad = quad(
-      namedNode("urn:replace:prior"),
-      namedNode("urn:predicate"),
-      literal("prior"),
-    );
-    const replacementQuad = quad(
-      namedNode("urn:replace:new"),
-      namedNode("urn:predicate"),
-      literal("new"),
-    );
+  const priorQuad = quad(
+    namedNode("urn:replace:prior"),
+    namedNode("urn:predicate"),
+    literal("prior"),
+  );
+  const replacementQuad = quad(
+    namedNode("urn:replace:new"),
+    namedNode("urn:predicate"),
+    literal("new"),
+  );
 
-    await persistHooks.commit(
-      { insertions: [priorQuad], deletions: [] },
-    );
+  await persistHooks.commit({ insertions: [priorQuad], deletions: [] });
 
-    await persistHooks.commit(
-      { insertions: [replacementQuad], deletions: [] },
-      { importMode: "replace" },
-    );
+  await persistHooks.commit(
+    { insertions: [replacementQuad], deletions: [] },
+    { importMode: "replace" },
+  );
 
-    const quadRows = await client.execute(
-      "SELECT s FROM quads ORDER BY s ASC",
-    );
-    assert.deepStrictEqual(quadRows.rows.length, 1);
-    assert.deepStrictEqual(String(quadRows.rows[0].s), "urn:replace:new");
-  },
-);
+  const quadRows = await client.execute("SELECT s FROM quads ORDER BY s ASC");
+  assert.deepStrictEqual(quadRows.rows.length, 1);
+  assert.deepStrictEqual(String(quadRows.rows[0].s), "urn:replace:new");
+});

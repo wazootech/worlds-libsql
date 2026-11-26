@@ -52,229 +52,211 @@ const AURELIA = "http://example.org/Aurelia";
 const HAS_CAPITAL = "http://example.org/hasCapital";
 const RDFS_LABEL = "http://www.w3.org/2000/01/rdf-schema#label";
 
-test(
-  "rebuildLibsqlSearchIndexFromQuads - fts_value is object text only; subject IRIs are not searchable",
-  async () => {
-    const client = createClient({ url: ":memory:" });
-    const connection = createTestLibsqlConnectionDriver(client);
-    await setupLibsqlSchemaForTest(connection);
+test("rebuildLibsqlSearchIndexFromQuads - fts_value is object text only; subject IRIs are not searchable", async () => {
+  const client = createClient({ url: ":memory:" });
+  const connection = createTestLibsqlConnectionDriver(client);
+  await setupLibsqlSchemaForTest(connection);
 
-    const persistHooks = createLibsqlPersistHooks({
-      connection,
-      searchIndexProjector: new LibsqlSearchIndexProjector({
-        connection,
-        textSplitter: sharedTextSplitter,
-        searchQueryBuilder: testLibsqlSearchQueryBuilder,
-        embeddingService: new FakeEmbeddingService(),
-      }),
-      searchQueryBuilder: testLibsqlSearchQueryBuilder,
-    });
-
-    const capitalQuad = quad(
-      namedNode(AURELIA),
-      namedNode(HAS_CAPITAL),
-      literal("Lume"),
-    );
-
-    await persistHooks.commit({
-      insertions: [capitalQuad],
-      deletions: [],
-    });
-
-    const chunkRows = await client.execute(
-      "SELECT value, fts_value FROM chunks",
-    );
-    assert.deepStrictEqual(chunkRows.rows[0].value, "Lume");
-    assert.deepStrictEqual(
-      String(chunkRows.rows[0].fts_value),
-      "Lume",
-      "fts_value must index the object text only",
-    );
-
-    const searchIndex = new LibsqlSearchIndex({
-      connection,
-      searchQueryBuilder: testLibsqlSearchQueryBuilder,
-    });
-
-    const subjectHit = await searchIndex.search({ query: "Aurelia" });
-    assert.deepStrictEqual(
-      subjectHit.results?.length,
-      0,
-      "subject IRI must never match keyword search",
-    );
-
-    const valueHit = await searchIndex.search({ query: "Lume" });
-    assert.deepStrictEqual(valueHit.results?.length, 1);
-    assert.deepStrictEqual(valueHit.results?.[0].subject, AURELIA);
-    assert.deepStrictEqual(valueHit.results?.[0].text, "Lume");
-  },
-);
-
-test(
-  "rebuildLibsqlSearchIndexFromQuads - label quads match by their own text, not as aliases for sibling facts",
-  async () => {
-    const client = createClient({ url: ":memory:" });
-    const connection = createTestLibsqlConnectionDriver(client);
-    await setupLibsqlSchemaForTest(connection);
-
-    const persistHooks = createLibsqlPersistHooks({
-      connection,
-      searchIndexProjector: new LibsqlSearchIndexProjector({
-        connection,
-        textSplitter: sharedTextSplitter,
-        searchQueryBuilder: testLibsqlSearchQueryBuilder,
-        embeddingService: new FakeEmbeddingService(),
-      }),
-      searchQueryBuilder: testLibsqlSearchQueryBuilder,
-    });
-
-    const capitalQuad = quad(
-      namedNode(AURELIA),
-      namedNode(HAS_CAPITAL),
-      literal("Lume"),
-    );
-    const labelQuad = quad(
-      namedNode(AURELIA),
-      namedNode(RDFS_LABEL),
-      literal("Kingdom of Aurelia"),
-    );
-
-    await persistHooks.commit({
-      insertions: [capitalQuad, labelQuad],
-      deletions: [],
-    });
-
-    const searchIndex = new LibsqlSearchIndex({
-      connection,
-      searchQueryBuilder: testLibsqlSearchQueryBuilder,
-    });
-
-    const labelHit = await searchIndex.search({ query: "Kingdom" });
-    assert.deepStrictEqual(labelHit.results?.length, 1);
-    assert.deepStrictEqual(labelHit.results?.[0].predicate, RDFS_LABEL);
-    assert.deepStrictEqual(
-      labelHit.results?.some((result) => result.predicate === HAS_CAPITAL),
-      false,
-      "label text must not fan out to sibling fact chunks",
-    );
-
-    const capitalHit = await searchIndex.search({ query: "Lume" });
-    assert.deepStrictEqual(capitalHit.results?.length, 1);
-    assert.deepStrictEqual(capitalHit.results?.[0].predicate, HAS_CAPITAL);
-  },
-);
-
-test(
-  "rebuildLibsqlSearchIndexFromQuads - rebuild refreshes fts_value after schema-style reindex",
-  async () => {
-    const client = createClient({ url: ":memory:" });
-    const connection = createTestLibsqlConnectionDriver(client);
-    await setupLibsqlSchemaForTest(connection);
-
-    const persistHooks = createLibsqlPersistHooks({
-      connection,
-      searchIndexProjector: new LibsqlSearchIndexProjector({
-        connection,
-        textSplitter: sharedTextSplitter,
-        searchQueryBuilder: testLibsqlSearchQueryBuilder,
-        embeddingService: new FakeEmbeddingService(),
-      }),
-      searchQueryBuilder: testLibsqlSearchQueryBuilder,
-    });
-
-    const capitalQuad = quad(
-      namedNode(AURELIA),
-      namedNode(HAS_CAPITAL),
-      literal("Lume"),
-    );
-
-    await persistHooks.commit({
-      insertions: [capitalQuad],
-      deletions: [],
-    });
-
-    await client.execute({
-      sql: "UPDATE chunks SET fts_value = ? WHERE predicate = ?",
-      args: ["Lume", HAS_CAPITAL],
-    });
-    await client.execute(
-      testLibsqlSchemaBuilder.buildRebuildChunksFtsIndex(),
-    );
-
-    const rebuildResult = await rebuildLibsqlSearchIndexFromQuads({
+  const persistHooks = createLibsqlPersistHooks({
+    connection,
+    searchIndexProjector: new LibsqlSearchIndexProjector({
       connection,
       textSplitter: sharedTextSplitter,
       searchQueryBuilder: testLibsqlSearchQueryBuilder,
-    });
+      embeddingService: new FakeEmbeddingService(),
+    }),
+    searchQueryBuilder: testLibsqlSearchQueryBuilder,
+  });
 
-    assert.deepStrictEqual(rebuildResult.processedQuadCount, 1);
-    assert.deepStrictEqual(rebuildResult.chunkRowCount, 1);
+  const capitalQuad = quad(
+    namedNode(AURELIA),
+    namedNode(HAS_CAPITAL),
+    literal("Lume"),
+  );
 
-    const chunkRows = await client.execute(
-      "SELECT value, fts_value FROM chunks",
-    );
-    assert.deepStrictEqual(chunkRows.rows[0].value, "Lume");
-    assert.deepStrictEqual(String(chunkRows.rows[0].fts_value), "Lume");
+  await persistHooks.commit({
+    insertions: [capitalQuad],
+    deletions: [],
+  });
 
-    const searchIndex = new LibsqlSearchIndex({
+  const chunkRows = await client.execute("SELECT value, fts_value FROM chunks");
+  assert.deepStrictEqual(chunkRows.rows[0].value, "Lume");
+  assert.deepStrictEqual(
+    String(chunkRows.rows[0].fts_value),
+    "Lume",
+    "fts_value must index the object text only",
+  );
+
+  const searchIndex = new LibsqlSearchIndex({
+    connection,
+    searchQueryBuilder: testLibsqlSearchQueryBuilder,
+  });
+
+  const subjectHit = await searchIndex.search({ query: "Aurelia" });
+  assert.deepStrictEqual(
+    subjectHit.results?.length,
+    0,
+    "subject IRI must never match keyword search",
+  );
+
+  const valueHit = await searchIndex.search({ query: "Lume" });
+  assert.deepStrictEqual(valueHit.results?.length, 1);
+  assert.deepStrictEqual(valueHit.results?.[0].subject, AURELIA);
+  assert.deepStrictEqual(valueHit.results?.[0].text, "Lume");
+});
+
+test("rebuildLibsqlSearchIndexFromQuads - label quads match by their own text, not as aliases for sibling facts", async () => {
+  const client = createClient({ url: ":memory:" });
+  const connection = createTestLibsqlConnectionDriver(client);
+  await setupLibsqlSchemaForTest(connection);
+
+  const persistHooks = createLibsqlPersistHooks({
+    connection,
+    searchIndexProjector: new LibsqlSearchIndexProjector({
       connection,
+      textSplitter: sharedTextSplitter,
       searchQueryBuilder: testLibsqlSearchQueryBuilder,
-    });
-    const subjectHit = await searchIndex.search({ query: "Aurelia" });
-    assert.deepStrictEqual(
-      subjectHit.results?.length,
-      0,
-      "rebuild must not restore subject-surface matching",
-    );
-  },
-);
+      embeddingService: new FakeEmbeddingService(),
+    }),
+    searchQueryBuilder: testLibsqlSearchQueryBuilder,
+  });
 
-test(
-  "rebuildLibsqlSearchIndexFromQuads - subject IRI does not leak into keyword search (parity #22 corpus case)",
-  async () => {
-    const client = createClient({ url: ":memory:" });
-    const connection = createTestLibsqlConnectionDriver(client);
-    await setupLibsqlSchemaForTest(connection);
+  const capitalQuad = quad(
+    namedNode(AURELIA),
+    namedNode(HAS_CAPITAL),
+    literal("Lume"),
+  );
+  const labelQuad = quad(
+    namedNode(AURELIA),
+    namedNode(RDFS_LABEL),
+    literal("Kingdom of Aurelia"),
+  );
 
-    const persistHooks = createLibsqlPersistHooks({
+  await persistHooks.commit({
+    insertions: [capitalQuad, labelQuad],
+    deletions: [],
+  });
+
+  const searchIndex = new LibsqlSearchIndex({
+    connection,
+    searchQueryBuilder: testLibsqlSearchQueryBuilder,
+  });
+
+  const labelHit = await searchIndex.search({ query: "Kingdom" });
+  assert.deepStrictEqual(labelHit.results?.length, 1);
+  assert.deepStrictEqual(labelHit.results?.[0].predicate, RDFS_LABEL);
+  assert.deepStrictEqual(
+    labelHit.results?.some((result) => result.predicate === HAS_CAPITAL),
+    false,
+    "label text must not fan out to sibling fact chunks",
+  );
+
+  const capitalHit = await searchIndex.search({ query: "Lume" });
+  assert.deepStrictEqual(capitalHit.results?.length, 1);
+  assert.deepStrictEqual(capitalHit.results?.[0].predicate, HAS_CAPITAL);
+});
+
+test("rebuildLibsqlSearchIndexFromQuads - rebuild refreshes fts_value after schema-style reindex", async () => {
+  const client = createClient({ url: ":memory:" });
+  const connection = createTestLibsqlConnectionDriver(client);
+  await setupLibsqlSchemaForTest(connection);
+
+  const persistHooks = createLibsqlPersistHooks({
+    connection,
+    searchIndexProjector: new LibsqlSearchIndexProjector({
       connection,
-      searchIndexProjector: new LibsqlSearchIndexProjector({
-        connection,
-        textSplitter: sharedTextSplitter,
-        searchQueryBuilder: testLibsqlSearchQueryBuilder,
-        embeddingService: new FakeEmbeddingService(),
-      }),
+      textSplitter: sharedTextSplitter,
       searchQueryBuilder: testLibsqlSearchQueryBuilder,
-    });
+      embeddingService: new FakeEmbeddingService(),
+    }),
+    searchQueryBuilder: testLibsqlSearchQueryBuilder,
+  });
 
-    // The exact shape that surfaced #22: quad whose subject urn:alice
-    // must not make the row match a query for "alice".
-    const sailingQuad = quad(
-      namedNode("urn:alice"),
-      namedNode("urn:activity"),
-      literal("sailing", "en"),
-    );
+  const capitalQuad = quad(
+    namedNode(AURELIA),
+    namedNode(HAS_CAPITAL),
+    literal("Lume"),
+  );
 
-    await persistHooks.commit({
-      insertions: [sailingQuad],
-      deletions: [],
-    });
+  await persistHooks.commit({
+    insertions: [capitalQuad],
+    deletions: [],
+  });
 
-    const searchIndex = new LibsqlSearchIndex({
+  await client.execute({
+    sql: "UPDATE chunks SET fts_value = ? WHERE predicate = ?",
+    args: ["Lume", HAS_CAPITAL],
+  });
+  await client.execute(testLibsqlSchemaBuilder.buildRebuildChunksFtsIndex());
+
+  const rebuildResult = await rebuildLibsqlSearchIndexFromQuads({
+    connection,
+    textSplitter: sharedTextSplitter,
+    searchQueryBuilder: testLibsqlSearchQueryBuilder,
+  });
+
+  assert.deepStrictEqual(rebuildResult.processedQuadCount, 1);
+  assert.deepStrictEqual(rebuildResult.chunkRowCount, 1);
+
+  const chunkRows = await client.execute("SELECT value, fts_value FROM chunks");
+  assert.deepStrictEqual(chunkRows.rows[0].value, "Lume");
+  assert.deepStrictEqual(String(chunkRows.rows[0].fts_value), "Lume");
+
+  const searchIndex = new LibsqlSearchIndex({
+    connection,
+    searchQueryBuilder: testLibsqlSearchQueryBuilder,
+  });
+  const subjectHit = await searchIndex.search({ query: "Aurelia" });
+  assert.deepStrictEqual(
+    subjectHit.results?.length,
+    0,
+    "rebuild must not restore subject-surface matching",
+  );
+});
+
+test("rebuildLibsqlSearchIndexFromQuads - subject IRI does not leak into keyword search (parity #22 corpus case)", async () => {
+  const client = createClient({ url: ":memory:" });
+  const connection = createTestLibsqlConnectionDriver(client);
+  await setupLibsqlSchemaForTest(connection);
+
+  const persistHooks = createLibsqlPersistHooks({
+    connection,
+    searchIndexProjector: new LibsqlSearchIndexProjector({
       connection,
+      textSplitter: sharedTextSplitter,
       searchQueryBuilder: testLibsqlSearchQueryBuilder,
-    });
+      embeddingService: new FakeEmbeddingService(),
+    }),
+    searchQueryBuilder: testLibsqlSearchQueryBuilder,
+  });
 
-    const subjectHit = await searchIndex.search({ query: "alice" });
-    assert.ok(subjectHit.results);
-    assert.deepStrictEqual(
-      subjectHit.results.length,
-      0,
-      '"alice" must not match via the subject IRI urn:alice',
-    );
+  // The exact shape that surfaced #22: quad whose subject urn:alice
+  // must not make the row match a query for "alice".
+  const sailingQuad = quad(
+    namedNode("urn:alice"),
+    namedNode("urn:activity"),
+    literal("sailing", "en"),
+  );
 
-    const valueHit = await searchIndex.search({ query: "sailing" });
-    assert.deepStrictEqual(valueHit.results?.length, 1);
-    assert.deepStrictEqual(valueHit.results?.[0].subject, "urn:alice");
-  },
-);
+  await persistHooks.commit({
+    insertions: [sailingQuad],
+    deletions: [],
+  });
+
+  const searchIndex = new LibsqlSearchIndex({
+    connection,
+    searchQueryBuilder: testLibsqlSearchQueryBuilder,
+  });
+
+  const subjectHit = await searchIndex.search({ query: "alice" });
+  assert.ok(subjectHit.results);
+  assert.deepStrictEqual(
+    subjectHit.results.length,
+    0,
+    '"alice" must not match via the subject IRI urn:alice',
+  );
+
+  const valueHit = await searchIndex.search({ query: "sailing" });
+  assert.deepStrictEqual(valueHit.results?.length, 1);
+  assert.deepStrictEqual(valueHit.results?.[0].subject, "urn:alice");
+});

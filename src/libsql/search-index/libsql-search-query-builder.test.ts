@@ -10,10 +10,7 @@ test("sanitizeFtsQuery - strips common stopwords while preserving content words"
 });
 
 test("sanitizeFtsQuery - preserves original tokens when the query is stopword-only", () => {
-  assert.deepStrictEqual(
-    sanitizeFtsQuery("what is the"),
-    `"what" "is" "the"`,
-  );
+  assert.deepStrictEqual(sanitizeFtsQuery("what is the"), `"what" "is" "the"`);
 });
 
 test("sanitizeFtsQuery - keeps Unicode letters (Arabic) for the unicode61 tokenizer", () => {

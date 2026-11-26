@@ -48,8 +48,7 @@ async function seedQuad(
   options: SeedQuadOptions,
 ): Promise<void> {
   await db.execute({
-    sql:
-      `INSERT INTO quads (id, s, s_type, p, o, o_type, o_datatype, o_lang, g, g_type)
+    sql: `INSERT INTO quads (id, s, s_type, p, o, o_type, o_datatype, o_lang, g, g_type)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     args: [
       options.id,
@@ -96,12 +95,14 @@ test("LibsqlRdfjsStore.match - all four terms bound returns exact quad", async (
   });
   const store = createTestLibsqlRdfjsStore(db);
 
-  const results = await collectQuadsFromStream(store.match(
-    namedNode("urn:alice"),
-    namedNode("urn:knows"),
-    namedNode("urn:bob"),
-    namedNode("urn:graph1"),
-  ));
+  const results = await collectQuadsFromStream(
+    store.match(
+      namedNode("urn:alice"),
+      namedNode("urn:knows"),
+      namedNode("urn:bob"),
+      namedNode("urn:graph1"),
+    ),
+  );
 
   assert.deepStrictEqual(results.length, 1);
   assert.deepStrictEqual(results[0].subject.value, "urn:alice");
@@ -307,82 +308,73 @@ test("LibsqlRdfjsStore.match - DefaultGraph round-trip", async () => {
   assert.deepStrictEqual(results[0].graph.termType, "DefaultGraph");
 });
 
-test(
-  "LibsqlRdfjsStore.match - literal object binding includes language constraints",
-  async () => {
-    const db = createClient({ url: ":memory:" });
-    await setupSchema(db);
-    await seedQuad(db, {
-      id: "h1",
-      s: "urn:s",
-      p: "urn:p",
-      o: "hola",
-      o_type: "Literal",
-      o_lang: "es",
-    });
-    await seedQuad(db, {
-      id: "h2",
-      s: "urn:s2",
-      p: "urn:p",
-      o: "hello",
-      o_type: "Literal",
-      o_lang: "en",
-    });
-    const store = createTestLibsqlRdfjsStore(db);
+test("LibsqlRdfjsStore.match - literal object binding includes language constraints", async () => {
+  const db = createClient({ url: ":memory:" });
+  await setupSchema(db);
+  await seedQuad(db, {
+    id: "h1",
+    s: "urn:s",
+    p: "urn:p",
+    o: "hola",
+    o_type: "Literal",
+    o_lang: "es",
+  });
+  await seedQuad(db, {
+    id: "h2",
+    s: "urn:s2",
+    p: "urn:p",
+    o: "hello",
+    o_type: "Literal",
+    o_lang: "en",
+  });
+  const store = createTestLibsqlRdfjsStore(db);
 
-    const results = await collectQuadsFromStream(
-      store.match(
-        namedNode("urn:s"),
-        namedNode("urn:p"),
-        literal("hola", "es"),
-        null,
-      ),
-    );
+  const results = await collectQuadsFromStream(
+    store.match(
+      namedNode("urn:s"),
+      namedNode("urn:p"),
+      literal("hola", "es"),
+      null,
+    ),
+  );
 
-    assert.deepStrictEqual(results.length, 1);
-    assert.deepStrictEqual((results[0].object as rdfjs.Literal).language, "es");
-  },
-);
+  assert.deepStrictEqual(results.length, 1);
+  assert.deepStrictEqual((results[0].object as rdfjs.Literal).language, "es");
+});
 
-test(
-  "LibsqlRdfjsStore.match - explicit xsd:string datatype uses IS NULL constraint",
-  async () => {
-    const db = createClient({ url: ":memory:" });
-    await setupSchema(db);
-    await seedQuad(db, {
-      id: "h1",
-      s: "urn:s",
-      p: "urn:p",
-      o: "plain",
-      o_type: "Literal",
-      o_datatype: null,
-    });
-    await seedQuad(db, {
-      id: "h2",
-      s: "urn:s",
-      p: "urn:p",
-      o: "42",
-      o_type: "Literal",
-      o_datatype: "http://www.w3.org/2001/XMLSchema#integer",
-    });
-    const store = createTestLibsqlRdfjsStore(db);
+test("LibsqlRdfjsStore.match - explicit xsd:string datatype uses IS NULL constraint", async () => {
+  const db = createClient({ url: ":memory:" });
+  await setupSchema(db);
+  await seedQuad(db, {
+    id: "h1",
+    s: "urn:s",
+    p: "urn:p",
+    o: "plain",
+    o_type: "Literal",
+    o_datatype: null,
+  });
+  await seedQuad(db, {
+    id: "h2",
+    s: "urn:s",
+    p: "urn:p",
+    o: "42",
+    o_type: "Literal",
+    o_datatype: "http://www.w3.org/2001/XMLSchema#integer",
+  });
+  const store = createTestLibsqlRdfjsStore(db);
 
-    const results = await collectQuadsFromStream(
-      store.match(
-        namedNode("urn:s"),
-        namedNode("urn:p"),
-        literal(
-          "plain",
-          namedNode("http://www.w3.org/2001/XMLSchema#string"),
-        ),
-        null,
-      ),
-    );
+  const results = await collectQuadsFromStream(
+    store.match(
+      namedNode("urn:s"),
+      namedNode("urn:p"),
+      literal("plain", namedNode("http://www.w3.org/2001/XMLSchema#string")),
+      null,
+    ),
+  );
 
-    assert.deepStrictEqual(results.length, 1);
-    assert.deepStrictEqual(results[0].object.value, "plain");
-  },
-);
+  assert.deepStrictEqual(results.length, 1);
+  assert.deepStrictEqual(results[0].object.value, "plain");
+});
 
 test("LibsqlRdfjsStore.match - NamedNode object terms round-trip", async () => {
   const db = createClient({ url: ":memory:" });
@@ -427,21 +419,18 @@ test("LibsqlRdfjsStore.match - BlankNode graph terms round-trip", async () => {
   assert.deepStrictEqual(results[0].graph.termType, "BlankNode");
 });
 
-test(
-  "LibsqlRdfjsStore.match - propagates database errors through the result stream",
-  async () => {
-    const failingConnection = {
-      execute: () => Promise.reject(new Error("database unavailable")),
-    } as unknown as LibsqlConnectionDriver;
-    const store = new LibsqlRdfjsStore({ connection: failingConnection });
+test("LibsqlRdfjsStore.match - propagates database errors through the result stream", async () => {
+  const failingConnection = {
+    execute: () => Promise.reject(new Error("database unavailable")),
+  } as unknown as LibsqlConnectionDriver;
+  const store = new LibsqlRdfjsStore({ connection: failingConnection });
 
-    await rejected(
-      () => collectQuadsFromStream(store.match(null, null, null, null)),
-      Error,
-      "database unavailable",
-    );
-  },
-);
+  await rejected(
+    () => collectQuadsFromStream(store.match(null, null, null, null)),
+    Error,
+    "database unavailable",
+  );
+});
 
 test("LibsqlRdfjsStore.match - multiple named graphs are isolated", async () => {
   const db = createClient({ url: ":memory:" });

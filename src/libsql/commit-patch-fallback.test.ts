@@ -11,7 +11,7 @@ import {
 import { rejected } from "@/libsql/libsql-test-fixtures.ts";
 
 const FACTS = ["a", "b", "c", "d", "e", "f"].map((id) =>
-  fact(id, `text for ${id}`)
+  fact(id, `text for ${id}`),
 );
 
 /** commitSize is how many statements a commit of FACTS holds. */
@@ -41,8 +41,7 @@ async function commitFacts(
   const tx = openStore(connection, {
     maxAtomicStatements,
     maxWriteBatchSize: 3,
-  })
-    .createTransaction();
+  }).createTransaction();
   tx.addQuads(FACTS);
   await tx.commit();
 }
@@ -66,8 +65,14 @@ test("a commit over maxAtomicStatements is chunked by maxWriteBatchSize", async 
   await commitFacts(connection, total - 1);
 
   assert.deepStrictEqual(sizes.length, Math.ceil(total / 3));
-  assert.deepStrictEqual(sizes.every((size) => size <= 3), true);
-  assert.deepStrictEqual(sizes.reduce((sum, size) => sum + size, 0), total);
+  assert.deepStrictEqual(
+    sizes.every((size) => size <= 3),
+    true,
+  );
+  assert.deepStrictEqual(
+    sizes.reduce((sum, size) => sum + size, 0),
+    total,
+  );
   assert.deepStrictEqual(await count(client, "quads"), FACTS.length);
   assert.deepStrictEqual(await count(client, "chunks"), FACTS.length);
 });
@@ -112,12 +117,15 @@ test("fallback: if cleanup also fails, both errors surface and the partial write
   const error = await rejected(() => commitFacts(connection, 1));
 
   assert(error instanceof AggregateError);
-  assert.deepStrictEqual(error.errors.map((e: Error) => e.message), [
-    "failed to execute sync batch: TURSO_FAIL_2",
-    "failed to execute sync batch: TURSO_FAIL_3",
-  ]);
   assert.deepStrictEqual(
-    await count(client, "quads") > 1,
+    error.errors.map((e: Error) => e.message),
+    [
+      "failed to execute sync batch: TURSO_FAIL_2",
+      "failed to execute sync batch: TURSO_FAIL_3",
+    ],
+  );
+  assert.deepStrictEqual(
+    (await count(client, "quads")) > 1,
     true,
     "documented inconsistency",
   );
@@ -152,7 +160,7 @@ test("replace import: atomic path keeps the old graph on failure, fallback does 
     openStore(atomic.connection).import({
       mode: "replace",
       source: { kind: "quads", quads: FACTS },
-    })
+    }),
   );
   assert.deepStrictEqual(
     await count(atomic.client, "quads"),
@@ -167,7 +175,7 @@ test("replace import: atomic path keeps the old graph on failure, fallback does 
     openStore(chunked.connection, {
       maxAtomicStatements: 1,
       maxWriteBatchSize: 3,
-    }).import({ mode: "replace", source: { kind: "quads", quads: FACTS } })
+    }).import({ mode: "replace", source: { kind: "quads", quads: FACTS } }),
   );
   assert.deepStrictEqual(
     await count(chunked.client, "quads"),
@@ -181,8 +189,10 @@ test("replace import over the threshold still swaps the graph when every batch s
   const { client, connection } = await seeded();
   const sizes = recordBatches(client);
 
-  await openStore(connection, { maxAtomicStatements: 1, maxWriteBatchSize: 3 })
-    .import({ mode: "replace", source: { kind: "quads", quads: FACTS } });
+  await openStore(connection, {
+    maxAtomicStatements: 1,
+    maxWriteBatchSize: 3,
+  }).import({ mode: "replace", source: { kind: "quads", quads: FACTS } });
 
   assert.deepStrictEqual(sizes.length > 1, true);
   assert.deepStrictEqual(await count(client, "quads"), FACTS.length);

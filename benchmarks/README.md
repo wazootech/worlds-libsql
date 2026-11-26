@@ -90,7 +90,6 @@ Not part of `bun run bench` — preload can take a long time and needs ample RAM
 bun run bench:sparql-perf-large-libsql
 ```
 
-
 Module load logs `console.time` lines per scale. Only `sparqlEngine.execute()`
 is timed by the mitata harness (`shared/bench.ts`).
 

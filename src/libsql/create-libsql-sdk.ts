@@ -42,7 +42,8 @@ export async function createLibsqlWorldsSdk(
 
   await initializeLibsqlSchema(connection, schema);
 
-  const textSplitter = options.textSplitter ??
+  const textSplitter =
+    options.textSplitter ??
     new RecursiveCharacterTextSplitter({ chunkSize: 1000 });
 
   const searchIndex = new LibsqlSearchIndex({

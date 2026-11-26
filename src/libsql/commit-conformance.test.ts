@@ -46,9 +46,12 @@ interface LaterWriteInjection {
   failedAt: number;
 }
 
-async function createSubject(
-  { searchIndexOnImport, embeddingService }: CommitConformanceCreateOptions,
-): Promise<CommitConformanceSubject & { injections: LaterWriteInjection[] }> {
+async function createSubject({
+  searchIndexOnImport,
+  embeddingService,
+}: CommitConformanceCreateOptions): Promise<
+  CommitConformanceSubject & { injections: LaterWriteInjection[] }
+> {
   const { client, connection } = await openDatabase();
   let rebuilds = 0;
   let failArmed = false;
@@ -63,11 +66,12 @@ async function createSubject(
       typeof statement === "string"
         ? statement
         : Array.isArray(statement)
-        ? statement[0]
-        : statement.sql
+          ? statement[0]
+          : statement.sql,
     );
     if (
-      sql.includes("DELETE FROM chunks") && !sql.includes("DELETE FROM quads")
+      sql.includes("DELETE FROM chunks") &&
+      !sql.includes("DELETE FROM quads")
     ) {
       rebuilds++;
     }
@@ -81,20 +85,20 @@ async function createSubject(
       // the same batch, which is what an atomic backend must roll back.
       const statements = args[0] as InStatement[];
       const failedAt = statements.findIndex((statement) =>
-        sqlOf(statement).startsWith("INSERT INTO chunks")
+        sqlOf(statement).startsWith("INSERT INTO chunks"),
       );
       if (failedAt >= 0) {
         laterArmed = false;
         injections.push({
           statements: statements.map((statement) =>
-            sqlOf(statement).slice(0, 40)
+            sqlOf(statement).slice(0, 40),
           ),
           failedAt,
         });
         const broken = statements.map((statement, index) =>
-          index === failedAt ? BROKEN_CHUNK_SQL : statement
+          index === failedAt ? BROKEN_CHUNK_SQL : statement,
         );
-        return realBatch(broken, ...args.slice(1) as [never]);
+        return realBatch(broken, ...(args.slice(1) as [never]));
       }
     }
     return realBatch(...args);
@@ -115,9 +119,9 @@ async function createSubject(
       await transaction.commit(context);
     },
     storedQuads: () =>
-      collectQuadsFromStream(
-        reader.match(null, null, null, null),
-      ) as Promise<rdfjs.Quad[]>,
+      collectQuadsFromStream(reader.match(null, null, null, null)) as Promise<
+        rdfjs.Quad[]
+      >,
     chunkedQuadIds: async () => {
       const result = await client.execute("SELECT quad_id FROM chunks");
       return result.rows.map((row) => String(row.quad_id));
@@ -138,7 +142,7 @@ test("LibsqlQuadStore passes the shared commit conformance suite", async () => {
     create: createSubject,
   });
   const failures = report.results.flatMap((result) =>
-    result.failures.map((failure) => `${result.name}: ${failure}`)
+    result.failures.map((failure) => `${result.name}: ${failure}`),
   );
   assert(report.ok, failures.join("\n"));
 });
@@ -149,22 +153,27 @@ test("failLaterWrite fails a chunk-row statement after the quad inserts in the s
     embeddingService: new FakeEmbeddingService(),
   });
   subject.failLaterWrite!();
-  const error = await subject.commit(
-    {
-      insertions: [
-        quad(namedNode("urn:a"), namedNode("urn:p"), literal("first note")),
-        quad(namedNode("urn:b"), namedNode("urn:p"), literal("second note")),
-      ],
-      deletions: [],
-    },
-    undefined,
-  ).then(() => undefined, (cause: unknown) => cause);
+  const error = await subject
+    .commit(
+      {
+        insertions: [
+          quad(namedNode("urn:a"), namedNode("urn:p"), literal("first note")),
+          quad(namedNode("urn:b"), namedNode("urn:p"), literal("second note")),
+        ],
+        deletions: [],
+      },
+      undefined,
+    )
+    .then(
+      () => undefined,
+      (cause: unknown) => cause,
+    );
   assert(error instanceof Error, "the commit must reject");
   assert.match(String(error.message), /no_such_table/);
   assert(subject.injections.length === 1, "exactly one injection");
   const { statements, failedAt } = subject.injections[0]!;
   const lastQuadInsert = statements.findLastIndex((sql) =>
-    sql.startsWith("INSERT OR REPLACE INTO quads")
+    sql.startsWith("INSERT OR REPLACE INTO quads"),
   );
   assert(lastQuadInsert >= 0, `no quad insert in ${statements.join(" | ")}`);
   assert(

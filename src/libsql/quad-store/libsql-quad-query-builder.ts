@@ -53,9 +53,10 @@ export function generatePlaceholders(count: number): string {
   return Array(count).fill("?").join(", ");
 }
 
-export function buildDeleteQuadsByQuadIds(
-  quadIds: string[],
-): { sql: string; args: string[] } {
+export function buildDeleteQuadsByQuadIds(quadIds: string[]): {
+  sql: string;
+  args: string[];
+} {
   const placeholders = generatePlaceholders(quadIds.length);
   return {
     sql: `DELETE FROM quads WHERE id IN (${placeholders})`,
@@ -63,9 +64,10 @@ export function buildDeleteQuadsByQuadIds(
   };
 }
 
-export function buildSelectExistingQuadIds(
-  quadIds: string[],
-): { sql: string; args: string[] } {
+export function buildSelectExistingQuadIds(quadIds: string[]): {
+  sql: string;
+  args: string[];
+} {
   const placeholders = generatePlaceholders(quadIds.length);
   return {
     sql: `SELECT id FROM quads WHERE id IN (${placeholders})`,
@@ -84,9 +86,8 @@ export function buildMatchQuadsQuery(
     args.push(pageOptions.afterQuadId);
   }
 
-  const whereClause = conditions.length > 0
-    ? `WHERE ${conditions.join(" AND ")}`
-    : "";
+  const whereClause =
+    conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
   let limitClause = "";
   if (pageOptions?.limit != null) {
@@ -95,19 +96,18 @@ export function buildMatchQuadsQuery(
   }
 
   return {
-    sql:
-      `SELECT id, s, s_type, p, o, o_type, o_datatype, o_lang, g, g_type FROM quads ${whereClause} ORDER BY id ASC${limitClause}`,
+    sql: `SELECT id, s, s_type, p, o, o_type, o_datatype, o_lang, g, g_type FROM quads ${whereClause} ORDER BY id ASC${limitClause}`,
     args,
   };
 }
 
-export function buildCountQuadsQuery(
-  pattern: LibsqlQuadPattern,
-): { sql: string; args: (string | null)[] } {
+export function buildCountQuadsQuery(pattern: LibsqlQuadPattern): {
+  sql: string;
+  args: (string | null)[];
+} {
   const { conditions, args } = buildLibsqlQuadPatternWhereClause(pattern);
-  const whereClause = conditions.length > 0
-    ? `WHERE ${conditions.join(" AND ")}`
-    : "";
+  const whereClause =
+    conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
   return {
     sql: `SELECT COUNT(*) AS count FROM quads ${whereClause}`,
@@ -115,9 +115,10 @@ export function buildCountQuadsQuery(
   };
 }
 
-export function buildInsertQuad(
-  insertQuadOptions: InsertQuadRow,
-): { sql: string; args: (string | null)[] } {
+export function buildInsertQuad(insertQuadOptions: InsertQuadRow): {
+  sql: string;
+  args: (string | null)[];
+} {
   return buildBulkInsertQuads([insertQuadOptions])[0];
 }
 
@@ -160,8 +161,8 @@ export function buildBulkInsertQuads(
     }
 
     if (
-      args.length > BULK_INSERT_QUAD_ROWS_PER_STATEMENT *
-          BULK_INSERT_QUAD_COLUMN_COUNT
+      args.length >
+      BULK_INSERT_QUAD_ROWS_PER_STATEMENT * BULK_INSERT_QUAD_COLUMN_COUNT
     ) {
       throw new Error(
         `buildBulkInsertQuads: batch exceeds SQLite host-parameter budget (${args.length})`,
@@ -169,8 +170,7 @@ export function buildBulkInsertQuads(
     }
 
     statements.push({
-      sql:
-        `INSERT OR REPLACE INTO quads (id, s, s_type, p, o, o_type, o_datatype, o_lang, g, g_type) VALUES ${valuePlaceholders}`,
+      sql: `INSERT OR REPLACE INTO quads (id, s, s_type, p, o, o_type, o_datatype, o_lang, g, g_type) VALUES ${valuePlaceholders}`,
       args,
     });
   }
@@ -236,9 +236,10 @@ function appendTermCondition(
   }
 }
 
-export function buildWipeAllGraphDataStatements(): Array<
-  { sql: string; args: [] }
-> {
+export function buildWipeAllGraphDataStatements(): Array<{
+  sql: string;
+  args: [];
+}> {
   return [
     { sql: "DELETE FROM chunks", args: [] },
     { sql: "DELETE FROM quads", args: [] },

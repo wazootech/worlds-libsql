@@ -39,11 +39,11 @@ With an import map:
 
 ```html
 <script type="importmap">
-{
-  "imports": {
-    "@worlds/libsql": "https://esm.sh/jsr/@worlds/libsql@0.4.1"
+  {
+    "imports": {
+      "@worlds/libsql": "https://esm.sh/jsr/@worlds/libsql@0.4.1"
+    }
   }
-}
 </script>
 ```
 
@@ -76,8 +76,7 @@ const client = await createLibsqlWorldsSdk({ client: databaseClient });
 await client.import({
   source: {
     kind: "serialized",
-    data:
-      `<http://example.com/alice> <http://example.com/knows> <http://example.com/bob> .`,
+    data: `<http://example.com/alice> <http://example.com/knows> <http://example.com/bob> .`,
     contentType: "text/turtle",
   },
 });
@@ -85,8 +84,7 @@ await client.import({
 const { search, sparql } = await Promise.all([
   client.search({ query: "alice" }),
   client.sparql({
-    query:
-      `SELECT ?o WHERE { <http://example.com/alice> <http://example.com/knows> ?o }`,
+    query: `SELECT ?o WHERE { <http://example.com/alice> <http://example.com/knows> ?o }`,
   }),
 ]);
 ```
@@ -138,15 +136,13 @@ const sparqlEngine = new WazooSparqlEngine({
 await quadStore.import({
   source: {
     kind: "serialized",
-    data:
-      `<http://example.com/alice> <http://example.com/knows> <http://example.com/bob> .`,
+    data: `<http://example.com/alice> <http://example.com/knows> <http://example.com/bob> .`,
     contentType: "text/turtle",
   },
 });
 
 const result = await sparqlEngine.execute({
-  query:
-    `SELECT ?o WHERE { <http://example.com/alice> <http://example.com/knows> ?o }`,
+  query: `SELECT ?o WHERE { <http://example.com/alice> <http://example.com/knows> ?o }`,
 });
 ```
 

@@ -7,12 +7,7 @@ import {
   registerSparqlHexastorePerfUnloadCleanup,
 } from "./shared/sparql-perf-shared.ts";
 
-const largePerfScales = [
-  100_000,
-  250_000,
-  500_000,
-  1_000_000,
-] as const;
+const largePerfScales = [100_000, 250_000, 500_000, 1_000_000] as const;
 
 const preloadedSparqlEngines = await preloadSparqlHexastorePerfFixtures(
   largePerfScales,

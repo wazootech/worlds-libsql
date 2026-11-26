@@ -79,7 +79,7 @@ test("a failed replace import keeps the existing graph", async () => {
     broken.import({
       mode: "replace",
       source: { kind: "quads", quads: [fact("new", "replacement data")] },
-    })
+    }),
   );
 
   assert.deepStrictEqual(
@@ -103,7 +103,10 @@ test("replace import swaps the graph in one batch", async () => {
   });
 
   const subjects = await client.execute("SELECT s FROM quads");
-  assert.deepStrictEqual(subjects.rows.map((row) => row.s), ["urn:s:new"]);
+  assert.deepStrictEqual(
+    subjects.rows.map((row) => row.s),
+    ["urn:s:new"],
+  );
   assert.deepStrictEqual(await count(client, "chunks"), 1);
   assert.deepStrictEqual(batches.length, 1);
 });
@@ -141,9 +144,8 @@ test("disabled mode writes quads without chunks", async () => {
 
 test("deferred rebuild pages through every stored quad", async () => {
   const { client, connection } = await openDatabase();
-  const quads = Array.from(
-    { length: 1250 },
-    (_, index) => fact(String(index), `paged text ${index}`),
+  const quads = Array.from({ length: 1250 }, (_, index) =>
+    fact(String(index), `paged text ${index}`),
   );
 
   await openStore(connection, { mode: "deferred" }).import({

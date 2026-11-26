@@ -42,9 +42,7 @@ export interface LibsqlSearchIndexOptions extends LibsqlWorldsSdkBaseOptions {
  * LibsqlSearchIndex implements only the query pathway, performing sub-millisecond hybrid search.
  */
 export class LibsqlSearchIndex implements SearchIndexInterface {
-  public constructor(
-    private readonly options: LibsqlSearchIndexOptions,
-  ) {}
+  public constructor(private readonly options: LibsqlSearchIndexOptions) {}
 
   /**
    * search executes a keyword and vector hybrid query against the current index.
@@ -115,9 +113,7 @@ export class LibsqlSearchIndex implements SearchIndexInterface {
   /**
    * reindex rebuilds FTS/vector chunk rows from durable quads without re-importing graph data.
    */
-  public async reindex(
-    request?: ReindexRequest,
-  ): Promise<ReindexResponse> {
+  public async reindex(request?: ReindexRequest): Promise<ReindexResponse> {
     const textSplitter = this.options.textSplitter;
     if (!textSplitter) {
       throw new Error(
