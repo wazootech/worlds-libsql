@@ -49,8 +49,8 @@ export function openStore(
   return new LibsqlQuadStore({
     connection,
     store: new LibsqlRdfjsStore({ connection, matchPageSize: 100 }),
-    searchQueryBuilder: options.searchQueryBuilder ??
-      testLibsqlSearchQueryBuilder,
+    searchQueryBuilder:
+      options.searchQueryBuilder ?? testLibsqlSearchQueryBuilder,
     searchIndexProjector: new Projector({
       connection,
       textSplitter: sharedTextSplitter,

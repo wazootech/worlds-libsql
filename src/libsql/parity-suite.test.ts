@@ -30,35 +30,32 @@ function createLibsqlWorldsSdkForParity() {
   return createLibsqlWorldsSdk({ client });
 }
 
-test(
-  "parity suite - libsql agrees with the in-memory reference on the corpus",
-  async () => {
-    const fixtures = parityCorpus.fixtures.filter(
-      (fixture) => fixture.name !== CHUNKER_DIVERGENT_FIXTURE,
-    );
+test("parity suite - libsql agrees with the in-memory reference on the corpus", async () => {
+  const fixtures = parityCorpus.fixtures.filter(
+    (fixture) => fixture.name !== CHUNKER_DIVERGENT_FIXTURE,
+  );
 
-    const report = await runParitySuite({
-      reference: () => createMemoryWorldsSdk(),
-      candidate: () => createLibsqlWorldsSdkForParity(),
-      fixtures,
-      strictSearchOrder: false,
-    });
+  const report = await runParitySuite({
+    reference: () => createMemoryWorldsSdk(),
+    candidate: () => createLibsqlWorldsSdkForParity(),
+    fixtures,
+    strictSearchOrder: false,
+  });
 
-    assert.deepStrictEqual(
-      report.results.length,
-      fixtures.length + parityCorpus.replaceCases.length,
-      "every non-exempted corpus fixture and replace case runs on both",
-    );
-    assert.deepStrictEqual(
-      report.ok,
-      true,
-      report.results
-        .map(
-          (r) =>
-            `${r.name}: ${r.failures.join("; ")}` +
-            `${r.notes ? ` [notes: ${r.notes.join("; ")}]` : ""}`,
-        )
-        .join("\n"),
-    );
-  },
-);
+  assert.deepStrictEqual(
+    report.results.length,
+    fixtures.length + parityCorpus.replaceCases.length,
+    "every non-exempted corpus fixture and replace case runs on both",
+  );
+  assert.deepStrictEqual(
+    report.ok,
+    true,
+    report.results
+      .map(
+        (r) =>
+          `${r.name}: ${r.failures.join("; ")}` +
+          `${r.notes ? ` [notes: ${r.notes.join("; ")}]` : ""}`,
+      )
+      .join("\n"),
+  );
+});

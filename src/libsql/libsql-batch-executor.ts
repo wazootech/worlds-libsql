@@ -35,11 +35,12 @@ export function normalizeToSqlStatement(statement: InStatement): SqlStatement {
   const { sql, args } = statement;
   return {
     sql,
-    args: args === undefined
-      ? undefined
-      : Array.isArray(args)
-      ? args
-      : Object.values(args),
+    args:
+      args === undefined
+        ? undefined
+        : Array.isArray(args)
+          ? args
+          : Object.values(args),
   };
 }
 

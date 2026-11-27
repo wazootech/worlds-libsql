@@ -10,7 +10,7 @@ test("buildIndexes - returns 7 covering index DDL statements", () => {
   assert.deepStrictEqual(indexes.length, 7);
 
   const subjectFirstQuadPatternIndex = indexes.find((s: string) =>
-    s.includes("idx_quads_spog")
+    s.includes("idx_quads_spog"),
   );
   assert.deepStrictEqual(
     subjectFirstQuadPatternIndex,

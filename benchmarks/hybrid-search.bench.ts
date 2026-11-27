@@ -21,14 +21,13 @@ const databaseClient = createClient({ url: ":memory:" });
 const connection = createTestLibsqlConnectionDriver(databaseClient);
 await setupLibsqlSchemaForTest(connection);
 
-const vectorArray = new Array(32).fill(0);
+const vectorArray = Array.from({ length: 32 }, () => 0);
 vectorArray[0] = 1.0;
 const vectorJsonString = JSON.stringify(vectorArray);
 
 for (let index = 0; index < 1000; index++) {
   await databaseClient.execute({
-    sql:
-      `INSERT INTO chunks (quad_id, subject, predicate, graph, value, fts_value, vector) VALUES (?, ?, ?, ?, ?, ?, vector32(?))`,
+    sql: `INSERT INTO chunks (quad_id, subject, predicate, graph, value, fts_value, vector) VALUES (?, ?, ?, ?, ?, ?, vector32(?))`,
     args: [
       `id-${index}`,
       `urn:entity:${index}`,
@@ -58,25 +57,34 @@ const fallbackSearchIndex = new LibsqlSearchIndex({
   searchQueryBuilder: testLibsqlSearchQueryBuilder,
 });
 
-bench({
-  name: "Search: FTS5 Keyword-Only Search (Vectorless Mode)",
-  group: "Hybrid Search Performance",
-}, async () => {
-  await ftsSearchIndex.search({ query: "unique keywords" });
-});
+bench(
+  {
+    name: "Search: FTS5 Keyword-Only Search (Vectorless Mode)",
+    group: "Hybrid Search Performance",
+  },
+  async () => {
+    await ftsSearchIndex.search({ query: "unique keywords" });
+  },
+);
 
-bench({
-  name: "Search: Hybrid RRF Fusion Search (Vector + FTS5)",
-  group: "Hybrid Search Performance",
-}, async () => {
-  await hybridSearchIndex.search({ query: "unique keywords" });
-});
+bench(
+  {
+    name: "Search: Hybrid RRF Fusion Search (Vector + FTS5)",
+    group: "Hybrid Search Performance",
+  },
+  async () => {
+    await hybridSearchIndex.search({ query: "unique keywords" });
+  },
+);
 
-bench({
-  name: "Search: Graceful Degradation (Fallback to FTS5 on Error)",
-  group: "Hybrid Search Performance",
-}, async () => {
-  await fallbackSearchIndex.search({ query: "unique keywords" });
-});
+bench(
+  {
+    name: "Search: Graceful Degradation (Fallback to FTS5 on Error)",
+    group: "Hybrid Search Performance",
+  },
+  async () => {
+    await fallbackSearchIndex.search({ query: "unique keywords" });
+  },
+);
 
 await runBenches();

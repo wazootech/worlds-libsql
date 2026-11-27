@@ -3,8 +3,7 @@ import { libsqlProjectionOptions } from "./build-search-chunk-statements.ts";
 import type { ProjectSearchChunksOptions } from "./project-search-chunks.ts";
 import { rebuildLibsqlSearchIndexFromQuads } from "./rebuild-libsql-search-index-from-quads.ts";
 
-export interface LibsqlSearchIndexProjectorOptions
-  extends ProjectSearchChunksOptions {
+export interface LibsqlSearchIndexProjectorOptions extends ProjectSearchChunksOptions {
   // Currently, options are exactly ProjectSearchChunksOptions.
 }
 

@@ -50,8 +50,8 @@ export function createLibsqlCommitDriver(
   const { connection, include, exclude } = options;
   const matches = filterQuads({ include, exclude });
   return {
-    maxAtomicStatements: options.maxAtomicStatements ??
-      DEFAULT_MAX_ATOMIC_STATEMENTS,
+    maxAtomicStatements:
+      options.maxAtomicStatements ?? DEFAULT_MAX_ATOMIC_STATEMENTS,
     writeBatchSize: options.maxWriteBatchSize ?? DEFAULT_WRITE_BATCH_SIZE,
     async executeBatch(statements) {
       try {
@@ -63,10 +63,12 @@ export function createLibsqlCommitDriver(
     lookupExisting: (ids) =>
       queryCachePresence(connection, ids, options.maxLookupChunkSize ?? 800),
     async streamQuads({ after, pageSize }) {
-      const { rows } = await connection.execute(buildMatchQuadsQuery(
-        { subject: null, predicate: null, object: null, graph: null },
-        { afterQuadId: after as string | undefined, limit: pageSize },
-      ));
+      const { rows } = await connection.execute(
+        buildMatchQuadsQuery(
+          { subject: null, predicate: null, object: null, graph: null },
+          { afterQuadId: after as string | undefined, limit: pageSize },
+        ),
+      );
       const quads = [];
       for (const row of rows) {
         try {

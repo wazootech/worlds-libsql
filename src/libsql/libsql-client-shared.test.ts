@@ -31,135 +31,122 @@ const libsqlClientFixtures: LibsqlClientFixture[] = [
 ];
 
 for (const fixture of libsqlClientFixtures) {
-  test(
-    `${fixture.label} - initializeSchema provisions all quad indexes`,
-    async () => {
-      const databaseClient = createClient({ url: ":memory:" });
+  test(`${fixture.label} - initializeSchema provisions all quad indexes`, async () => {
+    const databaseClient = createClient({ url: ":memory:" });
 
-      await fixture.createClient({ client: databaseClient });
+    await fixture.createClient({ client: databaseClient });
 
-      const indexResultSet = await databaseClient.execute(
-        "SELECT name FROM sqlite_master WHERE type = 'index' AND tbl_name = 'quads'",
+    const indexResultSet = await databaseClient.execute(
+      "SELECT name FROM sqlite_master WHERE type = 'index' AND tbl_name = 'quads'",
+    );
+    const indexNames = indexResultSet.rows.map((row) => String(row.name));
+    for (const expectedName of expectedIndexNames) {
+      assert.deepStrictEqual(
+        indexNames.includes(expectedName),
+        true,
+        `missing quad index: ${expectedName}`,
       );
-      const indexNames = indexResultSet.rows.map((row) => String(row.name));
-      for (const expectedName of expectedIndexNames) {
-        assert.deepStrictEqual(
-          indexNames.includes(expectedName),
-          true,
-          `missing quad index: ${expectedName}`,
-        );
-      }
+    }
 
-      await fixture.createClient({ client: databaseClient });
+    await fixture.createClient({ client: databaseClient });
 
-      databaseClient.close();
-    },
-  );
+    databaseClient.close();
+  });
 
-  test(
-    `${fixture.label} - import persists quads readable via SPARQL`,
-    async () => {
-      const databaseClient = createClient({ url: ":memory:" });
+  test(`${fixture.label} - import persists quads readable via SPARQL`, async () => {
+    const databaseClient = createClient({ url: ":memory:" });
 
-      const client = await fixture.createClient({
-        client: databaseClient,
-      });
+    const client = await fixture.createClient({
+      client: databaseClient,
+    });
 
-      await client.import({
-        source: {
-          kind: "quads",
-          quads: [
-            quad(
-              namedNode(`urn:entity:${fixture.label}`),
-              namedNode("urn:label"),
-              literal(`${fixture.label} adapter`),
-            ),
-          ],
-        },
-      });
+    await client.import({
+      source: {
+        kind: "quads",
+        quads: [
+          quad(
+            namedNode(`urn:entity:${fixture.label}`),
+            namedNode("urn:label"),
+            literal(`${fixture.label} adapter`),
+          ),
+        ],
+      },
+    });
 
-      const sparqlResponse = await client.sparql({
-        query:
-          `SELECT ?object WHERE { <urn:entity:${fixture.label}> <urn:label> ?object }`,
-      });
+    const sparqlResponse = await client.sparql({
+      query: `SELECT ?object WHERE { <urn:entity:${fixture.label}> <urn:label> ?object }`,
+    });
 
-      assert.deepStrictEqual(sparqlResponse.kind, "select");
-      if (sparqlResponse.kind === "select") {
-        assert.deepStrictEqual(sparqlResponse.data.results.bindings.length, 1);
-      }
+    assert.deepStrictEqual(sparqlResponse.kind, "select");
+    if (sparqlResponse.kind === "select") {
+      assert.deepStrictEqual(sparqlResponse.data.results.bindings.length, 1);
+    }
 
-      databaseClient.close();
-    },
-  );
+    databaseClient.close();
+  });
 
-  test(
-    `${fixture.label} - searchIndexOnImport disabled skips chunks`,
-    async () => {
-      const databaseClient = createClient({ url: ":memory:" });
+  test(`${fixture.label} - searchIndexOnImport disabled skips chunks`, async () => {
+    const databaseClient = createClient({ url: ":memory:" });
 
-      const client = await fixture.createClient({
-        client: databaseClient,
-        searchIndexOnImport: "disabled",
-      });
+    const client = await fixture.createClient({
+      client: databaseClient,
+      searchIndexOnImport: "disabled",
+    });
 
-      await client.import({
-        source: {
-          kind: "quads",
-          quads: [
-            quad(
-              namedNode(`urn:entity:sparql-only:${fixture.label}`),
-              namedNode("urn:label"),
-              literal("quads without search index"),
-            ),
-          ],
-        },
-      });
+    await client.import({
+      source: {
+        kind: "quads",
+        quads: [
+          quad(
+            namedNode(`urn:entity:sparql-only:${fixture.label}`),
+            namedNode("urn:label"),
+            literal("quads without search index"),
+          ),
+        ],
+      },
+    });
 
-      const chunkRows = await databaseClient.execute(
-        "SELECT COUNT(*) as total FROM chunks",
-      );
-      assert.deepStrictEqual(Number(chunkRows.rows[0].total), 0);
+    const chunkRows = await databaseClient.execute(
+      "SELECT COUNT(*) as total FROM chunks",
+    );
+    assert.deepStrictEqual(Number(chunkRows.rows[0].total), 0);
 
-      const searchResponse = await client.search({
-        query: "quads without search",
-      });
-      assert.deepStrictEqual(searchResponse.results?.length ?? 0, 0);
+    const searchResponse = await client.search({
+      query: "quads without search",
+    });
+    assert.deepStrictEqual(searchResponse.results?.length ?? 0, 0);
 
-      databaseClient.close();
-    },
-  );
+    databaseClient.close();
+  });
 
-  test(
-    `${fixture.label} - reindex enables search after disabled import`,
-    async () => {
-      const databaseClient = createClient({ url: ":memory:" });
+  test(`${fixture.label} - reindex enables search after disabled import`, async () => {
+    const databaseClient = createClient({ url: ":memory:" });
 
-      const client = await fixture.createClient({
-        client: databaseClient,
-        searchIndexOnImport: "disabled",
-      });
+    const client = await fixture.createClient({
+      client: databaseClient,
+      searchIndexOnImport: "disabled",
+    });
 
-      await client.import({
-        source: {
-          kind: "quads",
-          quads: [
-            quad(
-              namedNode(`urn:entity:rebuild:${fixture.label}`),
-              namedNode("urn:label"),
-              literal("rebuild search index later"),
-            ),
-          ],
-        },
-      });
+    await client.import({
+      source: {
+        kind: "quads",
+        quads: [
+          quad(
+            namedNode(`urn:entity:rebuild:${fixture.label}`),
+            namedNode("urn:label"),
+            literal("rebuild search index later"),
+          ),
+        ],
+      },
+    });
 
-      const rebuildResponse = await client.reindex();
-      assert.deepStrictEqual(rebuildResponse.processedQuadCount, 1);
-      assert.deepStrictEqual(rebuildResponse.chunkRowCount > 0, true);
+    const rebuildResponse = await client.reindex();
+    assert.deepStrictEqual(rebuildResponse.processedQuadCount, 1);
+    assert.deepStrictEqual(rebuildResponse.chunkRowCount > 0, true);
 
-      const searchResponse = await client.search({ query: "rebuild search" });
-      assert.deepStrictEqual(searchResponse.results?.length ?? 0, 1);
+    const searchResponse = await client.search({ query: "rebuild search" });
+    assert.deepStrictEqual(searchResponse.results?.length ?? 0, 1);
 
-      databaseClient.close();
-    },
-  );
+    databaseClient.close();
+  });
 }

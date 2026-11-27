@@ -49,9 +49,7 @@ export interface LibsqlQuadStoreOptions extends LibsqlWorldsSdkBaseOptions {
  * It encapsulates transaction routing, commits, and indexing synchronization.
  */
 export class LibsqlQuadStore implements QuadStoreInterface {
-  public constructor(
-    private readonly options: LibsqlQuadStoreOptions,
-  ) {}
+  public constructor(private readonly options: LibsqlQuadStoreOptions) {}
 
   /**
    * import merges or replaces the underlying store with provided RDF source data.

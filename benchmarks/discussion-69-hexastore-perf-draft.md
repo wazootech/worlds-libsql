@@ -41,5 +41,5 @@ integration shape.
 ## Commands
 
 ```bash
-deno task bench:sparql-perf-libsql
+bun run bench:sparql-perf-libsql
 ```

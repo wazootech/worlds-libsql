@@ -17,8 +17,7 @@ export interface RebuildLibsqlSearchIndexFromQuadsResult {
   chunkRowCount: number;
 }
 
-export interface ReadProjectSearchChunksOptions
-  extends ProjectSearchChunksOptions {
+export interface ReadProjectSearchChunksOptions extends ProjectSearchChunksOptions {
   readPageSize?: number;
 }
 

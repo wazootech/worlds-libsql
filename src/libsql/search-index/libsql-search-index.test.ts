@@ -17,13 +17,12 @@ test("LibsqlSearchIndex - Tracer Bullet: performs basic hybrid search and maps r
   const connection = createTestLibsqlConnectionDriver(client);
   await setupLibsqlSchemaForTest(connection);
 
-  const paddedVec = new Array(32).fill(0);
+  const paddedVec = Array.from({ length: 32 }, () => 0);
   paddedVec[0] = 1.0;
   const vecStr = JSON.stringify(paddedVec);
 
   await client.execute({
-    sql:
-      `INSERT INTO chunks (quad_id, subject, predicate, graph, value, fts_value, vector) VALUES (?, ?, ?, ?, ?, ?, vector32(?))`,
+    sql: `INSERT INTO chunks (quad_id, subject, predicate, graph, value, fts_value, vector) VALUES (?, ?, ?, ?, ?, ?, vector32(?))`,
     args: [
       "f1",
       "urn:alice",
@@ -40,8 +39,7 @@ test("LibsqlSearchIndex - Tracer Bullet: performs basic hybrid search and maps r
   const otherVecStr = JSON.stringify(otherVec);
 
   await client.execute({
-    sql:
-      `INSERT INTO chunks (quad_id, subject, predicate, graph, value, fts_value, vector) VALUES (?, ?, ?, ?, ?, ?, vector32(?))`,
+    sql: `INSERT INTO chunks (quad_id, subject, predicate, graph, value, fts_value, vector) VALUES (?, ?, ?, ?, ?, ?, vector32(?))`,
     args: [
       "f2",
       "urn:bob",
@@ -75,13 +73,12 @@ test("LibsqlSearchIndex - Scope Inclusion: limits matches only to included subje
   const connection = createTestLibsqlConnectionDriver(client);
   await setupLibsqlSchemaForTest(connection);
 
-  const data = new Array(32).fill(0);
+  const data = Array.from({ length: 32 }, () => 0);
   data[0] = 1.0;
   const vecStr = JSON.stringify(data);
 
   await client.execute({
-    sql:
-      `INSERT INTO chunks (quad_id, subject, predicate, graph, value, fts_value, vector) VALUES (?, ?, ?, ?, ?, ?, vector32(?))`,
+    sql: `INSERT INTO chunks (quad_id, subject, predicate, graph, value, fts_value, vector) VALUES (?, ?, ?, ?, ?, ?, vector32(?))`,
     args: [
       "f1",
       "urn:person:1",
@@ -93,8 +90,7 @@ test("LibsqlSearchIndex - Scope Inclusion: limits matches only to included subje
     ],
   });
   await client.execute({
-    sql:
-      `INSERT INTO chunks (quad_id, subject, predicate, graph, value, fts_value, vector) VALUES (?, ?, ?, ?, ?, ?, vector32(?))`,
+    sql: `INSERT INTO chunks (quad_id, subject, predicate, graph, value, fts_value, vector) VALUES (?, ?, ?, ?, ?, ?, vector32(?))`,
     args: [
       "f2",
       "urn:person:2",
@@ -139,13 +135,12 @@ test("LibsqlSearchIndex - Scope Exclusion: suppresses explicitly excluded predic
   const connection = createTestLibsqlConnectionDriver(client);
   await setupLibsqlSchemaForTest(connection);
 
-  const data = new Array(32).fill(0);
+  const data = Array.from({ length: 32 }, () => 0);
   data[0] = 1.0;
   const vecStr = JSON.stringify(data);
 
   await client.execute({
-    sql:
-      `INSERT INTO chunks (quad_id, subject, predicate, graph, value, fts_value, vector) VALUES (?, ?, ?, ?, ?, ?, vector32(?))`,
+    sql: `INSERT INTO chunks (quad_id, subject, predicate, graph, value, fts_value, vector) VALUES (?, ?, ?, ?, ?, ?, vector32(?))`,
     args: [
       "f1",
       "urn:e1",
@@ -157,8 +152,7 @@ test("LibsqlSearchIndex - Scope Exclusion: suppresses explicitly excluded predic
     ],
   });
   await client.execute({
-    sql:
-      `INSERT INTO chunks (quad_id, subject, predicate, graph, value, fts_value, vector) VALUES (?, ?, ?, ?, ?, ?, vector32(?))`,
+    sql: `INSERT INTO chunks (quad_id, subject, predicate, graph, value, fts_value, vector) VALUES (?, ?, ?, ?, ?, ?, vector32(?))`,
     args: [
       "f2",
       "urn:e1",
@@ -198,8 +192,7 @@ test("LibsqlSearchIndex - Vectorless Mode: gracefully degrades to keyword-only s
 
   // Insert chunk rows with NULL vectors (Vectorless mode)
   await client.execute({
-    sql:
-      `INSERT INTO chunks (quad_id, subject, predicate, graph, value, fts_value, vector) VALUES (?, ?, ?, ?, ?, ?, NULL)`,
+    sql: `INSERT INTO chunks (quad_id, subject, predicate, graph, value, fts_value, vector) VALUES (?, ?, ?, ?, ?, ?, NULL)`,
     args: [
       "id-1",
       "urn:target",
@@ -210,8 +203,7 @@ test("LibsqlSearchIndex - Vectorless Mode: gracefully degrades to keyword-only s
     ],
   });
   await client.execute({
-    sql:
-      `INSERT INTO chunks (quad_id, subject, predicate, graph, value, fts_value, vector) VALUES (?, ?, ?, ?, ?, ?, NULL)`,
+    sql: `INSERT INTO chunks (quad_id, subject, predicate, graph, value, fts_value, vector) VALUES (?, ?, ?, ?, ?, ?, NULL)`,
     args: [
       "id-2",
       "urn:other",
@@ -250,8 +242,7 @@ test("LibsqlSearchIndex - Stability: executes search safely when query contains 
 
   // Insert a document we can try to find
   await client.execute({
-    sql:
-      `INSERT INTO chunks (quad_id, subject, predicate, graph, value, fts_value, vector) VALUES (?, ?, ?, ?, ?, ?, NULL)`,
+    sql: `INSERT INTO chunks (quad_id, subject, predicate, graph, value, fts_value, vector) VALUES (?, ?, ?, ?, ?, ?, NULL)`,
     args: [
       "id-1",
       "urn:subject",
@@ -299,85 +290,76 @@ class WrongDimensionEmbeddingService implements EmbeddingService {
   }
 }
 
-test(
-  "LibsqlSearchIndex - degrades to keyword-only search when embeddingService throws",
-  async () => {
-    const client = createClient({ url: ":memory:" });
-    const connection = createTestLibsqlConnectionDriver(client);
-    await setupLibsqlSchemaForTest(connection);
+test("LibsqlSearchIndex - degrades to keyword-only search when embeddingService throws", async () => {
+  const client = createClient({ url: ":memory:" });
+  const connection = createTestLibsqlConnectionDriver(client);
+  await setupLibsqlSchemaForTest(connection);
 
-    await client.execute({
-      sql:
-        `INSERT INTO chunks (quad_id, subject, predicate, graph, value, fts_value, vector) VALUES (?, ?, ?, ?, ?, ?, NULL)`,
-      args: [
-        "id-fts",
-        "urn:fallback",
-        "urn:prop",
-        "urn:g",
-        "Unique fallback keyword phrase",
-        "Unique fallback keyword phrase",
-      ],
-    });
+  await client.execute({
+    sql: `INSERT INTO chunks (quad_id, subject, predicate, graph, value, fts_value, vector) VALUES (?, ?, ?, ?, ?, ?, NULL)`,
+    args: [
+      "id-fts",
+      "urn:fallback",
+      "urn:prop",
+      "urn:g",
+      "Unique fallback keyword phrase",
+      "Unique fallback keyword phrase",
+    ],
+  });
 
-    const searchIndex = new LibsqlSearchIndex({
-      connection,
-      embeddingService: new FailingEmbeddingService(),
-      searchQueryBuilder: testLibsqlSearchQueryBuilder,
-    });
+  const searchIndex = new LibsqlSearchIndex({
+    connection,
+    embeddingService: new FailingEmbeddingService(),
+    searchQueryBuilder: testLibsqlSearchQueryBuilder,
+  });
 
-    const response = await searchIndex.search({ query: "fallback keyword" });
+  const response = await searchIndex.search({ query: "fallback keyword" });
 
-    assert.deepStrictEqual(response.results?.length, 1);
-    assert.deepStrictEqual(response.results?.[0].subject, "urn:fallback");
-  },
-);
+  assert.deepStrictEqual(response.results?.length, 1);
+  assert.deepStrictEqual(response.results?.[0].subject, "urn:fallback");
+});
 
-test(
-  "LibsqlSearchIndex - degrades when embedding dimensions do not match schema",
-  async () => {
-    const client = createClient({ url: ":memory:" });
-    const connection = createTestLibsqlConnectionDriver(client);
-    await setupLibsqlSchemaForTest(connection);
+test("LibsqlSearchIndex - degrades when embedding dimensions do not match schema", async () => {
+  const client = createClient({ url: ":memory:" });
+  const connection = createTestLibsqlConnectionDriver(client);
+  await setupLibsqlSchemaForTest(connection);
 
-    await client.execute({
-      sql:
-        `INSERT INTO chunks (quad_id, subject, predicate, graph, value, fts_value, vector) VALUES (?, ?, ?, ?, ?, ?, NULL)`,
-      args: [
-        "id-dim",
-        "urn:dim",
-        "urn:prop",
-        "urn:g",
-        "Dimension mismatch keyword target",
-        "Dimension mismatch keyword target",
-      ],
-    });
+  await client.execute({
+    sql: `INSERT INTO chunks (quad_id, subject, predicate, graph, value, fts_value, vector) VALUES (?, ?, ?, ?, ?, ?, NULL)`,
+    args: [
+      "id-dim",
+      "urn:dim",
+      "urn:prop",
+      "urn:g",
+      "Dimension mismatch keyword target",
+      "Dimension mismatch keyword target",
+    ],
+  });
 
-    const searchIndex = new LibsqlSearchIndex({
-      connection,
-      embeddingService: new WrongDimensionEmbeddingService(),
-      searchQueryBuilder: testLibsqlSearchQueryBuilder,
-    });
+  const searchIndex = new LibsqlSearchIndex({
+    connection,
+    embeddingService: new WrongDimensionEmbeddingService(),
+    searchQueryBuilder: testLibsqlSearchQueryBuilder,
+  });
 
-    const response = await searchIndex.search({
-      query: "dimension mismatch",
-    });
+  const response = await searchIndex.search({
+    query: "dimension mismatch",
+  });
 
-    assert.deepStrictEqual(response.results?.length, 1);
-    assert.deepStrictEqual(response.results?.[0].subject, "urn:dim");
-  },
-);
+  assert.deepStrictEqual(response.results?.length, 1);
+  assert.deepStrictEqual(response.results?.[0].subject, "urn:dim");
+});
 
 test("LibsqlSearchIndex - respects custom result limit option", async () => {
   const client = createClient({ url: ":memory:" });
   const connection = createTestLibsqlConnectionDriver(client);
   await setupLibsqlSchemaForTest(connection);
 
-  const vecStr = JSON.stringify(new Array(32).fill(0));
+  const vecStr = JSON.stringify(Array.from({ length: 32 }, () => 0));
 
   for (let index = 0; index < 5; index++) {
     await client.execute({
-      sql:
-        `INSERT INTO chunks (quad_id, subject, predicate, graph, value, fts_value, vector) VALUES (?, ?, ?, ?, ?, ?, vector32(?))`,
+      sql: `INSERT INTO chunks (quad_id, subject, predicate, graph, value, fts_value, vector) VALUES (?, ?, ?, ?, ?, ?, vector32(?))`,
       args: [
         `id-${index}`,
         `urn:row:${index}`,
@@ -413,8 +395,7 @@ test("LibsqlSearchIndex - non-ASCII queries do not crash and match via unicode61
   await setupLibsqlSchemaForTest(connection);
 
   await client.execute({
-    sql:
-      `INSERT INTO chunks (quad_id, subject, predicate, graph, value, fts_value, vector) VALUES (?, ?, ?, ?, ?, ?, NULL)`,
+    sql: `INSERT INTO chunks (quad_id, subject, predicate, graph, value, fts_value, vector) VALUES (?, ?, ?, ?, ?, ?, NULL)`,
     args: [
       "id-ar",
       "urn:item1",

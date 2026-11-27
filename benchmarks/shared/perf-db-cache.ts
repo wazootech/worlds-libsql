@@ -37,8 +37,7 @@ interface HexastorePerfFixtureChecksumInputsBase {
 /**
  * LibsqlHexastorePerfFixtureChecksumInputs is the canonical checksum input for libsqlStore fixtures.
  */
-export interface LibsqlHexastorePerfFixtureChecksumInputs
-  extends HexastorePerfFixtureChecksumInputsBase {
+export interface LibsqlHexastorePerfFixtureChecksumInputs extends HexastorePerfFixtureChecksumInputsBase {
   /** backend labels the quad index wiring. */
   backend: "libsqlStore";
   /** benchLibsqlSchemaVersion tracks LibSQL schema revisions relevant to perf fixtures. */
@@ -55,8 +54,7 @@ export type HexastorePerfFixtureChecksumInputs =
  * HexastorePerfFixtureManifest persists checksum inputs plus the computed digest on disk.
  */
 export type HexastorePerfFixtureManifest =
-  & HexastorePerfFixtureChecksumInputs
-  & {
+  HexastorePerfFixtureChecksumInputs & {
     /** checksum is the SHA-256 hex digest of canonical HexastorePerfFixtureChecksumInputs JSON. */
     checksum: string;
   };
@@ -101,8 +99,10 @@ export function isBenchReuseDbEnabled(): boolean {
  * isBenchHexastorePerfFullScanEnabled returns true when fullScan benches are registered (opt-in).
  */
 export function isBenchHexastorePerfFullScanEnabled(): boolean {
-  return process.env.BENCH_HEXASTORE_PERF_FULL_SCAN === "1" ||
-    process.env.BENCH_CROSSOVER_FULL_SCAN === "1";
+  return (
+    process.env.BENCH_HEXASTORE_PERF_FULL_SCAN === "1" ||
+    process.env.BENCH_CROSSOVER_FULL_SCAN === "1"
+  );
 }
 
 /**
@@ -128,10 +128,7 @@ export function resolveHexastorePerfDbCachePaths(
     cacheDirectory,
     `${backend}-${quadCount}.json`,
   );
-  const databasePath = path.join(
-    cacheDirectory,
-    `${backend}-${quadCount}.db`,
-  );
+  const databasePath = path.join(cacheDirectory, `${backend}-${quadCount}.db`);
   return {
     backend: "libsqlStore",
     databasePath,
@@ -197,10 +194,7 @@ export async function writeHexastorePerfFixtureManifest(
   manifestPath: string,
   manifest: HexastorePerfFixtureManifest,
 ): Promise<void> {
-  await writeFile(
-    manifestPath,
-    `${JSON.stringify(manifest, null, 2)}\n`,
-  );
+  await writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
 }
 
 /**
@@ -239,8 +233,7 @@ export async function validateCachedLibsqlHexastorePerfDatabase(
   );
   const storedQuadCount = Number(quadCountResult.rows[0]?.total ?? -1);
   const storedChunkCount = Number(chunkCountResult.rows[0]?.total ?? -1);
-  return storedQuadCount === validation.quadCount &&
-    storedChunkCount === 0;
+  return storedQuadCount === validation.quadCount && storedChunkCount === 0;
 }
 
 /**

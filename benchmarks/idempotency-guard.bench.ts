@@ -34,25 +34,31 @@ await client.import({
   source: { kind: "quads", quads: payload100 },
 });
 
-bench({
-  name: "Idempotency: Novel Insert (New Quads Ingested)",
-  group: "Idempotency Guard Performance",
-}, async () => {
-  // Building the 100 fresh quads is inside the timed body (Deno.bench timed
-  // only the import); it is microseconds next to the import.
-  const freshPayload = generateFreshPayload(100);
-  await client.import({
-    source: { kind: "quads", quads: freshPayload },
-  });
-});
+bench(
+  {
+    name: "Idempotency: Novel Insert (New Quads Ingested)",
+    group: "Idempotency Guard Performance",
+  },
+  async () => {
+    // Building the 100 fresh quads is inside the timed body (Deno.bench timed
+    // only the import); it is microseconds next to the import.
+    const freshPayload = generateFreshPayload(100);
+    await client.import({
+      source: { kind: "quads", quads: freshPayload },
+    });
+  },
+);
 
-bench({
-  name: "Idempotency: Redundant Insert (Duplicate Quads Suppressed)",
-  group: "Idempotency Guard Performance",
-}, async () => {
-  await client.import({
-    source: { kind: "quads", quads: payload100 },
-  });
-});
+bench(
+  {
+    name: "Idempotency: Redundant Insert (Duplicate Quads Suppressed)",
+    group: "Idempotency Guard Performance",
+  },
+  async () => {
+    await client.import({
+      source: { kind: "quads", quads: payload100 },
+    });
+  },
+);
 
 await runBenches();

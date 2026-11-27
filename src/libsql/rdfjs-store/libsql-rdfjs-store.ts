@@ -29,11 +29,9 @@ export interface LibsqlRdfjsStoreOptions {
 export class LibsqlRdfjsStore {
   private readonly matchPageSize: number;
 
-  public constructor(
-    private readonly options: LibsqlRdfjsStoreOptions,
-  ) {
-    const configuredPageSize = options.matchPageSize ??
-      DEFAULT_LIBSQL_MATCH_PAGE_SIZE;
+  public constructor(private readonly options: LibsqlRdfjsStoreOptions) {
+    const configuredPageSize =
+      options.matchPageSize ?? DEFAULT_LIBSQL_MATCH_PAGE_SIZE;
     this.matchPageSize = Math.max(1, Math.floor(configuredPageSize));
   }
 
@@ -66,13 +64,10 @@ export class LibsqlRdfjsStore {
         }
 
         try {
-          const { sql, args } = buildMatchQuadsQuery(
-            pattern,
-            {
-              afterQuadId,
-              limit: this.matchPageSize,
-            },
-          );
+          const { sql, args } = buildMatchQuadsQuery(pattern, {
+            afterQuadId,
+            limit: this.matchPageSize,
+          });
           const resultSet = await this.options.connection.execute({
             sql,
             args,

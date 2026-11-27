@@ -32,11 +32,14 @@ const maintenanceOptions = {
   textSplitter: sharedTextSplitter,
 };
 
-bench({
-  name: "Maintenance: Full Index Rebuild (1,000 Quads)",
-  group: "Index Maintenance",
-}, async () => {
-  await rebuildLibsqlSearchIndexFromQuads(maintenanceOptions);
-});
+bench(
+  {
+    name: "Maintenance: Full Index Rebuild (1,000 Quads)",
+    group: "Index Maintenance",
+  },
+  async () => {
+    await rebuildLibsqlSearchIndexFromQuads(maintenanceOptions);
+  },
+);
 
 await runBenches();

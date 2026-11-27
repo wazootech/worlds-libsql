@@ -31,11 +31,11 @@ async function migrateLibsqlChunksFtsValue(
   connection: LibsqlConnectionDriver,
   schemaBuilder: LibsqlSchemaBuilder,
 ): Promise<void> {
-  const tableInfo = await connection.execute(
-    { sql: "PRAGMA table_info(chunks)" },
-  );
-  const hasFtsValueColumn = tableInfo.rows.some((row) =>
-    String(row.name) === "fts_value"
+  const tableInfo = await connection.execute({
+    sql: "PRAGMA table_info(chunks)",
+  });
+  const hasFtsValueColumn = tableInfo.rows.some(
+    (row) => String(row.name) === "fts_value",
   );
 
   if (!hasFtsValueColumn) {
@@ -67,15 +67,14 @@ async function recreateLibsqlChunksFts(
   }
 
   const ftsTableExists = await connection.execute({
-    sql:
-      "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'chunks_fts'",
+    sql: "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'chunks_fts'",
   });
   if (ftsTableExists.rows.length > 0) {
-    const ftsColumns = await connection.execute(
-      { sql: "PRAGMA table_info(chunks_fts)" },
-    );
-    const indexesFtsValue = ftsColumns.rows.some((row) =>
-      String(row.name) === "fts_value"
+    const ftsColumns = await connection.execute({
+      sql: "PRAGMA table_info(chunks_fts)",
+    });
+    const indexesFtsValue = ftsColumns.rows.some(
+      (row) => String(row.name) === "fts_value",
     );
     if (!indexesFtsValue) {
       await connection.execute({
@@ -89,9 +88,9 @@ async function recreateLibsqlChunksFts(
     await connection.execute({ sql: triggerSql });
   }
 
-  const chunkCount = await connection.execute(
-    { sql: "SELECT COUNT(*) AS total FROM chunks" },
-  );
+  const chunkCount = await connection.execute({
+    sql: "SELECT COUNT(*) AS total FROM chunks",
+  });
   const totalChunks = Number(chunkCount.rows[0]?.total ?? 0);
   if (totalChunks > 0) {
     try {

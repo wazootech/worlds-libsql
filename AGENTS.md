@@ -2,36 +2,42 @@
 
 ## Setup
 
-Dependencies resolve through Deno (`nodeModulesDir: "auto"`); there is no
-`package.json`, so do not run `npm install`. After cloning, run:
+Bun runs everything: install, tests, format, lint and type check. After
+cloning, run:
 
 ```sh
-deno install
+bun install
 ```
 
-CI runs `deno ci` (a frozen-lockfile install) instead. Then validate with
-`deno task ci`.
+CI runs `bun install --frozen-lockfile --ignore-scripts` instead. Then validate
+with `bun run ci` (format check, Oxlint, type check, manifest check, tests).
 
 ## Conventions
 
 - This repo is the standalone `@worlds/libsql` package. Keep imports local to
   this repo and use `@/libsql/...` for in-repo absolute imports.
-- Public exports should live in `deno.json`; keep `src/mod.ts` as the root
-  barrel.
+- Public exports live in `jsr.json` (what gets published) and are mirrored in
+  `package.json` (what Bun installs and resolves); keep `src/mod.ts` as the root
+  barrel. `bun run check:manifests` fails when the two disagree on exports or
+  dependency ranges (each `jsr:` dependency is an `npm:@jsr/<scope>__<name>`
+  alias in `package.json`).
 - Follow the existing JSDoc and naming style in the source files.
-- Run `deno fmt` before committing, then `deno task ci` before merging.
-
-## CI Deno pin
-
-CI pins Deno to 2.9.5 as a temporary exception: the floating latest segfaults
-the test process at shutdown (exit 139) under this repo's native libsql
-bindings. Remove the pin once upstream fixes the crash.
+- Run `bun run fmt` before committing, then `bun run ci` before merging.
+  `bun fmt` and `bun check` run a same-named `package.json` script if one
+  exists, so the scripts call `bun fmt --no-script` and `bun check --no-script`.
 
 ## Runtime-neutral tests and benches
 
 Tests use `node:test` and `node:assert/strict` (`rejected()` in
-`src/libsql/libsql-test-fixtures.ts` stands in for `assertRejects`), so the same
-suite runs on Deno (`deno task test`) and Bun (`bun run test:bun`, needs
-`bun install` first; `package.json` and `bun.lock` exist for Bun only until the
-cutover). Benches register through `benchmarks/shared/bench.ts` (mitata) and run
-with `deno run --allow-all benchmarks/<name>.bench.ts` or `bun <same>`.
+`src/libsql/libsql-test-fixtures.ts` stands in for `assertRejects`), so the
+suite is runtime-neutral and the code stays Node-compatible. Benches register
+through `benchmarks/shared/bench.ts` (mitata) and run with
+`bun benchmarks/<name>.bench.ts`. All tests run against local libsql databases;
+none runs against a real Turso server.
+
+## Publishing
+
+`jsr` (pinned in `devDependencies`) bundles its own Deno-based publisher and
+downloads it on first use, so no Deno install is needed anywhere. The Publish
+workflow runs on every push to `main` and publishes only when `jsr.json`'s
+`version` is not yet on JSR. `bun run publish:dry` is the local smoke test.

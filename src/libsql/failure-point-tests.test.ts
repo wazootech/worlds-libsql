@@ -20,199 +20,186 @@ import { hashQuads } from "@worlds/sdk/quad-store";
 
 const { quad, namedNode, literal } = DataFactory;
 
-test(
-  "LibsqlBatchExecutor - batch failure rolls back all statements within transaction",
-  async () => {
-    const client = createClient({ url: ":memory:" });
-    const connection = createTestLibsqlConnectionDriver(client);
-    await setupLibsqlSchemaForTest(connection);
+test("LibsqlBatchExecutor - batch failure rolls back all statements within transaction", async () => {
+  const client = createClient({ url: ":memory:" });
+  const connection = createTestLibsqlConnectionDriver(client);
+  await setupLibsqlSchemaForTest(connection);
 
-    const executor = new LibsqlBatchExecutor({
-      connection,
-      writeBatchSize: 2,
-    });
+  const executor = new LibsqlBatchExecutor({
+    connection,
+    writeBatchSize: 2,
+  });
 
-    await executor.stage([
-      "INSERT INTO quads (id, s, s_type, p, o, o_type, o_datatype, o_lang, g, g_type) VALUES ('id1', 'urn:s1', 'NamedNode', 'urn:p', 'o1', 'Literal', '', '', '', 'DefaultGraph')",
-      "INSERT INTO quads (id, s, s_type, p, o, o_type, o_datatype, o_lang, g, g_type) VALUES ('id2', 'urn:s2', 'NamedNode', 'urn:p', 'o2', 'Literal', '', '', '', 'DefaultGraph')",
-      "INVALID SQL STATEMENT HERE TO FORCE FAILURE",
-    ]);
+  await executor.stage([
+    "INSERT INTO quads (id, s, s_type, p, o, o_type, o_datatype, o_lang, g, g_type) VALUES ('id1', 'urn:s1', 'NamedNode', 'urn:p', 'o1', 'Literal', '', '', '', 'DefaultGraph')",
+    "INSERT INTO quads (id, s, s_type, p, o, o_type, o_datatype, o_lang, g, g_type) VALUES ('id2', 'urn:s2', 'NamedNode', 'urn:p', 'o2', 'Literal', '', '', '', 'DefaultGraph')",
+    "INVALID SQL STATEMENT HERE TO FORCE FAILURE",
+  ]);
 
-    await rejected(() => executor.flush());
+  await rejected(() => executor.flush());
 
-    const result = await client.execute("SELECT COUNT(*) as total FROM quads");
-    assert.deepStrictEqual(
-      Number(result.rows[0].total),
-      0,
-      "All inserted quads must be rolled back when any batch statement fails",
-    );
-  },
-);
+  const result = await client.execute("SELECT COUNT(*) as total FROM quads");
+  assert.deepStrictEqual(
+    Number(result.rows[0].total),
+    0,
+    "All inserted quads must be rolled back when any batch statement fails",
+  );
+});
 
-test(
-  "LibsqlQuadStore commit - nothing is written when search projection throws",
-  async () => {
-    const client = createClient({ url: ":memory:" });
-    const connection = createTestLibsqlConnectionDriver(client);
-    await setupLibsqlSchemaForTest(connection);
+test("LibsqlQuadStore commit - nothing is written when search projection throws", async () => {
+  const client = createClient({ url: ":memory:" });
+  const connection = createTestLibsqlConnectionDriver(client);
+  await setupLibsqlSchemaForTest(connection);
 
-    const searchIndexProjector = new LibsqlSearchIndexProjector({
-      connection,
-      textSplitter: sharedTextSplitter,
-      searchQueryBuilder: testLibsqlSearchQueryBuilder,
-      embeddingService: {
-        embed: () => Promise.reject(new Error("Simulated projection failure")),
-      } as unknown as EmbeddingService,
-    });
+  const searchIndexProjector = new LibsqlSearchIndexProjector({
+    connection,
+    textSplitter: sharedTextSplitter,
+    searchQueryBuilder: testLibsqlSearchQueryBuilder,
+    embeddingService: {
+      embed: () => Promise.reject(new Error("Simulated projection failure")),
+    } as unknown as EmbeddingService,
+  });
 
-    const store = new LibsqlRdfjsStore({ connection, matchPageSize: 100 });
-    const quadStore = new LibsqlQuadStore({
-      connection,
-      store,
-      searchQueryBuilder: testLibsqlSearchQueryBuilder,
-      searchIndexProjector,
-      searchIndexOnImport: "incremental",
-    });
+  const store = new LibsqlRdfjsStore({ connection, matchPageSize: 100 });
+  const quadStore = new LibsqlQuadStore({
+    connection,
+    store,
+    searchQueryBuilder: testLibsqlSearchQueryBuilder,
+    searchIndexProjector,
+    searchIndexOnImport: "incremental",
+  });
 
-    const testQuad = quad(
-      namedNode("urn:fail:subject"),
-      namedNode("urn:fail:predicate"),
-      literal("orphaned quad"),
-    );
+  const testQuad = quad(
+    namedNode("urn:fail:subject"),
+    namedNode("urn:fail:predicate"),
+    literal("orphaned quad"),
+  );
 
-    const tx = quadStore.createTransaction();
-    tx.addQuads([testQuad]);
+  const tx = quadStore.createTransaction();
+  tx.addQuads([testQuad]);
 
-    await rejected(() => tx.commit());
+  await rejected(() => tx.commit());
 
-    const quadRows = await client.execute(
-      "SELECT COUNT(*) as total FROM quads WHERE s = 'urn:fail:subject'",
-    );
-    assert.deepStrictEqual(
-      Number(quadRows.rows[0].total),
-      0,
-      "Quad must be rolled back from DB when search projection throws",
-    );
-  },
-);
+  const quadRows = await client.execute(
+    "SELECT COUNT(*) as total FROM quads WHERE s = 'urn:fail:subject'",
+  );
+  assert.deepStrictEqual(
+    Number(quadRows.rows[0].total),
+    0,
+    "Quad must be rolled back from DB when search projection throws",
+  );
+});
 
-test(
-  "commitPatchToLibsql - flush failure with multi-batch write rolls back earlier batches",
-  async () => {
-    const client = createClient({ url: ":memory:" });
-    const connection = createTestLibsqlConnectionDriver(client);
-    await setupLibsqlSchemaForTest(connection);
+test("commitPatchToLibsql - flush failure with multi-batch write rolls back earlier batches", async () => {
+  const client = createClient({ url: ":memory:" });
+  const connection = createTestLibsqlConnectionDriver(client);
+  await setupLibsqlSchemaForTest(connection);
 
-    const existingQuad = quad(
-      namedNode("urn:will-delete"),
-      namedNode("urn:pred"),
-      literal("will be deleted"),
-    );
-    const [existingHash] = await hashQuads([existingQuad]);
-    await client.execute(
-      "INSERT INTO quads (id, s, s_type, p, o, o_type, o_datatype, o_lang, g, g_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-      [
-        existingHash!,
-        "urn:will-delete",
-        "NamedNode",
-        "urn:pred",
-        "will be deleted",
-        "Literal",
-        "",
-        "",
-        "",
-        "DefaultGraph",
-      ],
-    );
-    assert.deepStrictEqual(
-      Number(
-        (await client.execute("SELECT COUNT(*) as total FROM quads")).rows[0]
-          .total,
-      ),
-      1,
-      "Pre-existing quad should be present",
-    );
-
-    const newQuadCount = 80;
-    const writeBatchSize = 2;
-
-    const newInsertions: import("@rdfjs/types").Quad[] = [];
-    for (let i = 0; i < newQuadCount; i++) {
-      newInsertions.push(
-        quad(
-          namedNode(`urn:new:${i}`),
-          namedNode("urn:pred"),
-          literal(`new value ${i}`),
-        ),
-      );
-    }
-
-    client.batch = () => {
-      throw new Error("Simulated Turso write failure");
-    };
-
-    await rejected(() =>
-      commitPatchToLibsql(
-        { insertions: newInsertions, deletions: [existingQuad] },
-        {
-          connection,
-          searchQueryBuilder: testLibsqlSearchQueryBuilder,
-          maxWriteBatchSize: writeBatchSize,
-        },
-      )
-    );
-
-    const finalCount = Number(
+  const existingQuad = quad(
+    namedNode("urn:will-delete"),
+    namedNode("urn:pred"),
+    literal("will be deleted"),
+  );
+  const [existingHash] = await hashQuads([existingQuad]);
+  await client.execute(
+    "INSERT INTO quads (id, s, s_type, p, o, o_type, o_datatype, o_lang, g, g_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+    [
+      existingHash!,
+      "urn:will-delete",
+      "NamedNode",
+      "urn:pred",
+      "will be deleted",
+      "Literal",
+      "",
+      "",
+      "",
+      "DefaultGraph",
+    ],
+  );
+  assert.deepStrictEqual(
+    Number(
       (await client.execute("SELECT COUNT(*) as total FROM quads")).rows[0]
         .total,
-    );
-    assert.deepStrictEqual(
-      finalCount,
-      1,
-      "Pre-existing quad must remain intact because transaction rolled back all batches",
-    );
-  },
-);
+    ),
+    1,
+    "Pre-existing quad should be present",
+  );
 
-test(
-  "commitPatchToLibsql - flush error wrapping preserves original cause and includes message detail",
-  async () => {
-    const client = createClient({ url: ":memory:" });
-    const connection = createTestLibsqlConnectionDriver(client);
-    await setupLibsqlSchemaForTest(connection);
+  const newQuadCount = 80;
+  const writeBatchSize = 2;
 
-    client.batch = () => {
-      throw new Error("TURSO_NETWORK_TIMEOUT");
-    };
+  const newInsertions: import("@rdfjs/types").Quad[] = [];
+  for (let i = 0; i < newQuadCount; i++) {
+    newInsertions.push(
+      quad(
+        namedNode(`urn:new:${i}`),
+        namedNode("urn:pred"),
+        literal(`new value ${i}`),
+      ),
+    );
+  }
 
-    let caught: unknown;
-    try {
-      await commitPatchToLibsql(
-        {
-          insertions: [
-            quad(namedNode("urn:err"), namedNode("urn:p"), literal("v")),
-          ],
-          deletions: [],
-        },
-        { connection, searchQueryBuilder: testLibsqlSearchQueryBuilder },
-      );
-    } catch (e) {
-      caught = e;
-    }
+  client.batch = () => {
+    throw new Error("Simulated Turso write failure");
+  };
 
-    assert.deepStrictEqual(caught instanceof Error, true);
-    assert.deepStrictEqual(
-      (caught as Error).message,
-      "failed to execute sync batch: TURSO_NETWORK_TIMEOUT",
+  await rejected(() =>
+    commitPatchToLibsql(
+      { insertions: newInsertions, deletions: [existingQuad] },
+      {
+        connection,
+        searchQueryBuilder: testLibsqlSearchQueryBuilder,
+        maxWriteBatchSize: writeBatchSize,
+      },
+    ),
+  );
+
+  const finalCount = Number(
+    (await client.execute("SELECT COUNT(*) as total FROM quads")).rows[0].total,
+  );
+  assert.deepStrictEqual(
+    finalCount,
+    1,
+    "Pre-existing quad must remain intact because transaction rolled back all batches",
+  );
+});
+
+test("commitPatchToLibsql - flush error wrapping preserves original cause and includes message detail", async () => {
+  const client = createClient({ url: ":memory:" });
+  const connection = createTestLibsqlConnectionDriver(client);
+  await setupLibsqlSchemaForTest(connection);
+
+  client.batch = () => {
+    throw new Error("TURSO_NETWORK_TIMEOUT");
+  };
+
+  let caught: unknown;
+  try {
+    await commitPatchToLibsql(
+      {
+        insertions: [
+          quad(namedNode("urn:err"), namedNode("urn:p"), literal("v")),
+        ],
+        deletions: [],
+      },
+      { connection, searchQueryBuilder: testLibsqlSearchQueryBuilder },
     );
-    assert.deepStrictEqual(
-      (caught as Error).cause instanceof Error,
-      true,
-      "Original Turso error must be preserved in .cause",
-    );
-    assert.deepStrictEqual(
-      ((caught as Error).cause as Error).message,
-      "TURSO_NETWORK_TIMEOUT",
-    );
-  },
-);
+  } catch (e) {
+    caught = e;
+  }
+
+  assert.deepStrictEqual(caught instanceof Error, true);
+  assert.deepStrictEqual(
+    (caught as Error).message,
+    "failed to execute sync batch: TURSO_NETWORK_TIMEOUT",
+  );
+  assert.deepStrictEqual(
+    (caught as Error).cause instanceof Error,
+    true,
+    "Original Turso error must be preserved in .cause",
+  );
+  assert.deepStrictEqual(
+    ((caught as Error).cause as Error).message,
+    "TURSO_NETWORK_TIMEOUT",
+  );
+});
