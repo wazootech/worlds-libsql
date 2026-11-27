@@ -1,6 +1,9 @@
 import { type Client, createClient } from "@libsql/client";
-import { encodeHex } from "@std/encoding/hex";
-import * as path from "@std/path";
+import { Buffer } from "node:buffer";
+import { mkdir, readFile, rm, stat, writeFile } from "node:fs/promises";
+import * as path from "node:path";
+import process from "node:process";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { SYNTHETIC_CORPUS_VERSION } from "./synthetic-data.ts";
 
 /**
@@ -12,7 +15,7 @@ export const BENCH_LIBSQL_SCHEMA_VERSION = 1;
 export type HexastorePerfCacheBackend = "libsqlStore";
 
 /** DEFAULT_HEXASTORE_PERF_CACHE_DIR is the default on-disk cache root for large perf fixtures. */
-const BENCHMARKS_ROOT = path.fromFileUrl(new URL("../..", import.meta.url));
+const BENCHMARKS_ROOT = fileURLToPath(new URL("../..", import.meta.url));
 
 /** DEFAULT_HEXASTORE_PERF_CACHE_DIR stores large database files under benchmarks/.cache. */
 export const DEFAULT_HEXASTORE_PERF_CACHE_DIR = path.join(
@@ -91,22 +94,22 @@ export interface CachedHexastorePerfFixtureValidation {
  * isBenchReuseDbEnabled returns true when BENCH_REUSE_DB=1 enables on-disk perf fixture reuse.
  */
 export function isBenchReuseDbEnabled(): boolean {
-  return Deno.env.get("BENCH_REUSE_DB") === "1";
+  return process.env.BENCH_REUSE_DB === "1";
 }
 
 /**
  * isBenchHexastorePerfFullScanEnabled returns true when fullScan benches are registered (opt-in).
  */
 export function isBenchHexastorePerfFullScanEnabled(): boolean {
-  return Deno.env.get("BENCH_HEXASTORE_PERF_FULL_SCAN") === "1" ||
-    Deno.env.get("BENCH_CROSSOVER_FULL_SCAN") === "1";
+  return process.env.BENCH_HEXASTORE_PERF_FULL_SCAN === "1" ||
+    process.env.BENCH_CROSSOVER_FULL_SCAN === "1";
 }
 
 /**
  * resolveHexastorePerfDbCacheDirectory returns the cache root from BENCH_DB_CACHE_DIR or the default.
  */
 export function resolveHexastorePerfDbCacheDirectory(): string {
-  const overrideDirectory = Deno.env.get("BENCH_DB_CACHE_DIR");
+  const overrideDirectory = process.env.BENCH_DB_CACHE_DIR;
   if (overrideDirectory && overrideDirectory.length > 0) {
     return path.resolve(overrideDirectory);
   }
@@ -132,7 +135,7 @@ export function resolveHexastorePerfDbCachePaths(
   return {
     backend: "libsqlStore",
     databasePath,
-    databaseFileUrl: path.toFileUrl(databasePath).href,
+    databaseFileUrl: pathToFileURL(databasePath).href,
     manifestPath,
   };
 }
@@ -162,7 +165,12 @@ export async function computeHexastorePerfFixtureChecksum(
   const canonicalJson = JSON.stringify(inputs);
   const encodedInputs = new TextEncoder().encode(canonicalJson);
   const digestBuffer = await crypto.subtle.digest("SHA-256", encodedInputs);
-  return encodeHex(new Uint8Array(digestBuffer));
+  return Buffer.from(digestBuffer).toString("hex");
+}
+
+/** isNotFound reports whether error is a missing-file (ENOENT) failure. */
+function isNotFound(error: unknown): boolean {
+  return error instanceof Error && "code" in error && error.code === "ENOENT";
 }
 
 /**
@@ -172,10 +180,10 @@ export async function readHexastorePerfFixtureManifest(
   manifestPath: string,
 ): Promise<HexastorePerfFixtureManifest | undefined> {
   try {
-    const manifestText = await Deno.readTextFile(manifestPath);
+    const manifestText = await readFile(manifestPath, "utf8");
     return JSON.parse(manifestText) as HexastorePerfFixtureManifest;
   } catch (error) {
-    if (error instanceof Deno.errors.NotFound) {
+    if (isNotFound(error)) {
       return undefined;
     }
     throw error;
@@ -189,7 +197,7 @@ export async function writeHexastorePerfFixtureManifest(
   manifestPath: string,
   manifest: HexastorePerfFixtureManifest,
 ): Promise<void> {
-  await Deno.writeTextFile(
+  await writeFile(
     manifestPath,
     `${JSON.stringify(manifest, null, 2)}\n`,
   );
@@ -201,7 +209,7 @@ export async function writeHexastorePerfFixtureManifest(
 export async function ensureHexastorePerfCacheDirectoryExists(
   cacheDirectory: string,
 ): Promise<void> {
-  await Deno.mkdir(cacheDirectory, { recursive: true });
+  await mkdir(cacheDirectory, { recursive: true });
 }
 
 /**
@@ -211,8 +219,8 @@ export async function removeStaleHexastorePerfCacheFiles(
   cachePaths: HexastorePerfDbCachePaths,
 ): Promise<void> {
   await Promise.all([
-    Deno.remove(cachePaths.databasePath).catch(() => undefined),
-    Deno.remove(cachePaths.manifestPath).catch(() => undefined),
+    rm(cachePaths.databasePath).catch(() => undefined),
+    rm(cachePaths.manifestPath).catch(() => undefined),
   ]);
 }
 
@@ -256,7 +264,7 @@ export async function tryResolveHexastorePerfCacheHit(
   }
 
   try {
-    await Deno.stat(cachePaths.databasePath);
+    await stat(cachePaths.databasePath);
   } catch {
     console.log(`cache miss (${cachePaths.databasePath}: database missing)`);
     return false;

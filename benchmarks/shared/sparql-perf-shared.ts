@@ -1,3 +1,4 @@
+import process from "node:process";
 import { createClient } from "@libsql/client";
 import type { Quad } from "@rdfjs/types";
 import type { WorldsSdkInterface } from "@worlds/sdk";
@@ -13,6 +14,7 @@ import {
   tryResolveHexastorePerfCacheHit,
   writeHexastorePerfFixtureManifest,
 } from "./perf-db-cache.ts";
+import { bench } from "./bench.ts";
 import { generateSyntheticQuads } from "./synthetic-data.ts";
 
 /** selectiveSubjectIri is the grounded subject for subject-bound SPARQL benchmarks. */
@@ -245,12 +247,12 @@ export async function preloadSparqlHexastorePerfFixtures(
 }
 
 /**
- * registerSparqlHexastorePerfUnloadCleanup closes database handles when the bench module unloads.
+ * registerSparqlHexastorePerfUnloadCleanup closes database handles when the process exits.
  */
 export function registerSparqlHexastorePerfUnloadCleanup(
   preloadedSparqlEngines: Map<string, PreloadedSparqlFixture>,
 ): void {
-  globalThis.addEventListener("unload", () => {
+  process.once("exit", () => {
     for (const fixture of preloadedSparqlEngines.values()) {
       fixture.databaseClient?.close();
     }
@@ -258,7 +260,7 @@ export function registerSparqlHexastorePerfUnloadCleanup(
 }
 
 /**
- * registerSparqlHexastorePerfBenchmarks registers execute-only quad index perf Deno.bench entries.
+ * registerSparqlHexastorePerfBenchmarks registers execute-only quad index perf benches.
  */
 export function registerSparqlHexastorePerfBenchmarks(
   perfScales: readonly number[],
@@ -271,21 +273,18 @@ export function registerSparqlHexastorePerfBenchmarks(
       for (const backend of perfBackends) {
         const query = sparqlQueryForShape(queryShape);
         const cacheKey = sparqlEngineCacheKey(backend, quadCount);
-        Deno.bench({
-          name:
-            `SPARQL Hexastore Perf: ${quadCount} quads | ${queryShape} | ${backend}`,
-          group: `SPARQL Hexastore Perf (${quadCount})`,
-          async fn(benchContext) {
-            const fixture = preloadedSparqlEngines.get(cacheKey);
-            if (!fixture) {
-              throw new Error(`Missing preloaded SPARQL fixture: ${cacheKey}`);
-            }
-
-            benchContext.start();
-            await fixture.client.sparql({ query });
-            benchContext.end();
+        const fixture = preloadedSparqlEngines.get(cacheKey);
+        if (!fixture) {
+          throw new Error(`Missing preloaded SPARQL fixture: ${cacheKey}`);
+        }
+        bench(
+          {
+            name:
+              `SPARQL Hexastore Perf: ${quadCount} quads | ${queryShape} | ${backend}`,
+            group: `SPARQL Hexastore Perf (${quadCount})`,
           },
-        });
+          () => fixture.client.sparql({ query }),
+        );
       }
     }
   }

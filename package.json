@@ -1,0 +1,35 @@
+{
+  "name": "@worlds/libsql",
+  "private": true,
+  "type": "module",
+  "description": "Bun package manifest for @worlds/libsql. The published package is described by deno.json (jsr.json after the Bun cutover).",
+  "packageManager": "bun@1.4.5",
+  "exports": {
+    ".": "./src/mod.ts",
+    "./quad-store": "./src/libsql/quad-store/mod.ts",
+    "./search-index": "./src/libsql/search-index/mod.ts",
+    "./rdfjs-store": "./src/libsql/rdfjs-store/mod.ts",
+    "./schema": "./src/libsql/schema/libsql-schema-builder.ts"
+  },
+  "scripts": {
+    "test:bun": "bun test --timeout 120000"
+  },
+  "dependencies": {
+    "@ai-sdk/google": "^3.0.80",
+    "@langchain/core": "^1.1.48",
+    "@langchain/textsplitters": "^1.0.1",
+    "@libsql/client": "^0.17.4",
+    "@rdfjs/types": "^2.0.1",
+    "@tensorflow/tfjs": "^4.22.0",
+    "@tensorflow/tfjs-backend-wasm": "^4.22.0",
+    "@types/n3": "1.26.1",
+    "@wazoo/sparql-engine": "npm:@jsr/wazoo__sparql-engine@^0.5.1",
+    "@worlds/sdk": "npm:@jsr/worlds__sdk@^0.11.0",
+    "@worlds/sqlite": "npm:@jsr/worlds__sqlite@^0.8.1",
+    "ai": "^6.0.195",
+    "mitata": "1.0.34",
+    "n3": "^2.0.3",
+    "rdf-canonize": "^5.0.0",
+    "zod": "^4.4.3"
+  }
+}

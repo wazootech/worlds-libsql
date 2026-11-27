@@ -1,3 +1,4 @@
+import { bench, runBenches } from "./shared/bench.ts";
 import { createClient } from "@libsql/client";
 import { createLibsqlWorldsSdk } from "@/libsql/mod.ts";
 import { rebuildLibsqlSearchIndexFromQuads } from "@/libsql/search-index/rebuild-libsql-search-index-from-quads.ts";
@@ -31,12 +32,11 @@ const maintenanceOptions = {
   textSplitter: sharedTextSplitter,
 };
 
-Deno.bench({
+bench({
   name: "Maintenance: Full Index Rebuild (1,000 Quads)",
   group: "Index Maintenance",
-  async fn(benchContext) {
-    benchContext.start();
-    await rebuildLibsqlSearchIndexFromQuads(maintenanceOptions);
-    benchContext.end();
-  },
+}, async () => {
+  await rebuildLibsqlSearchIndexFromQuads(maintenanceOptions);
 });
+
+await runBenches();

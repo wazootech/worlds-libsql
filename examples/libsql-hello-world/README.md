@@ -1,7 +1,7 @@
 # LibSQL hello world example
 
 This example demonstrates how to configure and use a single process-lifetime
-`Client` with a production-ready, durable LibSQL backend using Deno.
+`Client` with a production-ready, durable LibSQL backend using Deno or Bun.
 
 It consolidates process-scoped lifecycle patterns, hybrid search capabilities,
 and optimized SPARQL queries.

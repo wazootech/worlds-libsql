@@ -1,4 +1,5 @@
-import { assertEquals, assertRejects } from "@std/assert";
+import assert from "node:assert/strict";
+import { test } from "node:test";
 import { createClient } from "@libsql/client";
 import { DataFactory } from "n3";
 import { LibsqlBatchExecutor } from "@/libsql/libsql-batch-executor.ts";
@@ -9,6 +10,7 @@ import { LibsqlSearchIndexProjector } from "@/libsql/search-index/libsql-search-
 import type { EmbeddingService } from "@worlds/sdk/search-index/embedding-service";
 import {
   createTestLibsqlConnectionDriver,
+  rejected,
   setupLibsqlSchemaForTest,
   sharedTextSplitter,
   testLibsqlSearchQueryBuilder,
@@ -18,7 +20,7 @@ import { hashQuads } from "@worlds/sdk/quad-store";
 
 const { quad, namedNode, literal } = DataFactory;
 
-Deno.test(
+test(
   "LibsqlBatchExecutor - batch failure rolls back all statements within transaction",
   async () => {
     const client = createClient({ url: ":memory:" });
@@ -36,10 +38,10 @@ Deno.test(
       "INVALID SQL STATEMENT HERE TO FORCE FAILURE",
     ]);
 
-    await assertRejects(() => executor.flush());
+    await rejected(() => executor.flush());
 
     const result = await client.execute("SELECT COUNT(*) as total FROM quads");
-    assertEquals(
+    assert.deepStrictEqual(
       Number(result.rows[0].total),
       0,
       "All inserted quads must be rolled back when any batch statement fails",
@@ -47,7 +49,7 @@ Deno.test(
   },
 );
 
-Deno.test(
+test(
   "LibsqlQuadStore commit - nothing is written when search projection throws",
   async () => {
     const client = createClient({ url: ":memory:" });
@@ -81,12 +83,12 @@ Deno.test(
     const tx = quadStore.createTransaction();
     tx.addQuads([testQuad]);
 
-    await assertRejects(() => tx.commit());
+    await rejected(() => tx.commit());
 
     const quadRows = await client.execute(
       "SELECT COUNT(*) as total FROM quads WHERE s = 'urn:fail:subject'",
     );
-    assertEquals(
+    assert.deepStrictEqual(
       Number(quadRows.rows[0].total),
       0,
       "Quad must be rolled back from DB when search projection throws",
@@ -94,7 +96,7 @@ Deno.test(
   },
 );
 
-Deno.test(
+test(
   "commitPatchToLibsql - flush failure with multi-batch write rolls back earlier batches",
   async () => {
     const client = createClient({ url: ":memory:" });
@@ -122,7 +124,7 @@ Deno.test(
         "DefaultGraph",
       ],
     );
-    assertEquals(
+    assert.deepStrictEqual(
       Number(
         (await client.execute("SELECT COUNT(*) as total FROM quads")).rows[0]
           .total,
@@ -149,7 +151,7 @@ Deno.test(
       throw new Error("Simulated Turso write failure");
     };
 
-    await assertRejects(() =>
+    await rejected(() =>
       commitPatchToLibsql(
         { insertions: newInsertions, deletions: [existingQuad] },
         {
@@ -164,7 +166,7 @@ Deno.test(
       (await client.execute("SELECT COUNT(*) as total FROM quads")).rows[0]
         .total,
     );
-    assertEquals(
+    assert.deepStrictEqual(
       finalCount,
       1,
       "Pre-existing quad must remain intact because transaction rolled back all batches",
@@ -172,7 +174,7 @@ Deno.test(
   },
 );
 
-Deno.test(
+test(
   "commitPatchToLibsql - flush error wrapping preserves original cause and includes message detail",
   async () => {
     const client = createClient({ url: ":memory:" });
@@ -198,17 +200,17 @@ Deno.test(
       caught = e;
     }
 
-    assertEquals(caught instanceof Error, true);
-    assertEquals(
+    assert.deepStrictEqual(caught instanceof Error, true);
+    assert.deepStrictEqual(
       (caught as Error).message,
       "failed to execute sync batch: TURSO_NETWORK_TIMEOUT",
     );
-    assertEquals(
+    assert.deepStrictEqual(
       (caught as Error).cause instanceof Error,
       true,
       "Original Turso error must be preserved in .cause",
     );
-    assertEquals(
+    assert.deepStrictEqual(
       ((caught as Error).cause as Error).message,
       "TURSO_NETWORK_TIMEOUT",
     );

@@ -1,6 +1,9 @@
-import { assertEquals, assertExists, assertNotEquals } from "@std/assert";
+import assert from "node:assert/strict";
+import { test } from "node:test";
 import { createClient } from "@libsql/client";
-import * as path from "@std/path";
+import { mkdtemp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import * as path from "node:path";
 import { createLibsqlWorldsSdk } from "@worlds/libsql";
 import type { Quad } from "@rdfjs/types";
 import {
@@ -26,7 +29,7 @@ async function importCorpusIntoLibsqlHexastoreForTest(
   });
 }
 
-Deno.test(
+test(
   "computeHexastorePerfFixtureChecksum - stable digest for identical inputs",
   async () => {
     const checksumInputs = buildHexastorePerfFixtureChecksumInputs(
@@ -39,11 +42,11 @@ Deno.test(
     const secondChecksum = await computeHexastorePerfFixtureChecksum(
       checksumInputs,
     );
-    assertEquals(firstChecksum, secondChecksum);
+    assert.deepStrictEqual(firstChecksum, secondChecksum);
   },
 );
 
-Deno.test(
+test(
   "computeHexastorePerfFixtureChecksum - different corpus version changes digest",
   async () => {
     const baselineInputs = buildHexastorePerfFixtureChecksumInputs(
@@ -60,24 +63,30 @@ Deno.test(
     const alteredChecksum = await computeHexastorePerfFixtureChecksum(
       alteredInputs,
     );
-    assertNotEquals(baselineChecksum, alteredChecksum);
+    assert.notDeepStrictEqual(baselineChecksum, alteredChecksum);
   },
 );
 
-Deno.test(
+test(
   "resolveHexastorePerfDbCachePaths - names libsqlStore database and manifest files",
   () => {
     const cachePaths = resolveHexastorePerfDbCachePaths(10, "libsqlStore");
-    assertEquals(cachePaths.databasePath.endsWith("libsqlStore-10.db"), true);
-    assertEquals(cachePaths.manifestPath.endsWith("libsqlStore-10.json"), true);
-    assertEquals(
+    assert.deepStrictEqual(
+      cachePaths.databasePath.endsWith("libsqlStore-10.db"),
+      true,
+    );
+    assert.deepStrictEqual(
+      cachePaths.manifestPath.endsWith("libsqlStore-10.json"),
+      true,
+    );
+    assert.deepStrictEqual(
       cachePaths.databaseFileUrl.includes("libsqlStore-10.db"),
       true,
     );
   },
 );
 
-Deno.test(
+test(
   "validateCachedLibsqlHexastorePerfDatabase - accepts quads-only in-memory fixture",
   async () => {
     const databaseClient = createClient({ url: ":memory:" });
@@ -93,17 +102,19 @@ Deno.test(
         databaseClient,
         { quadCount: 10, expectedChecksum },
       );
-      assertEquals(isValid, true);
+      assert.deepStrictEqual(isValid, true);
     } finally {
       databaseClient.close();
     }
   },
 );
 
-Deno.test(
+test(
   "writeHexastorePerfFixtureManifest - round-trips manifest JSON",
   async () => {
-    const temporaryDirectory = await Deno.makeTempDir();
+    const temporaryDirectory = await mkdtemp(
+      path.join(tmpdir(), "perf-db-cache-"),
+    );
     const manifestPath = path.join(temporaryDirectory, "libsqlStore-10.json");
     try {
       const checksumInputs = buildHexastorePerfFixtureChecksumInputs(
@@ -118,12 +129,11 @@ Deno.test(
       const parsedManifest = await readHexastorePerfFixtureManifest(
         manifestPath,
       );
-      assertExists(parsedManifest);
-      assertEquals(parsedManifest.checksum, expectedChecksum);
-      assertEquals(parsedManifest.quadCount, 10);
+      assert.ok(parsedManifest);
+      assert.deepStrictEqual(parsedManifest.checksum, expectedChecksum);
+      assert.deepStrictEqual(parsedManifest.quadCount, 10);
     } finally {
-      await Deno.remove(manifestPath);
-      await Deno.remove(temporaryDirectory);
+      await rm(temporaryDirectory, { recursive: true, force: true });
     }
   },
 );

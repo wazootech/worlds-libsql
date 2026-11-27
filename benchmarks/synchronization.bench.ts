@@ -1,3 +1,4 @@
+import { bench, runBenches } from "./shared/bench.ts";
 import { createClient } from "@libsql/client";
 import { DataFactory } from "n3";
 import { createLibsqlWorldsSdk } from "@/libsql/mod.ts";
@@ -26,44 +27,40 @@ function generateBatchPayload(count: number) {
   return bulkQuads;
 }
 
-Deno.bench({
+bench({
   name: "Sync: Consolidated Batch Commit (10 Quads)",
   group: "Consolidated Batch Ingestion",
-  async fn(benchContext) {
-    const payload = generateBatchPayload(10);
-
-    benchContext.start();
-    await client.import({
-      source: { kind: "quads", quads: payload },
-    });
-    benchContext.end();
-  },
+}, async () => {
+  // Building the payload is inside the timed body (Deno.bench timed only the
+  // import); it is microseconds next to the import.
+  const payload = generateBatchPayload(10);
+  await client.import({
+    source: { kind: "quads", quads: payload },
+  });
 });
 
-Deno.bench({
+bench({
   name: "Sync: Consolidated Batch Commit (100 Quads)",
   group: "Consolidated Batch Ingestion",
-  async fn(benchContext) {
-    const payload = generateBatchPayload(100);
-
-    benchContext.start();
-    await client.import({
-      source: { kind: "quads", quads: payload },
-    });
-    benchContext.end();
-  },
+}, async () => {
+  // Building the payload is inside the timed body (Deno.bench timed only the
+  // import); it is microseconds next to the import.
+  const payload = generateBatchPayload(100);
+  await client.import({
+    source: { kind: "quads", quads: payload },
+  });
 });
 
-Deno.bench({
+bench({
   name: "Sync: Consolidated Batch Commit (1,000 Quads)",
   group: "Consolidated Batch Ingestion",
-  async fn(benchContext) {
-    const payload = generateBatchPayload(1000);
-
-    benchContext.start();
-    await client.import({
-      source: { kind: "quads", quads: payload },
-    });
-    benchContext.end();
-  },
+}, async () => {
+  // Building the payload is inside the timed body (Deno.bench timed only the
+  // import); it is microseconds next to the import.
+  const payload = generateBatchPayload(1000);
+  await client.import({
+    source: { kind: "quads", quads: payload },
+  });
 });
+
+await runBenches();

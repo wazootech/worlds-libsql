@@ -1,4 +1,5 @@
-import { assertEquals } from "@std/assert";
+import assert from "node:assert/strict";
+import { test } from "node:test";
 import { createClient } from "@libsql/client";
 import { DataFactory } from "n3";
 import { LibsqlSearchIndexProjector } from "@/libsql/search-index/libsql-search-index-projector.ts";
@@ -45,7 +46,7 @@ function createLibsqlPersistHooks(
   };
 }
 
-Deno.test(
+test(
   "createLibsqlPersistHooks - bulk quad INSERT persists expected quads row count",
   async () => {
     const client = createClient({ url: ":memory:" });
@@ -77,11 +78,11 @@ Deno.test(
     const quadRows = await client.execute(
       "SELECT COUNT(*) as total FROM quads",
     );
-    assertEquals(Number(quadRows.rows[0].total), bulkQuadCount);
+    assert.deepStrictEqual(Number(quadRows.rows[0].total), bulkQuadCount);
   },
 );
 
-Deno.test("createLibsqlPersistHooks - isolated writes and removals commit correctly to BOTH chunks and quads", async () => {
+test("createLibsqlPersistHooks - isolated writes and removals commit correctly to BOTH chunks and quads", async () => {
   const client = createClient({ url: ":memory:" });
   const connection = createTestLibsqlConnectionDriver(client);
   await setupLibsqlSchemaForTest(connection);
@@ -112,14 +113,14 @@ Deno.test("createLibsqlPersistHooks - isolated writes and removals commit correc
 
   // 2. Verify both Tables updated
   let chunkRows = await client.execute("SELECT COUNT(*) as total FROM chunks");
-  assertEquals(
+  assert.deepStrictEqual(
     chunkRows.rows[0].total,
     1,
     "Expected one chunk written to index",
   );
 
   let quadRows = await client.execute("SELECT COUNT(*) as total FROM quads");
-  assertEquals(
+  assert.deepStrictEqual(
     quadRows.rows[0].total,
     1,
     "Expected exact master quad record replicated",
@@ -133,13 +134,17 @@ Deno.test("createLibsqlPersistHooks - isolated writes and removals commit correc
 
   // 4. Verify holistic cleared state
   chunkRows = await client.execute("SELECT COUNT(*) as total FROM chunks");
-  assertEquals(chunkRows.rows[0].total, 0, "Index cleanup failed");
+  assert.deepStrictEqual(chunkRows.rows[0].total, 0, "Index cleanup failed");
 
   quadRows = await client.execute("SELECT COUNT(*) as total FROM quads");
-  assertEquals(quadRows.rows[0].total, 0, "Master quad cleanup failed");
+  assert.deepStrictEqual(
+    quadRows.rows[0].total,
+    0,
+    "Master quad cleanup failed",
+  );
 });
 
-Deno.test("createLibsqlPersistHooks - supports synchronization when embeddingService is omitted (vector column left null)", async () => {
+test("createLibsqlPersistHooks - supports synchronization when embeddingService is omitted (vector column left null)", async () => {
   const client = createClient({ url: ":memory:" });
   const connection = createTestLibsqlConnectionDriver(client);
   await setupLibsqlSchemaForTest(connection);
@@ -169,13 +174,16 @@ Deno.test("createLibsqlPersistHooks - supports synchronization when embeddingSer
 
   // Verify that the chunk table has the row but with vector null
   const chunkRows = await client.execute("SELECT value, vector FROM chunks");
-  assertEquals(
+  assert.deepStrictEqual(
     chunkRows.rows.length,
     1,
     "Expected one chunk written to standard FTS index",
   );
-  assertEquals(chunkRows.rows[0].value, "Vectorless searchable text node");
-  assertEquals(
+  assert.deepStrictEqual(
+    chunkRows.rows[0].value,
+    "Vectorless searchable text node",
+  );
+  assert.deepStrictEqual(
     chunkRows.rows[0].vector,
     null,
     "The vector data should remain null due to omitted adapter",
@@ -183,10 +191,10 @@ Deno.test("createLibsqlPersistHooks - supports synchronization when embeddingSer
 
   // Confirm parent quad still inserted
   const quadRows = await client.execute("SELECT COUNT(*) as total FROM quads");
-  assertEquals(quadRows.rows[0].total, 1);
+  assert.deepStrictEqual(quadRows.rows[0].total, 1);
 });
 
-Deno.test("createLibsqlPersistHooks - stores object value as fts_value", async () => {
+test("createLibsqlPersistHooks - stores object value as fts_value", async () => {
   const client = createClient({ url: ":memory:" });
   const connection = createTestLibsqlConnectionDriver(client);
   await setupLibsqlSchemaForTest(connection);
@@ -217,16 +225,16 @@ Deno.test("createLibsqlPersistHooks - stores object value as fts_value", async (
   const chunkRows = await client.execute(
     "SELECT value, fts_value FROM chunks",
   );
-  assertEquals(chunkRows.rows.length, 1);
-  assertEquals(chunkRows.rows[0].value, "Lume");
-  assertEquals(
+  assert.deepStrictEqual(chunkRows.rows.length, 1);
+  assert.deepStrictEqual(chunkRows.rows[0].value, "Lume");
+  assert.deepStrictEqual(
     chunkRows.rows[0].fts_value,
     "Lume",
     "fts_value must index the object value only",
   );
 });
 
-Deno.test(
+test(
   "createLibsqlPersistHooks - bulk insertions beyond SQLITE_MAX_VARIABLE_NUMBER do not fail",
   async () => {
     const client = createClient({ url: ":memory:" });
@@ -261,11 +269,11 @@ Deno.test(
     const quadRows = await client.execute(
       "SELECT COUNT(*) as total FROM quads",
     );
-    assertEquals(Number(quadRows.rows[0].total), bulkQuadCount);
+    assert.deepStrictEqual(Number(quadRows.rows[0].total), bulkQuadCount);
   },
 );
 
-Deno.test(
+test(
   "createLibsqlPersistHooks - large bulk insertions flush staged statements without stack overflow",
   async () => {
     const client = createClient({ url: ":memory:" });
@@ -303,11 +311,11 @@ Deno.test(
     const quadRows = await client.execute(
       "SELECT COUNT(*) as total FROM quads",
     );
-    assertEquals(Number(quadRows.rows[0].total), largeBulkQuadCount);
+    assert.deepStrictEqual(Number(quadRows.rows[0].total), largeBulkQuadCount);
   },
 );
 
-Deno.test(
+test(
   "createLibsqlPersistHooks - deferred mode auto-rebuilds at the end of import",
   async () => {
     const client = createClient({ url: ":memory:" });
@@ -342,11 +350,11 @@ Deno.test(
     const chunkRows = await client.execute(
       "SELECT COUNT(*) as total FROM chunks",
     );
-    assertEquals(Number(chunkRows.rows[0].total), 1);
+    assert.deepStrictEqual(Number(chunkRows.rows[0].total), 1);
   },
 );
 
-Deno.test(
+test(
   "createLibsqlPersistHooks - importMode replace wipes prior quads before insert",
   async () => {
     const client = createClient({ url: ":memory:" });
@@ -388,7 +396,7 @@ Deno.test(
     const quadRows = await client.execute(
       "SELECT s FROM quads ORDER BY s ASC",
     );
-    assertEquals(quadRows.rows.length, 1);
-    assertEquals(String(quadRows.rows[0].s), "urn:replace:new");
+    assert.deepStrictEqual(quadRows.rows.length, 1);
+    assert.deepStrictEqual(String(quadRows.rows[0].s), "urn:replace:new");
   },
 );

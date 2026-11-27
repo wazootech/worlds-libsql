@@ -1,4 +1,5 @@
-import { assert, assertStringIncludes } from "@std/assert";
+import assert from "node:assert/strict";
+import { test } from "node:test";
 import type * as rdfjs from "@rdfjs/types";
 import { collectQuadsFromStream } from "@worlds/sdk/quad-store";
 import { runCommitConformanceSuite } from "@worlds/sdk/testing";
@@ -131,7 +132,7 @@ async function createSubject(
   };
 }
 
-Deno.test("LibsqlQuadStore passes the shared commit conformance suite", async () => {
+test("LibsqlQuadStore passes the shared commit conformance suite", async () => {
   const report = await runCommitConformanceSuite({
     contract,
     create: createSubject,
@@ -142,7 +143,7 @@ Deno.test("LibsqlQuadStore passes the shared commit conformance suite", async ()
   assert(report.ok, failures.join("\n"));
 });
 
-Deno.test("failLaterWrite fails a chunk-row statement after the quad inserts in the same batch", async () => {
+test("failLaterWrite fails a chunk-row statement after the quad inserts in the same batch", async () => {
   const subject = await createSubject({
     searchIndexOnImport: "incremental",
     embeddingService: new FakeEmbeddingService(),
@@ -159,7 +160,7 @@ Deno.test("failLaterWrite fails a chunk-row statement after the quad inserts in 
     undefined,
   ).then(() => undefined, (cause: unknown) => cause);
   assert(error instanceof Error, "the commit must reject");
-  assertStringIncludes(String(error.message), "no_such_table");
+  assert.match(String(error.message), /no_such_table/);
   assert(subject.injections.length === 1, "exactly one injection");
   const { statements, failedAt } = subject.injections[0]!;
   const lastQuadInsert = statements.findLastIndex((sql) =>

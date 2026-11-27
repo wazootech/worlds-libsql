@@ -26,3 +26,12 @@ CI runs `deno ci` (a frozen-lockfile install) instead. Then validate with
 CI pins Deno to 2.9.5 as a temporary exception: the floating latest segfaults
 the test process at shutdown (exit 139) under this repo's native libsql
 bindings. Remove the pin once upstream fixes the crash.
+
+## Runtime-neutral tests and benches
+
+Tests use `node:test` and `node:assert/strict` (`rejected()` in
+`src/libsql/libsql-test-fixtures.ts` stands in for `assertRejects`), so the same
+suite runs on Deno (`deno task test`) and Bun (`bun run test:bun`, needs
+`bun install` first; `package.json` and `bun.lock` exist for Bun only until the
+cutover). Benches register through `benchmarks/shared/bench.ts` (mitata) and run
+with `deno run --allow-all benchmarks/<name>.bench.ts` or `bun <same>`.

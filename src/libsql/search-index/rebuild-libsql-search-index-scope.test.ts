@@ -1,4 +1,5 @@
-import { assertEquals } from "@std/assert";
+import assert from "node:assert/strict";
+import { test } from "node:test";
 import { createClient } from "@libsql/client";
 import { DataFactory } from "n3";
 import { FakeEmbeddingService } from "@worlds/sdk/search-index/embedding-service";
@@ -52,11 +53,11 @@ async function seeded() {
     (await client.execute("SELECT value FROM chunks ORDER BY value")).rows.map(
       (row) => String(row.value),
     );
-  assertEquals(await values(), ["alpha", "beta", "gamma"]);
+  assert.deepStrictEqual(await values(), ["alpha", "beta", "gamma"]);
   return { client, options, values };
 }
 
-Deno.test("rebuildLibsqlSearchIndexFromQuads - include scope replaces only in-scope rows", async () => {
+test("rebuildLibsqlSearchIndexFromQuads - include scope replaces only in-scope rows", async () => {
   const { client, options, values } = await seeded();
   await client.execute(
     "UPDATE chunks SET value = 'stale', fts_value = 'stale'",
@@ -68,15 +69,15 @@ Deno.test("rebuildLibsqlSearchIndexFromQuads - include scope replaces only in-sc
     ...options,
     include: { graphs: [GA] },
   });
-  assertEquals(result, { processedQuadCount: 3, chunkRowCount: 2 });
-  assertEquals(
+  assert.deepStrictEqual(result, { processedQuadCount: 3, chunkRowCount: 2 });
+  assert.deepStrictEqual(
     await values(),
     ["alpha", "beta", "orphan", "stale"],
     "graph A rows rewritten; graph B and orphan rows untouched, none cleared",
   );
 });
 
-Deno.test("rebuildLibsqlSearchIndexFromQuads - exclude scope leaves excluded rows alone", async () => {
+test("rebuildLibsqlSearchIndexFromQuads - exclude scope leaves excluded rows alone", async () => {
   const { client, options, values } = await seeded();
   await client.execute(
     "UPDATE chunks SET value = 'stale' WHERE value = 'gamma'",
@@ -85,11 +86,11 @@ Deno.test("rebuildLibsqlSearchIndexFromQuads - exclude scope leaves excluded row
     ...options,
     exclude: { graphs: [GB] },
   });
-  assertEquals(result, { processedQuadCount: 3, chunkRowCount: 2 });
-  assertEquals(await values(), ["alpha", "beta", "stale"]);
+  assert.deepStrictEqual(result, { processedQuadCount: 3, chunkRowCount: 2 });
+  assert.deepStrictEqual(await values(), ["alpha", "beta", "stale"]);
 });
 
-Deno.test("rebuildLibsqlSearchIndexFromQuads - unscoped rebuild clears orphan rows and pages through all quads", async () => {
+test("rebuildLibsqlSearchIndexFromQuads - unscoped rebuild clears orphan rows and pages through all quads", async () => {
   const { client, options, values } = await seeded();
   await client.execute(
     "INSERT INTO chunks (quad_id, subject, predicate, graph, value, fts_value) VALUES ('orphan', 's', 'p', 'g', 'orphan', 'orphan')",
@@ -98,6 +99,6 @@ Deno.test("rebuildLibsqlSearchIndexFromQuads - unscoped rebuild clears orphan ro
     ...options,
     readPageSize: 1,
   });
-  assertEquals(result, { processedQuadCount: 3, chunkRowCount: 3 });
-  assertEquals(await values(), ["alpha", "beta", "gamma"]);
+  assert.deepStrictEqual(result, { processedQuadCount: 3, chunkRowCount: 3 });
+  assert.deepStrictEqual(await values(), ["alpha", "beta", "gamma"]);
 });

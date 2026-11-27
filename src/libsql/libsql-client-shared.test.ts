@@ -1,4 +1,5 @@
-import { assertEquals } from "@std/assert";
+import assert from "node:assert/strict";
+import { test } from "node:test";
 import { createClient } from "@libsql/client";
 import { DataFactory } from "n3";
 
@@ -30,7 +31,7 @@ const libsqlClientFixtures: LibsqlClientFixture[] = [
 ];
 
 for (const fixture of libsqlClientFixtures) {
-  Deno.test(
+  test(
     `${fixture.label} - initializeSchema provisions all quad indexes`,
     async () => {
       const databaseClient = createClient({ url: ":memory:" });
@@ -42,7 +43,7 @@ for (const fixture of libsqlClientFixtures) {
       );
       const indexNames = indexResultSet.rows.map((row) => String(row.name));
       for (const expectedName of expectedIndexNames) {
-        assertEquals(
+        assert.deepStrictEqual(
           indexNames.includes(expectedName),
           true,
           `missing quad index: ${expectedName}`,
@@ -55,7 +56,7 @@ for (const fixture of libsqlClientFixtures) {
     },
   );
 
-  Deno.test(
+  test(
     `${fixture.label} - import persists quads readable via SPARQL`,
     async () => {
       const databaseClient = createClient({ url: ":memory:" });
@@ -82,16 +83,16 @@ for (const fixture of libsqlClientFixtures) {
           `SELECT ?object WHERE { <urn:entity:${fixture.label}> <urn:label> ?object }`,
       });
 
-      assertEquals(sparqlResponse.kind, "select");
+      assert.deepStrictEqual(sparqlResponse.kind, "select");
       if (sparqlResponse.kind === "select") {
-        assertEquals(sparqlResponse.data.results.bindings.length, 1);
+        assert.deepStrictEqual(sparqlResponse.data.results.bindings.length, 1);
       }
 
       databaseClient.close();
     },
   );
 
-  Deno.test(
+  test(
     `${fixture.label} - searchIndexOnImport disabled skips chunks`,
     async () => {
       const databaseClient = createClient({ url: ":memory:" });
@@ -117,18 +118,18 @@ for (const fixture of libsqlClientFixtures) {
       const chunkRows = await databaseClient.execute(
         "SELECT COUNT(*) as total FROM chunks",
       );
-      assertEquals(Number(chunkRows.rows[0].total), 0);
+      assert.deepStrictEqual(Number(chunkRows.rows[0].total), 0);
 
       const searchResponse = await client.search({
         query: "quads without search",
       });
-      assertEquals(searchResponse.results?.length ?? 0, 0);
+      assert.deepStrictEqual(searchResponse.results?.length ?? 0, 0);
 
       databaseClient.close();
     },
   );
 
-  Deno.test(
+  test(
     `${fixture.label} - reindex enables search after disabled import`,
     async () => {
       const databaseClient = createClient({ url: ":memory:" });
@@ -152,11 +153,11 @@ for (const fixture of libsqlClientFixtures) {
       });
 
       const rebuildResponse = await client.reindex();
-      assertEquals(rebuildResponse.processedQuadCount, 1);
-      assertEquals(rebuildResponse.chunkRowCount > 0, true);
+      assert.deepStrictEqual(rebuildResponse.processedQuadCount, 1);
+      assert.deepStrictEqual(rebuildResponse.chunkRowCount > 0, true);
 
       const searchResponse = await client.search({ query: "rebuild search" });
-      assertEquals(searchResponse.results?.length ?? 0, 1);
+      assert.deepStrictEqual(searchResponse.results?.length ?? 0, 1);
 
       databaseClient.close();
     },

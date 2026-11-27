@@ -1,3 +1,4 @@
+import { runBenches } from "./shared/bench.ts";
 import {
   libsqlHexastorePerfBackends,
   preloadSparqlHexastorePerfFixtures,
@@ -19,3 +20,5 @@ registerSparqlHexastorePerfBenchmarks(
   preloadedSparqlEngines,
   libsqlHexastorePerfBackends,
 );
+
+await runBenches();

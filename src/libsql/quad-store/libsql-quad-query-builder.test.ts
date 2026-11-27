@@ -1,4 +1,5 @@
-import { assertEquals } from "@std/assert";
+import assert from "node:assert/strict";
+import { test } from "node:test";
 import { DataFactory } from "n3";
 import {
   buildBulkInsertQuads,
@@ -8,7 +9,7 @@ import {
 
 const { namedNode, literal } = DataFactory;
 
-Deno.test(
+test(
   "buildBulkInsertQuads - chunks rows under SQLite host-parameter budget",
   () => {
     const insertQuadRows = Array.from({ length: 85 }, (_, index) => ({
@@ -27,23 +28,23 @@ Deno.test(
     const statements = buildBulkInsertQuads(
       insertQuadRows,
     );
-    assertEquals(statements.length, 2);
-    assertEquals(
+    assert.deepStrictEqual(statements.length, 2);
+    assert.deepStrictEqual(
       (statements[0].sql.match(/\(\?, \?, \?, \?, \?, \?, \?, \?, \?, \?\)/g) ??
         []).length,
       80,
     );
-    assertEquals(statements[0].args.length, 800);
-    assertEquals(
+    assert.deepStrictEqual(statements[0].args.length, 800);
+    assert.deepStrictEqual(
       (statements[1].sql.match(/\(\?, \?, \?, \?, \?, \?, \?, \?, \?, \?\)/g) ??
         []).length,
       5,
     );
-    assertEquals(statements[1].args.length, 50);
+    assert.deepStrictEqual(statements[1].args.length, 50);
   },
 );
 
-Deno.test(
+test(
   "buildBulkInsertQuads - single row matches buildInsertQuad shape",
   () => {
     const insertQuadRow = {
@@ -66,12 +67,12 @@ Deno.test(
       insertQuadRow,
     );
 
-    assertEquals(bulkStatement.sql, singleStatement.sql);
-    assertEquals(bulkStatement.args, singleStatement.args);
+    assert.deepStrictEqual(bulkStatement.sql, singleStatement.sql);
+    assert.deepStrictEqual(bulkStatement.args, singleStatement.args);
   },
 );
 
-Deno.test(
+test(
   "buildMatchQuadsQuery - exact xsd:string literal seek matches the stored datatype IRI",
   () => {
     const { sql, args } = buildMatchQuadsQuery({
@@ -81,18 +82,18 @@ Deno.test(
       graph: null,
     });
 
-    assertEquals(args[1], "Literal");
-    assertEquals(
+    assert.deepStrictEqual(args[1], "Literal");
+    assert.deepStrictEqual(
       sql.includes(
         "(o_datatype IS NULL OR o_datatype = '' OR o_datatype = 'http://www.w3.org/2001/XMLSchema#string')",
       ),
       true,
     );
-    assertEquals(sql.includes("o_datatype IS NULL"), true);
+    assert.deepStrictEqual(sql.includes("o_datatype IS NULL"), true);
   },
 );
 
-Deno.test(
+test(
   "buildMatchQuadsQuery - exact rdf:langString literal seek matches the stored datatype IRI",
   () => {
     const { sql, args } = buildMatchQuadsQuery({
@@ -102,18 +103,18 @@ Deno.test(
       graph: null,
     });
 
-    assertEquals(args[1], "Literal");
-    assertEquals(
+    assert.deepStrictEqual(args[1], "Literal");
+    assert.deepStrictEqual(
       sql.includes(
         "(o_datatype IS NULL OR o_datatype = '' OR o_datatype = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#langString')",
       ),
       true,
     );
-    assertEquals(sql.includes("o_lang = ?"), true);
+    assert.deepStrictEqual(sql.includes("o_lang = ?"), true);
   },
 );
 
-Deno.test(
+test(
   "buildMatchQuadsQuery - non-string datatype still emits an exact o_datatype seek",
   () => {
     const { sql, args } = buildMatchQuadsQuery({
@@ -126,14 +127,14 @@ Deno.test(
       graph: null,
     });
 
-    assertEquals(
+    assert.deepStrictEqual(
       sql.includes(
         "(o_datatype IS NULL OR o_datatype = '' OR o_datatype = 'http://www.w3.org/2001/XMLSchema#string')",
       ),
       false,
     );
-    assertEquals(sql.includes("o_datatype = ?"), true);
-    assertEquals(
+    assert.deepStrictEqual(sql.includes("o_datatype = ?"), true);
+    assert.deepStrictEqual(
       args.includes("http://www.w3.org/2001/XMLSchema#integer"),
       true,
     );

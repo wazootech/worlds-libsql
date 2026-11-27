@@ -1,3 +1,4 @@
+import { runBenches } from "./shared/bench.ts";
 import { isBenchReuseDbEnabled } from "./shared/perf-db-cache.ts";
 import {
   libsqlHexastorePerfBackends,
@@ -26,3 +27,5 @@ registerSparqlHexastorePerfBenchmarks(
   preloadedSparqlEngines,
   libsqlHexastorePerfBackends,
 );
+
+await runBenches();
